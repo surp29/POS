@@ -169,6 +169,66 @@ def logout(credentials: HTTPAuthorizationCredentials = Security(security)):
         raise HTTPException(status_code=500, detail="Lỗi server khi đăng xuất")
 
 
+
+@router.post("/refresh")
+def refresh_token(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+    db: Session = Depends(get_db),
+):
+    """
+    Cấp token mới từ token còn hiệu lực.
+    Frontend gọi khi user đang active để gia hạn session.
+    Token cũ bị blacklist, token mới TTL đầy đủ.
+    """
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+        )
+        username = payload.get("sub")
+        jti_old  = payload.get("jti")
+        exp_old  = payload.get("exp")
+
+        if not username:
+            raise HTTPException(status_code=401, detail="Token không hợp lệ")
+
+        user = db.query(User).filter(User.username == username).first()
+        if not user or not user.status:
+            raise HTTPException(
+                status_code=401,
+                detail="Tài khoản không tồn tại hoặc đã bị vô hiệu hóa"
+            )
+
+        # Blacklist token cũ
+        if jti_old and exp_old:
+            ttl = max(int(exp_old - datetime.now(timezone.utc).timestamp()), 1)
+            blacklist_token(jti_old, ttl_seconds=ttl)
+
+        # Cấp token mới
+        role      = _resolve_role(user)
+        new_token = create_access_token(
+            data={"sub": user.username, "role": role},
+            expires_delta=timedelta(seconds=TOKEN_TTL),
+        )
+        log_info("REFRESH", f"Token refreshed: {username}")
+        return {
+            "access_token": new_token,
+            "token_type":   "bearer",
+            "expires_in":   TOKEN_TTL,
+        }
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401,
+            detail="Token đã hết hạn, vui lòng đăng nhập lại"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_error("REFRESH", "Lỗi refresh token", error=e)
+        raise HTTPException(status_code=500, detail="Lỗi server khi refresh token")
+
 @router.get("/me", response_model=dict)
 def get_me(current_user: User = Depends(get_current_user)):
     """Thông tin user hiện tại kèm role và permissions."""

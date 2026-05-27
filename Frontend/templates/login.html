@@ -134,6 +134,7 @@
       const loginUsername = data.user?.username || username;
       try {
         sessionStorage.setItem('access_token', data.access_token);
+                    sessionStorage.setItem('token_issued_at', Date.now());
         sessionStorage.setItem('user_id', loginUsername);
         sessionStorage.setItem('username', loginUsername);
       } catch (storageErr) {

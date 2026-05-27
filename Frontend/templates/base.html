@@ -414,7 +414,9 @@
                     sessionStorage.removeItem('chatbot_history');
                     sessionStorage.removeItem('user_permissions');
                     sessionStorage.removeItem('user_is_admin');
+                    sessionStorage.removeItem('token_issued_at');
                     if (typeof resetChatHistory === 'function') resetChatHistory();
+                    if (typeof resetTokenIssuedTime === 'function') resetTokenIssuedTime();
                     closeSwitchAccountModal();
                     if (typeof showSuccessMessage === 'function')
                         showSuccessMessage('Đã chuyển sang: ' + (data.username || username));
@@ -858,6 +860,9 @@
 
     <!-- Permission Guard — phải load TRƯỚC chatbot và sau utils -->
     <script src="{{ url_for('static', filename='js/permissions.js') }}"></script>
+
+    <!-- Session Manager — auto-refresh token, idle logout sau 60 phút -->
+    <script src="{{ url_for('static', filename='js/session_manager.js') }}"></script>
     
     <!-- Chatbot Script -->
     <script>

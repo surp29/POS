@@ -157,7 +157,8 @@ def update_discount_code(
     code_id: int,
     code_data: DiscountCodeUpdate,
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission('discount_codes.edit'))
 ):
     """Cập nhật mã giảm giá"""
     log_info("DISCOUNT_CODES", f"Updating discount code ID: {code_id}")

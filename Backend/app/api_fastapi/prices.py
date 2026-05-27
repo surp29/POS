@@ -51,7 +51,8 @@ def create_price(payload: PriceCreate, db: Session = Depends(get_db),
     return {"success": True, "id": price.id}
 
 @router.put("/{price_id}")
-def update_price(price_id: int, payload: PriceUpdate, request: Request, db: Session = Depends(get_db)):
+def update_price(price_id: int, payload: PriceUpdate, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('prices.edit'))):
     price = db.query(Price).get(price_id)
     if not price:
         raise HTTPException(status_code=404, detail="Không tìm thấy bảng giá")

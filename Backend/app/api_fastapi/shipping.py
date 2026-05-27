@@ -8,10 +8,11 @@ import random, string
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
+from ..permission_middleware import require_permission
 from sqlalchemy import func, desc
 
 from ..database import get_db
-from ..models import Shipment, ShipmentHistory
+from ..models import User, Shipment, ShipmentHistory
 from ..services.auth_helper import get_username_from_request
 from ..logger import log_info, log_success, log_error
 
@@ -124,7 +125,9 @@ def list_shipments(
 
 
 @router.get("/{shipment_id}")
-def get_shipment(shipment_id: int, db: Session = Depends(get_db)):
+def get_shipment(shipment_id: int, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shipping.view'))
+):
     s = db.query(Shipment).get(shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
     hist = db.query(ShipmentHistory).filter(
@@ -148,14 +151,18 @@ def get_shipment(shipment_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/track/{tracking_code}")
-def track_by_code(tracking_code: str, db: Session = Depends(get_db)):
+def track_by_code(tracking_code: str, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shipping.view'))
+):
     s = db.query(Shipment).filter(Shipment.tracking_code == tracking_code).first()
     if not s: raise HTTPException(404, f"Không tìm thấy mã vận đơn: {tracking_code}")
     return get_shipment(s.id, db)
 
 
 @router.post("/")
-def create_shipment(payload: dict, request: Request, db: Session = Depends(get_db)):
+def create_shipment(payload: dict, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shipping.create'))
+):
     username = get_username_from_request(request)
 
     # Tự sinh tracking code
@@ -207,7 +214,9 @@ def create_shipment(payload: dict, request: Request, db: Session = Depends(get_d
 
 
 @router.put("/{shipment_id}/status")
-def update_status(shipment_id: int, payload: dict, request: Request, db: Session = Depends(get_db)):
+def update_status(shipment_id: int, payload: dict, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shipping.update_status'))
+):
     """Cập nhật trạng thái đơn vận chuyển."""
     s = db.query(Shipment).get(shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
@@ -243,7 +252,9 @@ def update_status(shipment_id: int, payload: dict, request: Request, db: Session
 
 
 @router.put("/{shipment_id}")
-def update_shipment(shipment_id: int, payload: dict, request: Request, db: Session = Depends(get_db)):
+def update_shipment(shipment_id: int, payload: dict, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shipping.update_status'))
+):
     """Cập nhật thông tin đơn (shipper, ghi chú...)."""
     s = db.query(Shipment).get(shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
@@ -258,7 +269,9 @@ def update_shipment(shipment_id: int, payload: dict, request: Request, db: Sessi
 
 
 @router.delete("/{shipment_id}")
-def cancel_shipment(shipment_id: int, request: Request, db: Session = Depends(get_db)):
+def cancel_shipment(shipment_id: int, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shipping.cancel'))
+):
     s = db.query(Shipment).get(shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
     if s.status not in ("pending",):

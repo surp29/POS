@@ -65,7 +65,8 @@ def create_product_group(payload: dict, db: Session = Depends(get_db),
 
 
 @router.put("/{group_id}")
-def update_product_group(group_id: int, payload: dict, request: Request, db: Session = Depends(get_db)):
+def update_product_group(group_id: int, payload: dict, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('product_groups.edit'))):
     """Cập nhật nhóm sản phẩm (cập nhật tất cả sản phẩm trong nhóm)"""
     from ..models import User, Product
     

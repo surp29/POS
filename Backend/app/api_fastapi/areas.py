@@ -74,7 +74,8 @@ def create_new_area(area: AreaCreate, db: Session = Depends(get_db),
     return area_dict
 
 @router.put("/{area_id}", response_model=AreaOut)
-def update_existing_area(area_id: int, area: AreaUpdate, request: Request, db: Session = Depends(get_db)):
+def update_existing_area(area_id: int, area: AreaUpdate, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('areas.edit'))):
     db_area = db.query(Area).filter(Area.id == area_id).first()
     if db_area is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Area not found")

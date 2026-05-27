@@ -73,7 +73,8 @@ def create_new_shop(shop: ShopCreate, db: Session = Depends(get_db),
     return shop_dict
 
 @router.put("/{shop_id}", response_model=ShopOut)
-def update_existing_shop(shop_id: int, shop: ShopUpdate, request: Request, db: Session = Depends(get_db)):
+def update_existing_shop(shop_id: int, shop: ShopUpdate, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('shops.edit'))):
     db_shop = db.query(Shop).filter(Shop.id == shop_id).first()
     if db_shop is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found")

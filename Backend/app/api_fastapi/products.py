@@ -168,6 +168,7 @@ async def update_product(
     description: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
+    _: User = Depends(require_permission('products.edit'))
 ):
     p = db.query(Product).get(product_id)
     if not p:

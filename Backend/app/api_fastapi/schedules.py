@@ -94,7 +94,8 @@ def create_schedule(payload: ScheduleCreate, request: Request, db: Session = Dep
 
 
 @router.put("/{schedule_id}", response_model=ScheduleOut)
-def update_schedule(schedule_id: int, payload: ScheduleUpdate, request: Request, db: Session = Depends(get_db)):
+def update_schedule(schedule_id: int, payload: ScheduleUpdate, request: Request, db: Session = Depends(get_db),
+    _: User = Depends(require_permission('schedules.edit'))):
     """Cập nhật lịch làm việc"""
     schedule = db.query(Schedule).filter(Schedule.id == schedule_id).first()
     if not schedule:

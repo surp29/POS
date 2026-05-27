@@ -1,0 +1,1213 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý sản phẩm - PosPos{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-boxes"></i> Quản lý sản phẩm
+{% endblock %}
+
+{% block page_description %}
+Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi tồn kho
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-primary" onclick="openAddProductModal()">
+    <i class="fas fa-plus"></i>
+    Thêm sản phẩm
+	</button>
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-boxes"></i>
+		</div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalProducts">0</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+					</div>
+				</div>
+
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-cubes"></i>
+			</div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalQuantity">0</div>
+            <div class="stat-label">Tổng số lượng</div>
+					</div>
+				</div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+					</div>
+        <div class="stat-content">
+            <div class="stat-number" id="availableProducts">0</div>
+            <div class="stat-label">Còn hàng</div>
+				</div>
+			</div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+					</div>
+        <div class="stat-content">
+            <div class="stat-number" id="outOfStockProducts">0</div>
+            <div class="stat-label">Hết hàng</div>
+				</div>
+						</div>
+					</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Nhóm sản phẩm</label>
+            <select class="form-select" id="productGroupFilter">
+                <option value="">Tất cả nhóm</option>
+            </select>
+				</div>
+        
+				<div class="form-group">
+            <label class="form-label">Mã sản phẩm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="productCodeFilter" placeholder="Nhập mã sản phẩm">
+						</div>
+					</div>
+        
+        <div class="form-group">
+            <label class="form-label">Tên sản phẩm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="productNameFilter" placeholder="Nhập tên sản phẩm">
+				</div>
+        </div>
+        
+				<div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" id="productStatusFilter">
+                <option value="">Tất cả trạng thái</option>
+							<option value="Còn hàng">Còn hàng</option>
+							<option value="Hết hàng">Hết hàng</option>
+						</select>
+					</div>
+        
+			<div class="form-group">
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+			</div>
+	</div>
+</div>
+
+<!-- Products Table -->
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách sản phẩm</h3>
+		</div>
+        <div class="card-body p-0">
+            <table class="table" id="productsTable">
+                <thead>
+                    <tr>
+                        <th>Mã SP</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Nhóm</th>
+                        <th>Giá vốn</th>
+                        <th>Giá bán</th>
+                        <th>Số lượng</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+		</div>
+		</div>
+	</div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal-overlay" id="addProductModal" style="display: none;">
+    <div class="modal modal-horizontal">
+		<div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Thêm sản phẩm mới</h3>
+            <button class="modal-close" onclick="closeAddProductModal()">
+                <i class="fas fa-times"></i>
+            </button>
+		</div>
+		<div class="modal-body">
+            <form id="addProductForm">
+			<div class="form-row">
+				<div class="form-group">
+                        <label class="form-label">
+                            Mã sản phẩm *
+                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector()" title="Chọn từ kho hàng">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </label>
+                        <input type="text" class="form-input" name="code" id="add_product_code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
+		</div>
+                    <div class="form-group">
+                        <label class="form-label">Tên sản phẩm *</label>
+                        <input type="text" class="form-input" name="name" required>
+		</div>
+				<div class="form-group">
+                        <label class="form-label">Nhóm sản phẩm *</label>
+                        <input type="text" class="form-input" name="group" required placeholder="Nhập nhóm sản phẩm">
+	</div>
+</div>
+
+			<div class="form-row">
+				<div class="form-group">
+                        <label class="form-label">Giá vốn</label>
+                        <div class="money-input-container">
+                            <input type="text" id="add_cost_price_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_cost_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="hidden" name="cost_price" id="add_cost_price">
+                            <span class="currency-unit">VNĐ</span>
+					</div>
+				</div>
+				<div class="form-group">
+                        <label class="form-label">Giá bán *</label>
+                        <div class="money-input-container">
+                            <input type="text" id="add_price_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="hidden" name="price" id="add_price">
+                            <span class="currency-unit">VNĐ</span>
+					</div>
+				</div>
+				<div class="form-group">
+                        <label class="form-label">Số lượng *</label>
+                        <input type="number" class="form-input" name="quantity" min="0" required placeholder="0" oninput="enforceNonNegativeNumber(this)" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+			</div>
+				</div>
+                
+			<div class="form-row">
+				<div class="form-group">
+                        <label class="form-label">Đơn vị</label>
+                        <input type="text" class="form-input" name="unit" placeholder="Cái, kg, lít...">
+					</div>
+				<div class="form-group">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm"></textarea>
+				</div>
+			</div>
+            
+            <div class="form-group">
+                <label class="form-label">Hình ảnh sản phẩm</label>
+                <input type="file" id="addProductImage" accept="image/*" onchange="previewImage(this, 'addProductImagePreview')">
+                <div id="addProductImagePreview" class="image-preview"></div>
+            </div>
+            </form>
+					</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddProductModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="addProduct()">Thêm sản phẩm</button>
+				</div>
+					</div>
+				</div>
+
+<!-- Edit Product Modal -->
+<div class="modal-overlay" id="editProductModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h3>
+            <button class="modal-close" onclick="closeEditProductModal()">
+                <i class="fas fa-times"></i>
+            </button>
+			</div>
+        <div class="modal-body">
+            <form id="editProductForm">
+                <input type="hidden" name="id">
+                
+			<div class="form-row">
+				<div class="form-group">
+                        <label class="form-label">
+                            Mã sản phẩm *
+                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector('edit')" title="Chọn từ kho hàng">
+                                <i class="fas fa-list"></i>
+                            </button>
+                        </label>
+                        <input type="text" class="form-input" name="code" id="edit_product_code" required readonly>
+					</div>
+                    <div class="form-group">
+                        <label class="form-label">Tên sản phẩm *</label>
+                        <input type="text" class="form-input" name="name" required>
+				</div>
+				<div class="form-group">
+                        <label class="form-label">Nhóm sản phẩm *</label>
+                        <input type="text" class="form-input" name="group" required placeholder="Nhập nhóm sản phẩm">
+					</div>
+				</div>
+                
+			<div class="form-row">
+				<div class="form-group">
+                        <label class="form-label">Giá vốn</label>
+                        <div class="money-input-container">
+                            <input type="text" id="edit_cost_price_display" class="form-input" readonly>
+                            <input type="hidden" name="cost_price" id="edit_cost_price">
+                            <span class="currency-unit">VNĐ</span>
+					</div>
+				</div>
+				<div class="form-group">
+                        <label class="form-label">Giá bán *</label>
+                        <div class="money-input-container">
+                            <input type="text" id="edit_price_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="hidden" name="price" id="edit_price">
+                            <span class="currency-unit">VNĐ</span>
+						</div>
+					</div>
+                    <div class="form-group">
+                        <label class="form-label">Số lượng *</label>
+                        <input type="number" class="form-input" name="quantity" id="edit_quantity" min="0" required oninput="validateEditProductQuantity(this)" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                        <div id="editQuantityMessage" class="quantity-message" style="display: none;"></div>
+				</div>
+			</div>
+                
+			<div class="form-row">
+				<div class="form-group">
+                        <label class="form-label">Đơn vị</label>
+                        <input type="text" class="form-input" name="unit" placeholder="Cái, kg, lít...">
+				</div>
+				<div class="form-group">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm"></textarea>
+				</div>
+			</div>
+            
+            <div class="form-group">
+                <label class="form-label">Hình ảnh sản phẩm</label>
+                <input type="file" id="editProductImage" accept="image/*" onchange="previewImage(this, 'editProductImagePreview')">
+                <div id="editProductImagePreview" class="image-preview"></div>
+            </div>
+		</form>
+			</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditProductModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="updateProduct()">Cập nhật</button>
+			</div>
+	</div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteProductModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteProductModal()">
+                <i class="fas fa-times"></i>
+					</button>
+				</div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa sản phẩm này không?</p>
+            <p class="text-gray-600">Hành động này không thể hoàn tác.</p>
+</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteProductModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteProduct()">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<!-- Warehouse Product Selector Modal -->
+<div class="modal-overlay" id="warehouseProductSelectorModal" style="display: none;">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3><i class="fas fa-list"></i> Chọn sản phẩm từ kho hàng</h3>
+            <button class="modal-close" onclick="closeWarehouseProductSelector()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="margin-bottom: 1rem;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-input" id="warehouseProductSearch" placeholder="Tìm kiếm theo mã sản phẩm, tên kho...">
+                </div>
+            </div>
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã SP</th>
+                            <th>Tên kho</th>
+                            <th>Giá nhập</th>
+                            <th>Số lượng</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="warehouseProductSelectorBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeWarehouseProductSelector()">Đóng</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Quantity validation message styles */
+.quantity-message {
+    margin-top: var(--spacing-1);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-2);
+    border-radius: var(--radius);
+    border-left: 3px solid;
+    transition: all var(--transition-normal);
+}
+
+.quantity-message.warning {
+    background: var(--warning-50);
+    border-left-color: var(--warning-color);
+    color: var(--warning-700);
+}
+
+.quantity-message.error {
+    background: var(--danger-50);
+    border-left-color: var(--danger-color);
+    color: var(--danger-700);
+}
+
+.quantity-message.info {
+    background: var(--info-50);
+    border-left-color: var(--info-color);
+    color: var(--info-700);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let productsData = [];
+let filteredProducts = [];
+let currentPage = 1;
+const itemsPerPage = 20; // Popup modal: 20 items per page
+let deleteProductId = null;
+let warehouseDataForProducts = [];
+let warehouseCodeToItem = {};
+let currentProductFormMode = 'add'; // 'add' or 'edit'
+let filteredWarehouseForSelector = [];
+let editProductWarehouseQuantity = 0; // Store max quantity from warehouse for edit modal
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadProductsData();
+    loadWarehouseDataForProducts();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Filter inputs
+    document.getElementById('productGroupFilter').addEventListener('change', filterProducts);
+    document.getElementById('productCodeFilter').addEventListener('input', debounce(filterProducts, 300));
+    document.getElementById('productNameFilter').addEventListener('input', debounce(filterProducts, 300));
+    document.getElementById('productStatusFilter').addEventListener('change', filterProducts);
+}
+
+// Load products data
+async function loadProductsData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/products/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (response.ok) {
+            const result = await response.json();
+            productsData = result.products || [];
+            filteredProducts = [...productsData];
+            
+            // Populate group filter
+            populateGroupFilter();
+            
+            updateStatistics();
+            updateProductsTable();
+            updatePagination();
+        } else {
+            console.error('Failed to load products');
+        }
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
+}
+
+// Populate group filter dropdown
+function populateGroupFilter() {
+    const groupFilter = document.getElementById('productGroupFilter');
+    const groups = new Set();
+    
+    productsData.forEach(product => {
+        if (product.nhom_sp) {
+            groups.add(product.nhom_sp);
+        }
+    });
+    
+    // Clear existing options except "Tất cả nhóm"
+    groupFilter.innerHTML = '<option value="">Tất cả nhóm</option>';
+    
+    // Add group options
+    groups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group;
+        option.textContent = group;
+        groupFilter.appendChild(option);
+    });
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalProducts = productsData.length;
+    const totalQuantity = productsData.reduce((sum, product) => sum + (product.so_luong || 0), 0);
+    const availableProducts = productsData.filter(p => (p.so_luong || 0) > 0).length;
+    const outOfStockProducts = productsData.filter(p => (p.so_luong || 0) <= 0).length;
+    
+    document.getElementById('totalProducts').textContent = totalProducts;
+    document.getElementById('totalQuantity').textContent = totalQuantity;
+    document.getElementById('availableProducts').textContent = availableProducts;
+    document.getElementById('outOfStockProducts').textContent = outOfStockProducts;
+}
+
+// Filter products
+function filterProducts() {
+    const groupFilter = document.getElementById('productGroupFilter').value;
+    const codeFilter = document.getElementById('productCodeFilter').value.toLowerCase();
+    const nameFilter = document.getElementById('productNameFilter').value.toLowerCase();
+    const statusFilter = document.getElementById('productStatusFilter').value;
+    
+    filteredProducts = productsData.filter(product => {
+        const matchesGroup = !groupFilter || product.nhom_sp === groupFilter;
+        const matchesCode = !codeFilter || (product.ma_sp && product.ma_sp.toLowerCase().includes(codeFilter));
+        const matchesName = !nameFilter || (product.ten_sp && product.ten_sp.toLowerCase().includes(nameFilter));
+        const matchesStatus = !statusFilter || 
+            (statusFilter === 'Còn hàng' && (product.so_luong || 0) > 0) ||
+            (statusFilter === 'Hết hàng' && (product.so_luong || 0) <= 0);
+        
+        return matchesGroup && matchesCode && matchesName && matchesStatus;
+    });
+    
+    currentPage = 1;
+    updateProductsTable();
+    updatePagination();
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('productGroupFilter').value = '';
+    document.getElementById('productCodeFilter').value = '';
+    document.getElementById('productNameFilter').value = '';
+    document.getElementById('productStatusFilter').value = '';
+    
+    filteredProducts = [...productsData];
+    currentPage = 1;
+    updateProductsTable();
+    updatePagination();
+}
+
+// Update products table
+function updateProductsTable() {
+    const tbody = document.getElementById('productsTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageProducts = filteredProducts.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pageProducts.map(product => `
+        <tr>
+            <td><strong>${product.ma_sp || 'N/A'}</strong></td>
+            <td>${product.ten_sp || 'N/A'}</td>
+            <td><span class="badge badge-info">${product.nhom_sp || 'N/A'}</span></td>
+            <td>${formatCurrency(product.gia_von)}</td>
+            <td>${formatCurrency(product.gia_ban)}</td>
+            <td>${product.so_luong || 0}</td>
+            <td>${getStatusBadge(product.so_luong)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="editProduct(${product.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update pagination
+function updatePagination() {
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateProductsTable();
+        updatePagination();
+    }
+}
+
+// Modal functions
+function openAddProductModal() {
+    const modal = document.getElementById('addProductModal');
+    const form = document.getElementById('addProductForm');
+    
+    modal.style.display = 'flex';
+    form.reset();
+    
+    // Set default values for money inputs
+    document.getElementById('add_cost_price_display').value = '0';
+    document.getElementById('add_cost_price').value = '0';
+    document.getElementById('add_price_display').value = '0';
+    document.getElementById('add_price').value = '0';
+    document.querySelector('input[name="quantity"]').value = '0';
+    
+    // Store initial state
+    storeModalState('addProductModal', form);
+}
+
+function closeAddProductModal() {
+    closeModalWithConfirmation('addProductModal', function() {
+	document.getElementById('addProductForm').reset();
+        document.getElementById('add_cost_price_display').value = '0';
+        document.getElementById('add_cost_price').value = '0';
+        document.getElementById('add_price_display').value = '0';
+        document.getElementById('add_price').value = '0';
+        document.querySelector('input[name="quantity"]').value = '0';
+    });
+}
+
+function openEditProductModal() {
+    document.getElementById('editProductModal').style.display = 'flex';
+}
+
+function closeEditProductModal() {
+    closeModalWithConfirmation('editProductModal');
+}
+
+function openDeleteProductModal() {
+    document.getElementById('deleteProductModal').style.display = 'flex';
+}
+
+function closeDeleteProductModal() {
+    document.getElementById('deleteProductModal').style.display = 'none';
+    deleteProductId = null;
+}
+
+// Product CRUD operations
+async function addProduct() {
+    const form = document.getElementById('addProductForm');
+    const formData = new FormData(form);
+    
+    // Get values from hidden inputs for money fields
+    const costPrice = parseInt(document.getElementById('add_cost_price').value || '0');
+    const price = parseInt(document.getElementById('add_price').value || '0');
+    
+    // Validation: Giá vốn phải nhỏ hơn giá bán
+    if (costPrice >= price) {
+        showErrorMessage('Giá vốn phải nhỏ hơn giá bán!');
+        return;
+    }
+    
+    // Add money values to FormData
+    formData.append('cost_price', costPrice);
+    formData.append('price', price);
+    
+    // Handle image upload
+    const imageInput = document.getElementById('addProductImage');
+    if (imageInput && imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
+    }
+    
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/products/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: formData
+        });
+        
+        if (response.ok) {
+            document.getElementById('addProductModal').style.display = 'none';
+            clearModalState('addProductModal');
+            loadProductsData();
+            showSuccessMessage('Thêm sản phẩm thành công!');
+	} else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi thêm sản phẩm');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi thêm sản phẩm');
+    }
+}
+
+function editProduct(id) {
+    const product = productsData.find(p => p.id === id);
+    if (product) {
+	const form = document.getElementById('editProductForm');
+        form.querySelector('input[name="id"]').value = product.id;
+        
+        // Mã sản phẩm và giá vốn là readonly (dựa vào warehouse)
+        const codeInput = form.querySelector('input[name="code"]');
+        codeInput.value = product.ma_sp || '';
+        codeInput.readOnly = true;
+        
+        form.querySelector('input[name="name"]').value = product.ten_sp || '';
+        form.querySelector('input[name="group"]').value = product.nhom_sp || '';
+        
+        // Set money values - giá vốn là readonly
+        const costPrice = product.gia_von || 0;
+        const price = product.gia_ban || 0;
+        document.getElementById('edit_cost_price').value = costPrice;
+        document.getElementById('edit_cost_price_display').value = costPrice.toLocaleString();
+        document.getElementById('edit_cost_price_display').readOnly = true;
+        
+        document.getElementById('edit_price').value = price;
+        document.getElementById('edit_price_display').value = price.toLocaleString();
+        
+        // Get warehouse quantity for this product code
+        const productCode = product.ma_sp || '';
+        editProductWarehouseQuantity = 0;
+        if (productCode && warehouseDataForProducts.length > 0) {
+            // Find all warehouse entries for this product code and sum quantities
+            const warehouseItems = warehouseDataForProducts.filter(w => w.ma_sp === productCode);
+            editProductWarehouseQuantity = warehouseItems.reduce((sum, item) => sum + (item.so_luong || 0), 0);
+        }
+        
+        const quantityInput = form.querySelector('input[name="quantity"]');
+        quantityInput.value = product.so_luong || 0;
+        
+        // Reset quantity message
+        const quantityMessage = document.getElementById('editQuantityMessage');
+        if (quantityMessage) {
+            quantityMessage.style.display = 'none';
+        }
+        
+        // Validate quantity on load
+        if (quantityInput && editProductWarehouseQuantity > 0) {
+            validateEditProductQuantity(quantityInput);
+        }
+        
+        form.querySelector('input[name="unit"]').value = product.don_vi || '';
+        form.querySelector('textarea[name="description"]').value = product.mo_ta || '';
+        
+        // Show existing product image if available
+        if (product.image_url) {
+            const preview = document.getElementById('editProductImagePreview');
+            preview.innerHTML = `<img src="${backendAssetUrl(product.image_url)}" alt="Product Image" onerror="this.src='/static/images/products/default.png'">`;
+        } else {
+            document.getElementById('editProductImagePreview').innerHTML = '';
+        }
+        
+        // Clear file input to reset it
+        document.getElementById('editProductImage').value = '';
+        
+        // Store initial state for edit modal
+        storeModalState('editProductModal', form);
+        
+        openEditProductModal();
+    }
+}
+
+async function updateProduct() {
+    const form = document.getElementById('editProductForm');
+    const formData = new FormData(form);
+    
+    const id = formData.get('id');
+    
+    // Get values from hidden inputs for money fields
+    const costPrice = parseInt(document.getElementById('edit_cost_price').value || '0');
+    const price = parseInt(document.getElementById('edit_price').value || '0');
+    const quantity = parseInt(formData.get('quantity') || '0');
+    
+    // Validation: Giá vốn phải nhỏ hơn giá bán
+    if (costPrice >= price) {
+        showErrorMessage('Giá vốn phải nhỏ hơn giá bán!');
+        return;
+    }
+    
+    // Validation: Số lượng không được vượt quá tồn kho
+    if (editProductWarehouseQuantity > 0 && quantity > editProductWarehouseQuantity) {
+        showErrorMessage(`Số lượng không được vượt quá tồn kho! Tồn kho hiện có: ${editProductWarehouseQuantity.toLocaleString()} sản phẩm.`);
+        return;
+    }
+    
+    // Add money values to FormData
+    formData.append('cost_price', costPrice);
+    formData.append('price', price);
+    
+    // Handle image upload
+    const imageInput = document.getElementById('editProductImage');
+    if (imageInput && imageInput.files.length > 0) {
+        formData.append('image', imageInput.files[0]);
+    }
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/products/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: formData
+        });
+        
+        if (response.ok) {
+            document.getElementById('editProductModal').style.display = 'none';
+            clearModalState('editProductModal');
+            loadProductsData();
+            showSuccessMessage('Cập nhật sản phẩm thành công!');
+		} else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi cập nhật sản phẩm');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi cập nhật sản phẩm');
+    }
+}
+
+function deleteProduct(id) {
+    deleteProductId = id;
+    openDeleteProductModal();
+}
+
+async function confirmDeleteProduct() {
+    if (!deleteProductId) return;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/products/${deleteProductId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            closeDeleteProductModal();
+            loadProductsData();
+            showSuccessMessage('Xóa sản phẩm thành công!');
+		} else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi xóa sản phẩm');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa sản phẩm');
+    }
+}
+
+// Utility functions
+function formatCurrency(amount) {
+    if (!amount) return '0 VNĐ';
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount);
+}
+
+function getStatusBadge(quantity) {
+    if (quantity > 0) {
+        return '<span class="badge badge-success">Còn hàng</span>';
+	} else {
+        return '<span class="badge badge-danger">Hết hàng</span>';
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+
+// Load warehouse data for auto-fill
+async function loadWarehouseDataForProducts() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            warehouseDataForProducts = await response.json();
+            filteredWarehouseForSelector = [...warehouseDataForProducts];
+            warehouseCodeToItem = {};
+            warehouseDataForProducts.forEach(item => {
+                if (item && item.ma_sp) {
+                    warehouseCodeToItem[String(item.ma_sp).toLowerCase()] = item;
+                }
+            });
+            return Promise.resolve();
+        }
+    } catch (e) {
+        console.error('Error loading warehouse for products:', e);
+        return Promise.reject(e);
+    }
+}
+
+// Debounced populate helper
+function debouncedTryPopulateFromWarehouse(code) {
+    if (!window._debouncedPopulateFromWH) {
+        window._debouncedPopulateFromWH = debounce((c) => tryPopulateProductFromWarehouse(c), 300);
+    }
+    window._debouncedPopulateFromWH(code);
+}
+
+// Try populate fields from warehouse by code
+function tryPopulateProductFromWarehouse(code) {
+    const productCode = (code || '').trim().toLowerCase();
+    if (!productCode) return;
+    if (!warehouseDataForProducts || warehouseDataForProducts.length === 0) return;
+    const item = warehouseCodeToItem[productCode] || warehouseDataForProducts.find(x => (x.ma_sp || '').toLowerCase() === productCode);
+    if (!item) return;
+
+    // Add modal fields
+    const addForm = document.getElementById('addProductForm');
+    if (addForm && document.getElementById('addProductModal').style.display === 'flex') {
+        const nameInput = addForm.querySelector('input[name="name"]');
+        const groupInput = addForm.querySelector('input[name="group"]');
+        const qtyInput = addForm.querySelector('input[name="quantity"]');
+        const costHidden = document.getElementById('add_cost_price');
+        const costDisplay = document.getElementById('add_cost_price_display');
+        if (nameInput) nameInput.value = item.ten_sp || '';
+        if (groupInput && item.nhom_san_pham) groupInput.value = item.nhom_san_pham;
+        if (typeof item.so_luong === 'number' && qtyInput) qtyInput.value = item.so_luong;
+        if (typeof item.gia_nhap === 'number' && costHidden && costDisplay) {
+            costHidden.value = item.gia_nhap;
+            costDisplay.value = (item.gia_nhap || 0).toLocaleString();
+        }
+    }
+
+    // Edit modal fields
+    const editForm = document.getElementById('editProductForm');
+    if (editForm && document.getElementById('editProductModal').style.display === 'flex') {
+        const nameInputE = editForm.querySelector('input[name="name"]');
+        const groupInputE = editForm.querySelector('input[name="group"]');
+        const qtyInputE = editForm.querySelector('input[name="quantity"]');
+        const costHiddenE = document.getElementById('edit_cost_price');
+        const costDisplayE = document.getElementById('edit_cost_price_display');
+        if (nameInputE) nameInputE.value = item.ten_sp || '';
+        if (groupInputE && item.nhom_san_pham) groupInputE.value = item.nhom_san_pham;
+        if (typeof item.so_luong === 'number' && qtyInputE) qtyInputE.value = item.so_luong;
+        if (typeof item.gia_nhap === 'number' && costHiddenE && costDisplayE) {
+            costHiddenE.value = item.gia_nhap;
+            costDisplayE.value = (item.gia_nhap || 0).toLocaleString();
+        }
+    }
+}
+
+// Money formatting function
+function formatMoneyTyping(sourceInput, hiddenInput) {
+    const raw = (sourceInput.value || '').replace(/[^0-9]/g, '');
+    if (!raw) {
+        sourceInput.value = '';
+        if (hiddenInput) hiddenInput.value = '0';
+		return;
+	}
+    if (hiddenInput) hiddenInput.value = raw;
+    sourceInput.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+// Enforce non-negative numbers (allow 0)
+function enforceNonNegativeNumber(input) {
+    if (input.value < 0) {
+        input.value = 0;
+    }
+}
+
+// Clear zero on focus for money inputs and quantity
+function clearZeroOnFocus(input) {
+    if (input.value === '0' || input.value === '0,000') {
+        input.value = '';
+    }
+}
+
+// Restore zero if empty on blur
+function restoreZeroIfEmpty(input) {
+    if (input.value === '' || input.value === '0') {
+        input.value = '0';
+        // Update hidden input
+        const hiddenInput = input.id.includes('add_') ? 
+            document.getElementById(input.id.replace('_display', '')) :
+            document.getElementById(input.id.replace('_display', ''));
+        if (hiddenInput) {
+            hiddenInput.value = '0';
+        }
+    }
+}
+
+// Preview image
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.innerHTML = '';
+    }
+}
+
+// Warehouse Product Selector Functions
+function openWarehouseProductSelector(mode = 'add') {
+    currentProductFormMode = mode;
+    const modal = document.getElementById('warehouseProductSelectorModal');
+    modal.style.display = 'flex';
+    
+    // Load warehouse data if not loaded
+    if (warehouseDataForProducts.length === 0) {
+        loadWarehouseDataForProducts().then(() => {
+            updateWarehouseProductSelectorTable();
+        });
+    } else {
+        updateWarehouseProductSelectorTable();
+    }
+    
+    // Setup search - remove old listener first
+    const searchInput = document.getElementById('warehouseProductSearch');
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    newSearchInput.value = '';
+    newSearchInput.addEventListener('input', debounce(filterWarehouseProducts, 300));
+}
+
+function closeWarehouseProductSelector() {
+    document.getElementById('warehouseProductSelectorModal').style.display = 'none';
+    document.getElementById('warehouseProductSearch').value = '';
+}
+
+function filterWarehouseProducts() {
+    const searchTerm = document.getElementById('warehouseProductSearch').value.toLowerCase();
+    
+    filteredWarehouseForSelector = warehouseDataForProducts.filter(item => {
+        const matchesCode = !searchTerm || (item.ma_sp && item.ma_sp.toLowerCase().includes(searchTerm));
+        const matchesWarehouse = !searchTerm || (item.ten_kho && item.ten_kho.toLowerCase().includes(searchTerm));
+        return matchesCode || matchesWarehouse;
+    });
+    
+    updateWarehouseProductSelectorTable();
+}
+
+function updateWarehouseProductSelectorTable() {
+    const tbody = document.getElementById('warehouseProductSelectorBody');
+    
+    const dataToShow = filteredWarehouseForSelector.length > 0 ? filteredWarehouseForSelector : warehouseDataForProducts;
+    
+    if (dataToShow.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Không có dữ liệu kho hàng</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = dataToShow.map(item => `
+        <tr>
+            <td><strong>${item.ma_sp || '-'}</strong></td>
+            <td>${item.ten_kho || '-'}</td>
+            <td>${(item.gia_nhap || 0).toLocaleString()} VNĐ</td>
+            <td>${(item.so_luong || 0).toLocaleString()}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="selectWarehouseProduct('${item.ma_sp}', ${item.gia_nhap || 0}, '${(item.ten_sp || '').replace(/'/g, "\\'")}', '${(item.nhom_san_pham || '').replace(/'/g, "\\'")}', ${item.so_luong || 0})">
+                    <i class="fas fa-check"></i> Chọn
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function selectWarehouseProduct(code, giaNhap, tenSp, nhomSp, soLuong) {
+    if (currentProductFormMode === 'add') {
+        // Fill add form
+        const codeInput = document.getElementById('add_product_code');
+        const costHidden = document.getElementById('add_cost_price');
+        const costDisplay = document.getElementById('add_cost_price_display');
+        const nameInput = document.getElementById('addProductForm').querySelector('input[name="name"]');
+        const groupInput = document.getElementById('addProductForm').querySelector('input[name="group"]');
+        const qtyInput = document.getElementById('addProductForm').querySelector('input[name="quantity"]');
+        
+        if (codeInput) codeInput.value = code;
+        if (costHidden && costDisplay) {
+            costHidden.value = giaNhap;
+            costDisplay.value = giaNhap.toLocaleString();
+        }
+        if (nameInput && tenSp) nameInput.value = tenSp;
+        if (groupInput && nhomSp) groupInput.value = nhomSp;
+        if (qtyInput && soLuong) qtyInput.value = soLuong;
+    } else {
+        // Fill edit form - chỉ cập nhật nếu chưa có giá trị
+        const codeInput = document.getElementById('edit_product_code');
+        const costHidden = document.getElementById('edit_cost_price');
+        const costDisplay = document.getElementById('edit_cost_price_display');
+        const nameInput = document.getElementById('editProductForm').querySelector('input[name="name"]');
+        const groupInput = document.getElementById('editProductForm').querySelector('input[name="group"]');
+        const qtyInput = document.getElementById('editProductForm').querySelector('input[name="quantity"]');
+        
+        // Mã sản phẩm và giá vốn chỉ set nếu chưa có giá trị (readonly)
+        if (codeInput && !codeInput.value) {
+            codeInput.value = code;
+        }
+        if (costHidden && costDisplay && !costHidden.value) {
+            costHidden.value = giaNhap;
+            costDisplay.value = giaNhap.toLocaleString();
+        }
+        if (nameInput && tenSp) nameInput.value = tenSp;
+        if (groupInput && nhomSp) groupInput.value = nhomSp;
+        
+        // Update warehouse quantity limit
+        if (code) {
+            const warehouseItems = warehouseDataForProducts.filter(w => w.ma_sp === code);
+            editProductWarehouseQuantity = warehouseItems.reduce((sum, item) => sum + (item.so_luong || 0), 0);
+        }
+        
+        // Validate quantity after updating warehouse limit
+        if (qtyInput) {
+            validateEditProductQuantity(qtyInput);
+        }
+    }
+    
+    // Close modal
+    closeWarehouseProductSelector();
+    showSuccessMessage('Đã chọn sản phẩm từ kho hàng!');
+}
+
+// Validate product quantity against warehouse quantity
+function validateEditProductQuantity(input) {
+    const quantity = parseInt(input.value) || 0;
+    const messageDiv = document.getElementById('editQuantityMessage');
+    
+    if (!messageDiv) return;
+    
+    // If no warehouse data or warehouse quantity is 0, allow any quantity
+    if (editProductWarehouseQuantity === 0) {
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    if (quantity <= 0) {
+        messageDiv.style.display = 'none';
+        return;
+    }
+    
+    if (quantity > editProductWarehouseQuantity) {
+        messageDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            Số lượng vượt quá tồn kho! Tồn kho hiện có: ${editProductWarehouseQuantity.toLocaleString()} sản phẩm.
+            <button type="button" onclick="setMaxEditProductQuantity()" style="margin-left: 8px; padding: 2px 8px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                Đặt tối đa
+            </button>
+        `;
+        messageDiv.className = 'quantity-message error';
+        messageDiv.style.display = 'block';
+        
+        // Auto-adjust to max available
+        input.value = editProductWarehouseQuantity;
+    } else if (quantity === editProductWarehouseQuantity) {
+        messageDiv.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            Đang sử dụng toàn bộ tồn kho (${editProductWarehouseQuantity.toLocaleString()} sản phẩm)
+        `;
+        messageDiv.className = 'quantity-message warning';
+        messageDiv.style.display = 'block';
+    } else {
+        const remaining = editProductWarehouseQuantity - quantity;
+        messageDiv.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            Còn lại ${remaining.toLocaleString()} sản phẩm trong kho
+        `;
+        messageDiv.className = 'quantity-message info';
+        messageDiv.style.display = 'block';
+    }
+}
+
+// Set quantity to maximum available from warehouse
+function setMaxEditProductQuantity() {
+    if (editProductWarehouseQuantity > 0) {
+        const quantityInput = document.getElementById('edit_quantity');
+        if (quantityInput) {
+            quantityInput.value = editProductWarehouseQuantity;
+            validateEditProductQuantity(quantityInput);
+        }
+    }
+}
+</script>
+{% endblock %}

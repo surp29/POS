@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý nhóm sản phẩm - PosPos{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-layer-group"></i> Quản lý nhóm sản phẩm
+{% endblock %}
+
+{% block page_description %}
+Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng từng nhóm
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-layer-group"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalGroups">0</div>
+            <div class="stat-label">Tổng nhóm</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalQuantity">0</div>
+            <div class="stat-label">Tổng số lượng</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="avgQuantity">0</div>
+            <div class="stat-label">Số lượng TB</div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Tìm kiếm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="searchGroup" placeholder="Tìm theo tên nhóm sản phẩm...">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+  </div>
+</div>
+</div>
+
+<!-- Groups Table -->
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách nhóm sản phẩm</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="groupsTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Nhóm sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th class="action-column">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="groupsTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteGroupModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteGroupModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa nhóm sản phẩm "<strong id="deleteGroupNameDisplay"></strong>" không?</p>
+            <p class="text-gray-600">Hành động này sẽ xóa tất cả sản phẩm trong nhóm này và không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteGroupModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteGroup()">Xóa</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+/* Table column sizing */
+.action-column {
+    width: 80px !important;
+    min-width: 80px;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.table th.action-column {
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .action-column {
+        width: 60px !important;
+        min-width: 60px;
+    }
+    
+    .table th.action-column {
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-1);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let groupsData = [];
+let filteredGroups = [];
+let currentPage = 1;
+const itemsPerPage = 20; // Popup modal: 20 items per page
+let deleteGroupName = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadGroupsData();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Filter inputs
+    document.getElementById('searchGroup').addEventListener('input', debounce(filterGroups, 300));
+}
+
+// Load groups data
+async function loadGroupsData() {
+    try {
+        // Load products data first to aggregate groups
+        const productsResponse = await fetch('{{ BACKEND_URL }}/api/products/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (productsResponse.ok) {
+            const productsResult = await productsResponse.json();
+            const products = productsResult.products || [];
+            
+            // Aggregate products by group
+            const groupMap = new Map();
+            
+            products.forEach(product => {
+                const groupName = product.nhom_sp || 'Không xác định';
+                
+                if (!groupMap.has(groupName)) {
+                    groupMap.set(groupName, {
+                        ten_nhom: groupName,
+                        so_luong: 0,
+                        id: null
+                    });
+                }
+                
+                const group = groupMap.get(groupName);
+                group.so_luong += product.so_luong || 0;
+            });
+            
+            // Convert map to array
+            groupsData = Array.from(groupMap.values());
+            filteredGroups = [...groupsData];
+            
+            updateStatistics();
+            updateGroupsTable();
+            updatePagination();
+        } else {
+            console.error('Failed to load products');
+        }
+    } catch (error) {
+        console.error('Error loading groups:', error);
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalGroups = groupsData.length;
+    const totalQuantity = groupsData.reduce((sum, group) => sum + (group.so_luong || 0), 0);
+    const avgQuantity = totalGroups > 0 ? Math.round(totalQuantity / totalGroups) : 0;
+    
+    document.getElementById('totalGroups').textContent = totalGroups;
+    document.getElementById('totalQuantity').textContent = totalQuantity.toLocaleString();
+    document.getElementById('avgQuantity').textContent = avgQuantity.toLocaleString();
+}
+
+// Filter groups
+function filterGroups() {
+    const searchTerm = document.getElementById('searchGroup').value.toLowerCase();
+    
+    filteredGroups = groupsData.filter(group => {
+        const matchesSearch = !searchTerm || 
+                             (group.ten_nhom && group.ten_nhom.toLowerCase().includes(searchTerm));
+        
+        return matchesSearch;
+    });
+    
+    currentPage = 1;
+    updateGroupsTable();
+    updatePagination();
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('searchGroup').value = '';
+    
+    filteredGroups = [...groupsData];
+    currentPage = 1;
+    updateGroupsTable();
+    updatePagination();
+}
+
+// Update groups table
+function updateGroupsTable() {
+    const tbody = document.getElementById('groupsTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageGroups = filteredGroups.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pageGroups.map((group, index) => `
+        <tr>
+            <td>${startIndex + index + 1}</td>
+            <td><strong>${group.ten_nhom || '-'}</strong></td>
+            <td><span class="badge badge-info">${(group.so_luong || 0).toLocaleString()}</span></td>
+            <td class="action-column">
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-danger" onclick="deleteGroup('${group.ten_nhom}', ${group.so_luong || 0})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update pagination
+function updatePagination() {
+    const totalPages = Math.ceil(filteredGroups.length / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredGroups.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateGroupsTable();
+        updatePagination();
+    }
+}
+
+
+function deleteGroup(groupName, productCount) {
+    if (productCount > 0) {
+        showErrorMessage(`Không thể xóa nhóm sản phẩm này vì còn ${productCount} sản phẩm trong kho!`);
+        return;
+    }
+    
+    deleteGroupName = groupName;
+    document.getElementById('deleteGroupNameDisplay').textContent = groupName;
+    document.getElementById('deleteGroupModal').style.display = 'flex';
+}
+
+function closeDeleteGroupModal() {
+    document.getElementById('deleteGroupModal').style.display = 'none';
+    deleteGroupName = null;
+}
+
+async function confirmDeleteGroup() {
+    if (!deleteGroupName) return;
+    
+    try {
+        // First, get all products in this group
+        const productsResponse = await fetch('{{ BACKEND_URL }}/api/products/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (productsResponse.ok) {
+            const productsResult = await productsResponse.json();
+            const products = productsResult.products || [];
+            const productsInGroup = products.filter(p => p.nhom_sp === deleteGroupName);
+            
+            // Delete all products in this group
+            let deletePromises = productsInGroup.map(product => 
+                fetch(`{{ BACKEND_URL }}/api/products/${product.id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    }
+                })
+            );
+            
+            const results = await Promise.all(deletePromises);
+            const allSuccessful = results.every(response => response.ok);
+            
+            if (allSuccessful) {
+                document.getElementById('deleteGroupModal').style.display = 'none';
+                clearModalState('deleteGroupModal');
+                loadGroupsData(); // Reload to reflect changes
+                showSuccessMessage(`Xóa nhóm "${deleteGroupName}" và ${productsInGroup.length} sản phẩm thành công!`);
+            } else {
+                showErrorMessage('Có lỗi xảy ra khi xóa một số sản phẩm trong nhóm');
+            }
+        } else {
+            showErrorMessage('Không thể tải danh sách sản phẩm');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa nhóm sản phẩm');
+        console.error('Error deleting group:', error);
+    }
+}
+
+// Utility functions
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+</script>
+{% endblock %}

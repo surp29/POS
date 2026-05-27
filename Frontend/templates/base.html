@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}PosPos{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/phone.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="appSidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-calculator"></i> <span class="sidebar-header-text">PosPos</span></h2>
+        </div>
+
+        <nav class="sidebar-nav">
+        <ul>
+            <li data-perm="pos">
+                <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['pos','discount_codes'] %}active{% endif %}" data-dropdown="sales">
+                    <i class="fas fa-cash-register"></i> Bán hàng
+                    <i class="fas fa-chevron-down" style="margin-left:auto;font-size:12px;"></i>
+                </a>
+                <ul class="dropdown-container" {% if request.endpoint in ['pos','discount_codes'] %}style="display:block;"{% endif %}>
+                    <li><a href="{{ url_for('pos') }}" {% if request.endpoint == 'pos' %}class="active"{% endif %}>POS</a></li>
+                    <li data-perm="discount_codes"><a href="{{ url_for('discount_codes') }}" {% if request.endpoint == 'discount_codes' %}class="active"{% endif %}>Mã giảm giá</a></li>
+                </ul>
+            </li>
+            <li data-perm="general_diary">
+                <a href="{{ url_for('general_diary') }}" {% if request.endpoint == 'general_diary' %}class="active"{% endif %}>
+                    <i class="fas fa-book"></i> Nhật ký chung
+                </a>
+            </li>
+            <li data-perm="products">
+                <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['products','product_groups','prices'] %}active{% endif %}" data-dropdown="products">
+                    <i class="fas fa-box"></i> Quản lý sản phẩm
+                    <i class="fas fa-chevron-down" style="margin-left:auto;font-size:12px;"></i>
+                </a>
+                <ul class="dropdown-container" {% if request.endpoint in ['products','product_groups','prices'] %}style="display:block;"{% endif %}>
+                    <li><a href="{{ url_for('products') }}" {% if request.endpoint == 'products' %}class="active"{% endif %}>Sản phẩm</a></li>
+                    <li><a href="{{ url_for('product_groups') }}" {% if request.endpoint == 'product_groups' %}class="active"{% endif %}>Nhóm sản phẩm</a></li>
+                    <li data-perm="prices"><a href="{{ url_for('prices') }}" {% if request.endpoint == 'prices' %}class="active"{% endif %}>Bảng giá</a></li>
+                </ul>
+            </li>
+            <li data-perm="orders">
+                <a href="{{ url_for('orders') }}" {% if request.endpoint == 'orders' %}class="active"{% endif %}>
+                    <i class="fas fa-shopping-cart"></i> Đơn hàng
+                </a>
+            </li>
+            <li data-perm="invoices">
+                <a href="{{ url_for('invoices') }}" {% if request.endpoint == 'invoices' %}class="active"{% endif %}>
+                    <i class="fas fa-file-invoice"></i> Hóa đơn
+                </a>
+            </li>
+            <li data-perm="shipping">
+                <a href="{{ url_for('shipping') }}" {% if request.endpoint == 'shipping' %}class="active"{% endif %}>
+                    <i class="fas fa-truck"></i> Vận chuyển
+                </a>
+            </li>
+            <li data-perm="warehouse">
+                <a href="{{ url_for('warehouse') }}" {% if request.endpoint == 'warehouse' %}class="active"{% endif %}>
+                    <i class="fas fa-warehouse"></i> Kho hàng
+                </a>
+            </li>
+            <li data-perm="areas">
+                <a href="{{ url_for('areas_management') }}" {% if request.endpoint == 'areas_management' %}class="active"{% endif %}>
+                    <i class="fas fa-map-marker-alt"></i> Quản lý khu vực
+                </a>
+            </li>
+            <li data-perm="shops">
+                <a href="{{ url_for('shops_management') }}" {% if request.endpoint == 'shops_management' %}class="active"{% endif %}>
+                    <i class="fas fa-store"></i> Quản lý shop
+                </a>
+            </li>
+            <li data-perm="reports">
+                <a href="{{ url_for('reports') }}" {% if request.endpoint == 'reports' %}class="active"{% endif %}>
+                    <i class="fas fa-chart-line"></i> Báo cáo
+                </a>
+            </li>
+            <li data-perm="__admin__">
+                <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['customers','customers_debts','customers_leaderboard'] %}active{% endif %}" data-dropdown="customers">
+                    <i class="fas fa-users"></i> Quản lý khách hàng
+                    <i class="fas fa-chevron-down" style="margin-left:auto;font-size:12px;"></i>
+                </a>
+                <ul class="dropdown-container" {% if request.endpoint in ['customers','customers_debts','customers_leaderboard'] %}style="display:block;"{% endif %}>
+                    <li><a href="{{ url_for('customers') }}" {% if request.endpoint == 'customers' %}class="active"{% endif %}>Danh sách</a></li>
+                    <li><a href="{{ url_for('customers_debts') }}" {% if request.endpoint == 'customers_debts' %}class="active"{% endif %}>Công nợ</a></li>
+                    <li><a href="{{ url_for('customers_leaderboard') }}" {% if request.endpoint == 'customers_leaderboard' %}class="active"{% endif %}>Xếp hạng</a></li>
+                </ul>
+            </li>
+            <li data-perm="__admin__">
+                <a href="javascript:void(0)" class="dropdown-btn {% if request.endpoint in ['employees','employees_schedules'] %}active{% endif %}" data-dropdown="employees">
+                    <i class="fas fa-user-tie"></i> Quản lý nhân viên
+                    <i class="fas fa-chevron-down" style="margin-left:auto;font-size:12px;"></i>
+                </a>
+                <ul class="dropdown-container" {% if request.endpoint in ['employees','employees_schedules'] %}style="display:block;"{% endif %}>
+                    <li><a href="{{ url_for('employees') }}" {% if request.endpoint == 'employees' %}class="active"{% endif %}>Nhân viên</a></li>
+                    <li><a href="{{ url_for('employees_schedules') }}" {% if request.endpoint == 'employees_schedules' %}class="active"{% endif %}>Ca làm việc</a></li>
+                </ul>
+            </li>
+            <li data-perm="schedules" id="menu-schedules-standalone" style="display:none;">
+                <a href="{{ url_for('employees_schedules') }}" {% if request.endpoint == 'employees_schedules' %}class="active"{% endif %}>
+                    <i class="fas fa-calendar-alt"></i> Ca làm việc
+                </a>
+            </li>
+            <li data-perm="__admin__">
+                <a href="{{ url_for('permissions_page') }}" {% if request.endpoint == 'permissions_page' %}class="active"{% endif %} style="color:#e53e3e;">
+                    <i class="fas fa-shield-alt"></i> Phân quyền
+                </a>
+            </li>
+        </ul>
+        </nav>
+        
+                <!-- User Account Section -->
+        <div class="user-account-section">
+            <div class="user-info" onclick="toggleUserMenu()">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <span class="username" id="username-display">Khách</span>
+                    <span class="user-role" id="user-role-display">Quản trị viên</span>
+                </div>
+                <i class="fas fa-chevron-down user-menu-toggle"></i>
+    </div>
+
+            <div class="user-menu" id="userMenu">
+                <a href="#" onclick="openSwitchAccountModal()">
+                    <i class="fas fa-exchange-alt"></i>
+                    Chuyển tài khoản
+                </a>
+                <a href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                </a>
+        </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Content Header -->
+        <div class="content-header">
+            <div class="header-left">
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Mở menu" aria-expanded="false" aria-controls="appSidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-titles">
+                    <h1>{% block page_title %}Trang chủ{% endblock %}</h1>
+                    <p class="page-description">{% block page_description %}{% endblock %}</p>
+                </div>
+            </div>
+            <div class="header-right">
+                {% block header_actions %}{% endblock %}
+          </div>
+        </div>
+
+        <!-- Content Body -->
+        <div class="content-body">
+            {% block content %}{% endblock %}
+      </div>
+    </div>
+
+    <!-- Switch Account Modal -->
+    <div class="modal-overlay" id="switchAccountModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-exchange-alt"></i> Chuyển tài khoản</h3>
+                <button class="modal-close" onclick="closeSwitchAccountModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="switchAccountForm" onsubmit="event.preventDefault(); switchAccount();">
+                    <div class="form-group">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" class="form-input" id="sw_username"
+                               name="username" placeholder="Nhập tên đăng nhập"
+                               autocomplete="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu</label>
+                        <div style="position:relative;">
+                            <input type="password" class="form-input" id="sw_password"
+                                   name="password" placeholder="Nhập mật khẩu"
+                                   autocomplete="current-password"
+                                   style="padding-right:44px;" required>
+                            <button type="button" id="sw_eye_btn" onclick="swTogglePwd()"
+                                    title="Hiện/ẩn mật khẩu"
+                                    style="position:absolute;right:0;top:0;height:100%;width:42px;
+                                           background:none;border:none;cursor:pointer;color:#9ca3af;
+                                           display:flex;align-items:center;justify-content:center;
+                                           border-radius:0 6px 6px 0;">
+                                <i class="fas fa-eye" id="sw_eye_icon"></i>
+                            </button>
+                        </div>
+                        <div style="font-size:0.8em;color:#9ca3af;margin-top:4px;">
+                            <i class="fas fa-keyboard"></i> Nhấn
+                            <kbd style="background:#f3f4f6;border:1px solid #d1d5db;border-radius:3px;padding:1px 5px;font-size:0.9em;">Enter</kbd>
+                            để chuyển nhanh
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSwitchAccountModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" id="sw_submit_btn" onclick="switchAccount()">
+                    <i class="fas fa-sign-in-alt"></i> Chuyển
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Notification Modal -->
+    <div class="global-notification-overlay" id="globalNotificationModal" style="display: none;">
+        <div class="global-notification" id="globalNotification">
+            <div class="global-notification-header">
+                <div class="global-notification-title">
+                    <div class="global-notification-icon" id="globalNotificationIcon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <span id="globalNotificationTitle">Thông báo</span>
+                </div>
+                <button class="global-notification-close" onclick="closePopup()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="global-notification-body">
+                <p class="global-notification-message" id="globalNotificationMessage">Nội dung thông báo</p>
+            </div>
+            <div class="global-notification-footer" id="globalNotificationFooter">
+                <button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile / tablet sidebar
+        function initResponsiveSidebar() {
+            const sidebar = document.getElementById('appSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            if (!sidebar || !overlay || !menuBtn) return;
+
+            const mq = window.matchMedia('(max-width: 1023px)');
+
+            function isMobile() {
+                return mq.matches;
+            }
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.classList.add('sidebar-open');
+                menuBtn.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.classList.remove('sidebar-open');
+                menuBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            function toggleSidebar() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            }
+
+            menuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleSidebar();
+            });
+
+            overlay.addEventListener('click', closeSidebar);
+
+            sidebar.querySelectorAll('.sidebar-nav a[href^="/"]').forEach(function(link) {
+                link.addEventListener('click', function() {
+                    if (isMobile()) closeSidebar();
+                });
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            function onBreakpointChange() {
+                if (!isMobile()) closeSidebar();
+            }
+
+            if (mq.addEventListener) {
+                mq.addEventListener('change', onBreakpointChange);
+            } else {
+                mq.addListener(onBreakpointChange);
+            }
+
+            window.addEventListener('resize', onBreakpointChange);
+        }
+
+        // Sidebar dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            initResponsiveSidebar();
+
+            const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+            
+            dropdownBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const dropdown = this.getAttribute('data-dropdown');
+          const container = this.nextElementSibling;
+                    
+                    // Close other dropdowns
+                    document.querySelectorAll('.dropdown-container').forEach(c => {
+                        if (c !== container) {
+                            c.style.display = 'none';
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    if (container.style.display === 'block') {
+                        container.style.display = 'none';
+                    } else {
+                        container.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-btn') && !e.target.closest('.dropdown-container')) {
+                    document.querySelectorAll('.dropdown-container').forEach(c => {
+                        c.style.display = 'none';
+                    });
+                }
+            });
+        });
+
+        // User menu functionality
+        function toggleUserMenu() {
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu.style.display === 'block') {
+                userMenu.style.display = 'none';
+            } else {
+                userMenu.style.display = 'block';
+            }
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-account-section')) {
+                document.getElementById('userMenu').style.display = 'none';
+            }
+        });
+
+        // Switch account modal
+        function openSwitchAccountModal() {
+            document.getElementById('switchAccountModal').style.display = 'flex';
+            document.getElementById('userMenu').style.display = 'none';
+        }
+
+        function swTogglePwd() {
+            var inp  = document.getElementById('sw_password');
+            var icon = document.getElementById('sw_eye_icon');
+            var btn  = document.getElementById('sw_eye_btn');
+            if (!inp) return;
+            var show = inp.type === 'password';
+            inp.type  = show ? 'text' : 'password';
+            icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+            btn.style.color = show ? '#3b82f6' : '#9ca3af';
+        }
+
+        function closeSwitchAccountModal() {
+            document.getElementById('switchAccountModal').style.display = 'none';
+            document.getElementById('switchAccountForm').reset();
+            var inp  = document.getElementById('sw_password');
+            var icon = document.getElementById('sw_eye_icon');
+            var btn  = document.getElementById('sw_eye_btn');
+            if (inp)  inp.type = 'password';
+            if (icon) icon.className = 'fas fa-eye';
+            if (btn)  btn.style.color = '#9ca3af';
+        }
+
+        async function switchAccount() {
+            var username = (document.getElementById('sw_username').value || '').trim();
+            var password = (document.getElementById('sw_password').value || '').trim();
+            if (!username || !password) {
+                alert('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.');
+                return;
+            }
+            var btn = document.getElementById('sw_submit_btn');
+            if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang chuyển...'; btn.disabled = true; }
+            try {
+                var res = await fetch(window.BACKEND_URL + '/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password })
+                });
+                var data = await res.json();
+                if (res.ok && data.access_token) {
+                    sessionStorage.setItem('access_token', data.access_token);
+                    sessionStorage.setItem('username', data.username || username);
+                    if (data.user_id) sessionStorage.setItem('user_id', String(data.user_id));
+                    sessionStorage.removeItem('chatbot_history');
+                    sessionStorage.removeItem('user_permissions');
+                    sessionStorage.removeItem('user_is_admin');
+                    if (typeof resetChatHistory === 'function') resetChatHistory();
+                    closeSwitchAccountModal();
+                    if (typeof showSuccessMessage === 'function')
+                        showSuccessMessage('Đã chuyển sang: ' + (data.username || username));
+                    setTimeout(function() { window.location.reload(); }, 600);
+                } else {
+                    alert('Sai tên đăng nhập hoặc mật khẩu: ' + (data.detail || data.message || ''));
+                }
+            } catch(e) {
+                alert('Lỗi kết nối. Vui lòng thử lại.');
+            } finally {
+                if (btn) { btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Chuyển'; btn.disabled = false; }
+            }
+        }
+
+        // Logout functionality
+        function logout() {
+            // Clear sessionStorage including chat history
+            sessionStorage.removeItem('access_token');
+            sessionStorage.removeItem('user_id');
+            sessionStorage.removeItem('username');
+            sessionStorage.removeItem('chatbot_history');
+            
+            // Reset chat history
+            resetChatHistory();
+            
+            // Redirect to login
+            window.location.href = '/login';
+        }
+
+        // Update username from sessionStorage
+        function updateUsername() {
+            var usernameEl = document.getElementById('username-display');
+            var roleEl     = document.getElementById('user-role-display');
+            if (usernameEl) {
+                var u = sessionStorage.getItem('username');
+                usernameEl.textContent = (u && u.trim()) ? u : 'Khách';
+            }
+            // Load chức vụ từ API
+            var tok = sessionStorage.getItem('access_token');
+            if (roleEl && tok) {
+                fetch(window.BACKEND_URL + '/api/auth/me', {
+                    headers: { Authorization: 'Bearer ' + tok }
+                }).then(function(r){ return r.ok ? r.json() : null; })
+                  .then(function(d){
+                    if (d && (d.position || d.role)) {
+                        roleEl.textContent = d.position || d.role;
+                    }
+                  }).catch(function(){});
+            }
+        }
+
+        // Check authentication
+        function checkAuthentication() {
+            const token = sessionStorage.getItem('access_token');
+            const userId = sessionStorage.getItem('user_id');
+            
+            if (!token || !userId) {
+                window.location.href = '/login';
+                return false;
+            }
+            
+            updateUsername();
+            return true;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.location.pathname.includes('/login')) {
+                checkAuthentication();
+                // Apply sidebar visibility theo permissions
+                applySidebarPermissions();
+            }
+        });
+
+        // Áp dụng data-perm cho sidebar
+        function applySidebarPermissions() {
+            var perms = [];
+            try { perms = JSON.parse(sessionStorage.getItem('user_permissions') || '[]'); } catch(e){}
+            var isAdmin = sessionStorage.getItem('user_is_admin') === '1';
+
+            document.querySelectorAll('[data-perm]').forEach(function(el) {
+                var perm = el.getAttribute('data-perm');
+                if (perm === '__admin__') {
+                    el.style.display = isAdmin ? '' : 'none';
+                } else {
+                    // Admin thấy tất cả (trừ schedules standalone)
+                    if (isAdmin) {
+                        // Ca làm việc standalone chỉ dành cho nhân viên
+                        if (el.id === 'menu-schedules-standalone') {
+                            el.style.display = 'none';
+                        } else {
+                            el.style.display = '';
+                        }
+                    } else {
+                        // Nhân viên: kiểm tra permissions cache
+                        var hasPerm = perms.some(function(p) {
+                            return p === perm || p.startsWith(perm + '.');
+                        });
+                        el.style.display = hasPerm ? '' : 'none';
+                    }
+                }
+            });
+        }
+
+        // Close modal when clicking overlay
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                const modal = e.target;
+                if (shouldConfirmClose(modal)) {
+                    showConfirm('Xác nhận đóng', 'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.', 
+                        function() { modal.style.display = 'none'; });
+          } else {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modals = document.querySelectorAll('.modal-overlay');
+                modals.forEach(modal => {
+                    if (modal.style.display === 'flex') {
+                        if (shouldConfirmClose(modal)) {
+                            showConfirm('Xác nhận đóng', 'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.', 
+                                function() { modal.style.display = 'none'; });
+            } else { 
+                            modal.style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
+
+        // Global Notification System
+        function openPopup() {
+            document.getElementById('globalNotificationModal').style.display = 'flex';
+        }
+
+        function closePopup() {
+            document.getElementById('globalNotificationModal').style.display = 'none';
+        }
+
+        function showSuccessModal(title, message, autoClose = true) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification success';
+            icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            titleEl.textContent = title || 'Thành công';
+            messageEl.textContent = message;
+            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
+            
+            openPopup();
+            
+            if (autoClose) {
+                setTimeout(closePopup, 3000);
+            }
+        }
+
+        function showErrorModal(title, message, autoClose = true) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification error';
+            icon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            titleEl.textContent = title || 'Lỗi';
+            messageEl.textContent = message;
+            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
+            
+            openPopup();
+            
+            if (autoClose) {
+                setTimeout(closePopup, 3000);
+            }
+        }
+
+        function showInfoModal(title, message, autoClose = true) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification info';
+            icon.innerHTML = '<i class="fas fa-info-circle"></i>';
+            titleEl.textContent = title || 'Thông tin';
+            messageEl.textContent = message;
+            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
+            
+            openPopup();
+            
+            if (autoClose) {
+                setTimeout(closePopup, 3000);
+            }
+        }
+
+        function showConfirm(title, message, onConfirm, onCancel = null) {
+            const modal = document.getElementById('globalNotification');
+            const icon = document.getElementById('globalNotificationIcon');
+            const titleEl = document.getElementById('globalNotificationTitle');
+            const messageEl = document.getElementById('globalNotificationMessage');
+            const footer = document.getElementById('globalNotificationFooter');
+            
+            modal.className = 'global-notification warning';
+            icon.innerHTML = '<i class="fas fa-question-circle"></i>';
+            titleEl.textContent = title || 'Xác nhận';
+            messageEl.textContent = message;
+            
+            // Create buttons with proper event listeners
+            footer.innerHTML = `
+                <button type="button" class="global-notification-btn secondary" id="confirmCancelBtn">Hủy</button>
+                <button type="button" class="global-notification-btn danger" id="confirmOkBtn">Xác nhận</button>
+            `;
+            
+            // Add event listeners
+            document.getElementById('confirmCancelBtn').onclick = function() {
+                closePopup();
+                if (onCancel && typeof onCancel === 'function') {
+                    onCancel();
+                }
+            };
+            
+            document.getElementById('confirmOkBtn').onclick = function() {
+                closePopup();
+                if (onConfirm && typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            };
+            
+            openPopup();
+        }
+
+        // Override native alert function
+        window.alert = function(message) {
+            showInfoModal('Thông báo', message);
+        };
+
+        // Close notification when clicking overlay
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('global-notification-overlay')) {
+                closePopup();
+            }
+        });
+
+        // Close notification with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('globalNotificationModal').style.display === 'flex') {
+                closePopup();
+            }
+        });
+
+        // Auto-wrap delete buttons with confirmation - DISABLED
+        function wrapDeleteButtons() {
+            // Disabled to prevent double confirmation popups
+            return;
+        }
+
+        // Use MutationObserver to watch for dynamically added delete buttons
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    wrapDeleteButtons();
+                }
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Wrap existing delete buttons on page load
+      document.addEventListener('DOMContentLoaded', function() {
+            wrapDeleteButtons();
+        });
+
+        // Patch fetch to show success messages for DELETE requests
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            return originalFetch.apply(this, args).then(response => {
+                if (args[1] && args[1].method === 'DELETE' && response.ok) {
+                    showSuccessModal('Thành công', 'Xóa thành công!');
+                }
+                return response;
+            });
+        };
+
+        // Modal confirmation system
+        const modalStates = new Map(); // Store original states of modals
+        
+        function shouldConfirmClose(modal) {
+            const modalId = modal.id;
+            if (!modalId) return false;
+            
+            // Check if this is a form modal
+            const form = modal.querySelector('form');
+            if (!form) return false;
+            
+            // Get current form data
+            const currentData = getFormData(form);
+            
+            // Get original data if exists
+            const originalData = modalStates.get(modalId);
+            
+            // If no original data, check if form has any data
+            if (!originalData) {
+                return hasFormData(currentData);
+            }
+            
+            // Compare current data with original data
+            return !isFormDataEqual(currentData, originalData);
+        }
+        
+        function hasFormData(data) {
+            for (const key in data) {
+                if (data[key] && data[key].toString().trim() !== '') {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function isFormDataEqual(data1, data2) {
+            const keys1 = Object.keys(data1);
+            const keys2 = Object.keys(data2);
+            
+            if (keys1.length !== keys2.length) return false;
+            
+            for (const key of keys1) {
+                if (data1[key] !== data2[key]) return false;
+            }
+            
+            return true;
+        }
+        
+        function getFormData(form) {
+            const formData = new FormData(form);
+            const data = {};
+            
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Also check hidden inputs for money fields
+            const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
+            hiddenInputs.forEach(input => {
+                if (input.name && input.value) {
+                    data[input.name] = input.value;
+                }
+            });
+            
+            // Get phone value from phone component if exists
+            const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+            if (phoneEl && window.getPhoneValue) {
+                const phoneValue = window.getPhoneValue(phoneEl);
+                if (phoneValue) {
+                    data.phone = phoneValue;
+                }
+            }
+            
+            return data;
+        }
+        
+        function storeModalState(modalId, form) {
+            if (form) {
+                const data = getFormData(form);
+                modalStates.set(modalId, data);
+            }
+        }
+        
+        function clearModalState(modalId) {
+            modalStates.delete(modalId);
+        }
+        
+        // Enhanced modal close functions
+        function closeModalWithConfirmation(modalId, onConfirm = null) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            
+            if (shouldConfirmClose(modal)) {
+                showConfirm('Xác nhận đóng', 'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.', 
+                    function() { 
+                        modal.style.display = 'none';
+                        clearModalState(modalId);
+                        if (onConfirm) onConfirm();
+                    });
+            } else {
+          modal.style.display = 'none';
+                clearModalState(modalId);
+                if (onConfirm) onConfirm();
+            }
+        }
+        
+        // Override modal close buttons
+        function enhanceModalCloseButtons() {
+            document.querySelectorAll('.modal-close').forEach(button => {
+                if (!button.hasAttribute('data-enhanced')) {
+                    button.setAttribute('data-enhanced', 'true');
+                    const originalOnclick = button.getAttribute('onclick');
+                    if (originalOnclick) {
+                        button.setAttribute('onclick', `closeModalWithConfirmation('${button.closest('.modal-overlay').id}')`);
+                    }
+                }
+            });
+        }
+        
+        // Watch for dynamically added modals
+        const modalObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    enhanceModalCloseButtons();
+                }
+            });
+        });
+        
+        modalObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Enhance existing modal close buttons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            enhanceModalCloseButtons();
+        });
+    </script>
+
+    <!-- Phone Input Component -->
+    <script src="{{ url_for('static', filename='js/phone.js') }}"></script>
+
+    <script>window.BACKEND_URL = '{{ BACKEND_URL }}';</script>
+    
+    <!-- Utility Functions -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+
+    <!-- Permission Guard — phải load TRƯỚC chatbot và sau utils -->
+    <script src="{{ url_for('static', filename='js/permissions.js') }}"></script>
+    
+    <!-- Chatbot Script -->
+    <script>
+        const BACKEND_URL = window.BACKEND_URL;
+        
+        // Chatbot functionality
+        function toggleChatbot() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            const sidebar = document.querySelector('.sidebar');
+            const isVisible = chatbotWindow.style.display !== 'none';
+            chatbotWindow.style.display = isVisible ? 'none' : 'flex';
+            
+            // Adjust position based on sidebar state
+            if (!isVisible) {
+                updateChatbotPosition();
+                loadChatHistory();
+                // Focus input when opening
+                setTimeout(() => {
+                    document.getElementById('chatbotInput').focus();
+                }, 100);
+            }
+        }
+        
+        // Load chat history from sessionStorage
+        function loadChatHistory() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const chatHistory = sessionStorage.getItem('chatbot_history');
+            
+            // Only load if chatbot window is visible and we have history
+            if (chatHistory && messagesContainer) {
+                try {
+                    const history = JSON.parse(chatHistory);
+                    // Clear default welcome message if we have history
+                    if (history.length > 0) {
+                        // Check if we already loaded history (avoid duplicate loading)
+                        const existingMessages = messagesContainer.querySelectorAll('.chatbot-message');
+                        if (existingMessages.length <= 1) { // Only welcome message exists
+                            messagesContainer.innerHTML = '';
+                            history.forEach(msg => {
+                                addMessageToDOM(msg.type, msg.content, false, false);
+                            });
+                            // Scroll to bottom after loading
+                            setTimeout(() => {
+                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            }, 100);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading chat history:', e);
+                }
+            }
+        }
+        
+        // Save chat history to sessionStorage
+        function saveChatHistory() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messages = messagesContainer.querySelectorAll('.chatbot-message');
+            const history = [];
+            
+            messages.forEach(msg => {
+                // Skip loading messages
+                const isLoading = msg.getAttribute('data-loading') === 'true';
+                if (isLoading) return;
+                
+                const type = msg.classList.contains('user') ? 'user' : 'bot';
+                
+                // Check if this message has suggestions
+                const suggestionCard = msg.querySelector('.suggestion-card');
+                if (suggestionCard) {
+                    // For messages with suggestions, save the text content
+                    const contentEl = msg.querySelector('.message-content p');
+                    if (contentEl) {
+                        const content = contentEl.textContent || contentEl.innerText;
+                        if (content && !content.includes('Đang phân tích...')) {
+                            history.push({ type, content, hasSuggestions: true });
+                        }
+                    }
+                } else {
+                    // Regular message
+                    const contentEl = msg.querySelector('.message-content p');
+                    if (contentEl) {
+                        const content = contentEl.textContent || contentEl.innerText;
+                        if (content && !content.includes('Đang phân tích...') && !content.includes('fa-spinner')) {
+                            history.push({ type, content });
+                        }
+                    }
+                }
+            });
+            
+            sessionStorage.setItem('chatbot_history', JSON.stringify(history));
+        }
+        
+        // Reset chat history
+        function resetChatHistory() {
+            sessionStorage.removeItem('chatbot_history');
+            const messagesContainer = document.getElementById('chatbotMessages');
+            // Reset to default welcome message
+            messagesContainer.innerHTML = `
+                <div class="chatbot-message bot">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Xin chào! Tôi là Thư ký ảo AI của bạn. Tôi có thể giúp bạn:</p>
+                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                            <li>Phân tích và thống kê tồn kho</li>
+                            <li>Đề xuất đặt hàng tự động</li>
+                            <li>Kiểm tra sản phẩm bán chạy, sắp hết hàng</li>
+                            <li>Báo cáo và phân tích doanh thu</li>
+                        </ul>
+                        <p style="margin-top: 0.5rem;">Hãy thử: "Đề xuất đặt hàng", "Sản phẩm sắp hết", "Phân tích tồn kho"</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateChatbotPosition() {
+            const chatbotWindow = document.getElementById('chatbotWindow');
+            const sidebar = document.querySelector('.sidebar');
+            
+            if (sidebar && chatbotWindow) {
+                if (sidebar.classList.contains('collapsed')) {
+                    chatbotWindow.style.left = '100px';
+                } else {
+                    chatbotWindow.style.left = '300px';
+                }
+            }
+        }
+        
+        // Update chatbot position when sidebar state changes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Watch for sidebar class changes
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                            updateChatbotPosition();
+                        }
+                    });
+                });
+                observer.observe(sidebar, { attributes: true });
+            }
+        });
+        
+        function handleChatbotKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatbotMessage();
+            }
+        }
+        
+        async function sendChatbotMessage(message = null) {
+            const input = document.getElementById('chatbotInput');
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const suggestionsContainer = document.getElementById('chatbotSuggestions');
+            
+            const userMessage = message || input.value.trim();
+            if (!userMessage) return;
+            
+            // Clear input
+            input.value = '';
+            
+            // Add user message
+            addMessage('user', userMessage);
+            saveChatHistory(); // Save after user message
+            
+            // Hide suggestions while processing
+            suggestionsContainer.style.display = 'none';
+            
+            // Show loading
+            const loadingId = addMessage('bot', 'Đang phân tích...', true);
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chatbot/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ message: userMessage })
+                });
+                
+                // Remove loading message IMMEDIATELY before processing response
+                const loadingMsg = document.getElementById(loadingId);
+                if (loadingMsg) {
+                    loadingMsg.remove(); // Remove immediately without animation for cleaner UX
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Add bot response
+                    addMessage('bot', data.response);
+                    
+                    // Add suggestions if available
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        addSuggestions(data.suggestions);
+                    }
+                    
+                    // Save history after bot response
+                    saveChatHistory();
+                } else {
+                    addMessage('bot', 'Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu của bạn.');
+                    saveChatHistory();
+                }
+            } catch (error) {
+                // Remove loading message IMMEDIATELY
+                const loadingMsg = document.getElementById(loadingId);
+                if (loadingMsg) {
+                    loadingMsg.remove();
+                }
+                
+                console.error('Chatbot error:', error);
+                addMessage('bot', 'Xin lỗi, không thể kết nối đến server. Vui lòng thử lại sau.');
+                saveChatHistory();
+            }
+            
+            // Show suggestions again
+            suggestionsContainer.style.display = 'flex';
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function addMessage(type, content, isLoading = false) {
+            return addMessageToDOM(type, content, isLoading, true);
+        }
+        
+        function addMessageToDOM(type, content, isLoading = false, scroll = true) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chatbot-message ${type}`;
+            messageDiv.id = messageId;
+            messageDiv.setAttribute('data-loading', isLoading ? 'true' : 'false');
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = type === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (isLoading) {
+                messageContent.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> ' + content + '</p>';
+            } else {
+                // Convert line breaks to <br>
+                const formattedContent = content.replace(/\n/g, '<br>');
+                messageContent.innerHTML = '<p>' + formattedContent + '</p>';
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            if (scroll) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            return messageId;
+        }
+        
+        function addSuggestions(suggestions) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            
+            const suggestionCard = document.createElement('div');
+            suggestionCard.className = 'suggestion-card';
+            
+            const title = document.createElement('h5');
+            title.textContent = '💡 Đề xuất đặt hàng:';
+            suggestionCard.appendChild(title);
+            
+            suggestions.forEach(suggestion => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                
+                const info = document.createElement('div');
+                info.className = 'suggestion-item-info';
+                
+                const name = document.createElement('div');
+                name.className = 'suggestion-item-name';
+                name.textContent = suggestion.product_name || suggestion.ma_sp;
+                
+                const details = document.createElement('div');
+                details.className = 'suggestion-item-details';
+                let detailsText = `Mã: ${suggestion.ma_sp} | Tồn kho: ${(suggestion.current_stock || 0).toLocaleString()}`;
+                if (suggestion.days_until_out && suggestion.days_until_out !== 'N/A') {
+                    detailsText += ` | Dự kiến hết trong: ${suggestion.days_until_out} ngày`;
+                }
+                if (suggestion.sales_rate) {
+                    detailsText += ` | Tốc độ bán: ${suggestion.sales_rate}/ngày`;
+                }
+                details.textContent = detailsText;
+                
+                info.appendChild(name);
+                info.appendChild(details);
+                
+                const action = document.createElement('div');
+                action.className = 'suggestion-item-action';
+                
+                const orderBtn = document.createElement('button');
+                orderBtn.className = 'order-btn';
+                orderBtn.textContent = `Đặt ${(suggestion.recommended_quantity || 0).toLocaleString()}`;
+                orderBtn.onclick = () => createOrderFromSuggestion(suggestion);
+                
+                action.appendChild(orderBtn);
+                
+                item.appendChild(info);
+                item.appendChild(action);
+                suggestionCard.appendChild(item);
+            });
+            
+            const botMessage = document.createElement('div');
+            botMessage.className = 'chatbot-message bot';
+            botMessage.setAttribute('data-loading', 'false');
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            
+            botMessage.appendChild(avatar);
+            botMessage.appendChild(suggestionCard);
+            
+            messagesContainer.appendChild(botMessage);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        async function createOrderFromSuggestion(suggestion) {
+            if (!confirm(`Bạn có chắc muốn tạo đơn đặt hàng cho ${suggestion.product_name} với số lượng ${(suggestion.recommended_quantity || 0).toLocaleString()}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chatbot/create-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({
+                        product_code: suggestion.ma_sp,
+                        quantity: suggestion.recommended_quantity
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage('bot', `✅ ${data.message}`);
+                    
+                    // Show success notification
+                    if (typeof showSuccessModal === 'function') {
+                        showSuccessModal('Thành công', data.message);
+                    }
+                    
+                    // Optionally redirect to orders page
+                    setTimeout(() => {
+                        if (confirm('Bạn có muốn xem đơn hàng vừa tạo không?')) {
+                            window.location.href = '/orders';
+                        }
+                    }, 1000);
+                } else {
+                    const error = await response.json();
+                    addMessage('bot', `❌ Lỗi: ${error.detail || 'Không thể tạo đơn hàng'}`);
+                }
+            } catch (error) {
+                console.error('Error creating order:', error);
+                addMessage('bot', '❌ Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại.');
+            }
+        }
+        
+        // Check for low stock products on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLowStockProducts();
+        });
+        
+        async function checkLowStockProducts() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/chatbot/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    },
+                    body: JSON.stringify({ message: 'sản phẩm sắp hết' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        // Show badge if there are products needing reorder
+                        const badge = document.getElementById('chatbotBadge');
+                        if (badge) {
+                            badge.textContent = data.suggestions.length;
+                            badge.style.display = 'flex';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking low stock:', error);
+            }
+        }
+        
+        // Close chatbot when clicking outside
+        // (click-outside handled by floating chatbot)
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+
+    <!-- ═══ FLOATING CHATBOT ═══ -->
+    <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()" title="Thư ký ảo AI">
+        <i class="fas fa-robot" id="chatbotFabIcon"></i>
+    </button>
+    <div class="chatbot-window-floating" id="chatbotWindow" style="display:none;">
+        <div class="chatbot-header">
+            <div class="chatbot-header-info">
+                <i class="fas fa-robot"></i>
+                <div><h4>Thư ký ảo AI</h4><span class="chatbot-status">Đang hoạt động</span></div>
+            </div>
+            <button class="chatbot-close" onclick="toggleChatbot()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="chatbot-message bot">
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content">
+                    <p>Xin chào! Tôi là <strong>Thư ký ảo AI</strong>. Bấm gợi ý bên dưới để bắt đầu!</p>
+                </div>
+            </div>
+        </div>
+        <div class="chatbot-suggestions" id="chatbotSuggestions">
+            <button class="suggestion-btn" onclick="sendChatbotMessage('Đề xuất đặt hàng')"><i class="fas fa-shopping-cart"></i> Đề xuất đặt hàng</button>
+            <button class="suggestion-btn" onclick="sendChatbotMessage('Sản phẩm sắp hết')"><i class="fas fa-exclamation-triangle"></i> Sản phẩm sắp hết</button>
+            <button class="suggestion-btn" onclick="sendChatbotMessage('Phân tích tồn kho')"><i class="fas fa-chart-bar"></i> Phân tích kho</button>
+            <button class="suggestion-btn" onclick="sendChatbotMessage('Sản phẩm bán chạy')"><i class="fas fa-fire"></i> Bán chạy</button>
+            <button class="suggestion-btn" onclick="sendChatbotMessage('Báo cáo doanh thu')"><i class="fas fa-coins"></i> Doanh thu</button>
+        </div>
+        <div class="chatbot-input-container">
+            <input type="text" class="chatbot-input" id="chatbotInput"
+                   placeholder="Nhập câu hỏi của bạn..."
+                   onkeypress="handleChatbotKeypress(event)">
+            <button class="chatbot-send-btn" onclick="sendChatbotMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+    <script>
+    function toggleChatbot() {
+        var win  = document.getElementById('chatbotWindow');
+        var fab  = document.getElementById('chatbotFab');
+        var icon = document.getElementById('chatbotFabIcon');
+        if (!win) return;
+        var opening = (win.style.display === 'none' || win.style.display === '');
+        win.style.display = opening ? 'flex' : 'none';
+        if (fab)  fab.classList.toggle('active', opening);
+        if (icon) icon.className = opening ? 'fas fa-times' : 'fas fa-robot';
+        if (opening) {
+            if (typeof loadChatHistory === 'function') loadChatHistory();
+            setTimeout(function(){ var i=document.getElementById('chatbotInput'); if(i)i.focus(); }, 120);
+        }
+    }
+    document.addEventListener('click', function(e) {
+        var win = document.getElementById('chatbotWindow');
+        var fab = document.getElementById('chatbotFab');
+        if (!win || win.style.display !== 'flex') return;
+        if (!win.contains(e.target) && (!fab || !fab.contains(e.target))) {
+            win.style.display = 'none';
+            var icon = document.getElementById('chatbotFabIcon');
+            if (icon) icon.className = 'fas fa-robot';
+            if (fab) fab.classList.remove('active');
+        }
+    });
+    </script>
+    <!-- ═══ END FLOATING CHATBOT ═══ -->
+
+</body>
+</html>

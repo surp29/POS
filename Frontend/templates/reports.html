@@ -1,0 +1,673 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo - PosPos{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-chart-line"></i> Báo cáo
+{% endblock %}
+
+{% block page_description %}
+Theo dõi và phân tích dữ liệu kinh doanh, tạo báo cáo doanh thu và công nợ
+{% endblock %}
+
+{% block content %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalRevenue">0 VNĐ</div>
+            <div class="stat-label">Tổng doanh thu</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalSold">0</div>
+            <div class="stat-label">Số lượng đã bán</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-warehouse"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalRemaining">0</div>
+            <div class="stat-label">Số lượng còn lại</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalProducts">0</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Tabs -->
+<div class="tabs-container">
+    <div class="tabs">
+        <button class="tab active" data-tab="revenue">Doanh thu</button>
+        <button class="tab" data-tab="debt">Công nợ</button>
+    </div>
+</div>
+
+<!-- Revenue Report Section -->
+<div id="revenueSection" class="report-section">
+    <div class="report-grid">
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-bar"></i> Báo cáo doanh thu theo sản phẩm</h3>
+      </div>
+                <div class="card-body">
+                    <div class="chart-wrapper">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+    </div>
+    </div>
+  </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-container">
+            <div class="card">
+                <div class="card-header">
+    <h3><i class="fas fa-boxes"></i> Thống kê sản phẩm</h3>
+        </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" class="form-input" id="fromDate">
+        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" class="form-input" id="toDate">
+        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Số lượng đã bán</label>
+                        <input type="text" class="form-input" id="soldQuantity" readonly>
+        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Số lượng còn lại</label>
+                        <input type="text" class="form-input" id="remainingQuantity" readonly>
+        </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tổng doanh thu</label>
+                        <input type="text" class="form-input" id="totalRevenueInput" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="updateRevenueReport()">
+                            <i class="fas fa-sync"></i>
+                            Cập nhật báo cáo
+                        </button>
+                    </div>
+        </div>
+      </div>
+  </div>
+</div>
+
+    <!-- Revenue Table -->
+    <div class="table-container">
+        <div class="card">
+            <div class="card-header">
+                <h3>Chi tiết doanh thu</h3>
+            </div>
+            <div class="card-body p-0">
+                <table class="table" id="revenueTable">
+      <thead>
+        <tr>
+                            <th>STT</th>
+                            <th>Mã SP</th>
+                            <th>Tên SP</th>
+                            <th>Số lượng bán</th>
+                            <th>Giá gốc</th>
+                            <th>Giảm giá</th>
+                            <th>Doanh thu thực</th>
+                            <th>Tỷ lệ</th>
+        </tr>
+      </thead>
+                    <tbody id="revenueTableBody">
+                        <!-- Data will be loaded here -->
+      </tbody>
+    </table>
+            </div>
+        </div>
+  </div>
+</div>
+
+<!-- Debt Report Section -->
+<div id="debtSection" class="report-section" style="display: none;">
+    <div class="report-grid">
+        <!-- Debt Chart -->
+        <div class="chart-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-pie"></i> Báo cáo công nợ</h3>
+        </div>
+                <div class="card-body">
+                    <div class="chart-wrapper">
+                        <canvas id="debtChart"></canvas>
+    </div>
+                </div>
+            </div>
+  </div>
+
+        <!-- Debt Statistics -->
+        <div class="stats-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Thống kê công nợ</h3>
+    </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Tổng công nợ</label>
+                        <input type="text" class="form-input" id="totalDebt" readonly>
+  </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Công nợ quá hạn</label>
+                        <input type="text" class="form-input" id="overdueDebt" readonly>
+    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Số khách hàng nợ</label>
+                        <input type="text" class="form-input" id="debtCustomers" readonly>
+      </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Công nợ trung bình</label>
+                        <input type="text" class="form-input" id="avgDebt" readonly>
+      </div>
+      </div>
+      </div>
+      </div>
+    </div>
+    
+    <!-- Debt Table -->
+    <div class="table-container">
+        <div class="card">
+            <div class="card-header">
+                <h3>Chi tiết công nợ</h3>
+    </div>
+            <div class="card-body p-0">
+                <table class="table" id="debtTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Khách hàng</th>
+                            <th>Số hóa đơn</th>
+                            <th>Ngày tạo</th>
+                            <th>Số tiền nợ</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody id="debtTableBody">
+                        <!-- Data will be loaded here -->
+                    </tbody>
+                </table>
+    </div>
+  </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.tabs-container {
+    margin-bottom: var(--spacing-6);
+}
+
+.tabs {
+    display: flex;
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-1);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow-x: auto;
+}
+
+.tab {
+    flex: 1;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: none;
+    background: transparent;
+    color: var(--gray-600);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    white-space: nowrap;
+}
+
+.tab:hover {
+    background: var(--gray-50);
+    color: var(--gray-700);
+}
+
+.tab.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.report-section {
+    margin-bottom: var(--spacing-6);
+}
+
+.report-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+}
+
+.chart-container {
+    min-height: 400px;
+}
+
+.chart-wrapper {
+    width: 100%;
+    height: 400px;
+    position: relative;
+}
+
+.stats-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+@media (max-width: 768px) {
+    .report-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-wrapper {
+        height: 300px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let revenueChart = null;
+let debtChart = null;
+let currentTab = 'revenue';
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    setupEventListeners();
+    loadRevenueData();
+    loadDebtData();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Tab clicks
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabType = this.getAttribute('data-tab');
+            switchReportTab(tabType);
+        });
+    });
+    
+    // Date inputs
+    document.getElementById('fromDate').addEventListener('change', updateRevenueReport);
+    document.getElementById('toDate').addEventListener('change', updateRevenueReport);
+}
+
+// Switch report tab
+function switchReportTab(tab) {
+    currentTab = tab;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+    
+    // Show/hide sections
+    document.getElementById('revenueSection').style.display = tab === 'revenue' ? 'block' : 'none';
+    document.getElementById('debtSection').style.display = tab === 'debt' ? 'block' : 'none';
+    
+    // Initialize charts
+    if (tab === 'revenue' && !revenueChart) {
+        setTimeout(() => initRevenueChart(), 100);
+    } else if (tab === 'debt' && !debtChart) {
+        setTimeout(() => initDebtChart(), 100);
+    }
+}
+
+// Load revenue data
+async function loadRevenueData() {
+    try {
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+        
+        // Build URL with query parameters
+        let url = '{{ BACKEND_URL }}/api/reports/revenue';
+        const params = [];
+        if (fromDate) params.push(`from_date=${encodeURIComponent(fromDate)}`);
+        if (toDate) params.push(`to_date=${encodeURIComponent(toDate)}`);
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            updateRevenueStatistics(data);
+            updateRevenueTable(data);
+            initRevenueChart(data);
+        } else {
+            console.error('Failed to load revenue data');
+        }
+    } catch (error) {
+        console.error('Error loading revenue data:', error);
+    }
+}
+
+// Load debt data
+async function loadDebtData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/reports/debt', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            updateDebtStatistics(data);
+            updateDebtTable(data);
+            initDebtChart(data);
+        } else {
+            console.error('Failed to load debt data');
+        }
+    } catch (error) {
+        console.error('Error loading debt data:', error);
+    }
+}
+
+// Update revenue statistics
+function updateRevenueStatistics(data) {
+    const summary = data.summary || {};
+    document.getElementById('totalRevenue').textContent = (summary.total_revenue || 0).toLocaleString() + ' VNĐ';
+    document.getElementById('totalSold').textContent = (summary.total_quantity_sold || 0).toLocaleString();
+    document.getElementById('totalRemaining').textContent = (summary.total_quantity_remaining || 0).toLocaleString();
+    document.getElementById('totalProducts').textContent = (summary.total_products || 0).toLocaleString();
+    
+    // Update form inputs
+    document.getElementById('soldQuantity').value = (summary.total_quantity_sold || 0).toLocaleString();
+    document.getElementById('remainingQuantity').value = (summary.total_quantity_remaining || 0).toLocaleString();
+    document.getElementById('totalRevenueInput').value = (summary.total_revenue || 0).toLocaleString() + ' VNĐ';
+
+    // Hiển thị tổng giảm giá nếu có
+    const discountEl = document.getElementById('totalDiscount');
+    if (discountEl) {
+        const disc = summary.total_discount || 0;
+        discountEl.textContent = disc > 0
+            ? '-' + disc.toLocaleString() + ' VNĐ'
+            : '0 VNĐ';
+        discountEl.style.color = disc > 0 ? '#e53e3e' : '#718096';
+    }
+}
+
+// Update debt statistics
+function updateDebtStatistics(data) {
+    const summary = data.summary || {};
+    document.getElementById('totalDebt').value = (summary.total_debt || 0).toLocaleString() + ' VNĐ';
+    document.getElementById('overdueDebt').value = (summary.overdue_debt || 0).toLocaleString() + ' VNĐ';
+    document.getElementById('debtCustomers').value = (summary.debt_customers || 0).toLocaleString();
+    document.getElementById('avgDebt').value = (summary.avg_debt || 0).toLocaleString() + ' VNĐ';
+}
+
+// Update revenue table
+function updateRevenueTable(data) {
+    const tbody = document.getElementById('revenueTableBody');
+    const items = data.items || [];
+    
+    tbody.innerHTML = items.map((item, index) => {
+        const hasDiscount = (item.tiet_kiem || 0) > 0;
+        const discountCell = hasDiscount
+            ? `<td style="color:#e53e3e;font-weight:600;">-${(item.tiet_kiem || 0).toLocaleString()} VNĐ</td>`
+            : `<td style="color:#718096;">-</td>`;
+        return `
+        <tr>
+            <td>${index + 1}</td>
+            <td><strong>${item.ma_sp || '-'}</strong></td>
+            <td>${item.ten_sp || '-'}</td>
+            <td><span class="badge badge-info">${(item.so_luong_ban || 0).toLocaleString()}</span></td>
+            <td style="color:#718096;text-decoration:${hasDiscount ? 'line-through' : 'none'};">${(item.gia_goc_tong || item.gia_ban || 0).toLocaleString()} VNĐ</td>
+            ${discountCell}
+            <td><strong style="color:#38a169;">${(item.doanh_thu || 0).toLocaleString()} VNĐ</strong></td>
+            <td>${(item.ty_le || 0).toFixed(1)}%</td>
+        </tr>`;
+    }).join('');
+}
+
+// Update debt table
+function updateDebtTable(data) {
+    const tbody = document.getElementById('debtTableBody');
+    const items = data.items || [];
+    
+    tbody.innerHTML = items.map((item, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td><strong>${item.khach_hang || '-'}</strong></td>
+            <td>${item.so_hoa_don || '-'}</td>
+            <td>${item.ngay_tao || '-'}</td>
+            <td><strong>${(item.so_tien_no || 0).toLocaleString()} VNĐ</strong></td>
+            <td>${getDebtStatusBadge(item.trang_thai)}</td>
+            <td>${item.ghi_chu || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+// Initialize revenue chart
+function initRevenueChart(data) {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+    
+    if (revenueChart) {
+        revenueChart.destroy();
+    }
+    
+    const items = data?.items || [];
+    const labels = items.map(item => item.ten_sp || item.ma_sp || 'N/A');
+    const revenues = items.map(item => item.doanh_thu || 0);
+    
+    revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+            labels: labels,
+      datasets: [{
+                label: 'Doanh thu (VNĐ)',
+                data: revenues,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' VNĐ';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Initialize debt chart
+function initDebtChart(data) {
+    const ctx = document.getElementById('debtChart');
+    if (!ctx) return;
+    
+    if (debtChart) {
+        debtChart.destroy();
+    }
+    
+    const summary = data?.summary || {};
+    const totalDebt = summary.total_debt || 0;
+    const overdueDebt = summary.overdue_debt || 0;
+    const normalDebt = totalDebt - overdueDebt;
+    
+    debtChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Công nợ bình thường', 'Công nợ quá hạn'],
+            datasets: [{
+                data: [normalDebt, overdueDebt],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.6)',
+                    'rgba(255, 99, 132, 0.6)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed.toLocaleString() + ' VNĐ';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Update revenue report
+function updateRevenueReport() {
+    const fromDate = document.getElementById('fromDate').value;
+    const toDate = document.getElementById('toDate').value;
+    
+    if (fromDate && toDate) {
+        loadRevenueData();
+    }
+}
+
+// Utility functions
+function getDebtStatusBadge(status) {
+    const badges = {
+        'normal': '<span class="badge badge-success">Bình thường</span>',
+        'overdue': '<span class="badge badge-danger">Quá hạn</span>',
+        'paid': '<span class="badge badge-info">Đã thanh toán</span>'
+    };
+    return badges[status] || '<span class="badge badge-secondary">Không xác định</span>';
+}
+
+// Initialize default dates
+document.addEventListener('DOMContentLoaded', function() {
+  const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+    
+    document.getElementById('fromDate').value = lastMonth.toISOString().split('T')[0];
+    document.getElementById('toDate').value = today.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}

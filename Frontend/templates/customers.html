@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý khách hàng - PosPos{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-users"></i> Quản lý khách hàng
+{% endblock %}
+
+{% block page_description %}
+Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái hoạt động
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-primary" onclick="openAddCustomerModal()">
+    <i class="fas fa-plus"></i>
+    Thêm khách hàng
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalCustomers">0</div>
+            <div class="stat-label">Tổng khách hàng</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="activeCustomers">0</div>
+            <div class="stat-label">Đang hoạt động</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="inactiveCustomers">0</div>
+            <div class="stat-label">Không hoạt động</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="customersWithEmail">0</div>
+            <div class="stat-label">Có email</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Tìm kiếm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="searchCustomer" placeholder="Tìm theo tên, email, số điện thoại...">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" id="customerStatusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Hoạt động</option>
+                <option value="false">Không hoạt động</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <button class="btn btn-secondary" onclick="clearCustomerFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Table -->
+<div id="customersListSection" class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách khách hàng</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="customersTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên khách hàng</th>
+                        <th>Mã khách hàng</th>
+                        <th>Ngày sinh</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Địa chỉ</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="customersPagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+
+<!-- Add Customer Modal -->
+<div class="modal-overlay" id="addCustomerModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> Thêm khách hàng mới</h3>
+            <button class="modal-close" onclick="closeAddCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addCustomerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên khách hàng *</label>
+                        <input type="text" class="form-input" name="ten_tk" required placeholder="Nhập tên khách hàng">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" placeholder="Nhập email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="so_dt" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mã khách hàng</label>
+                        <div class="input-with-info">
+                            <input type="text" class="form-input" name="ma_khach_hang" placeholder="Nhập mã khách hàng">
+                            <span class="input-info-icon">i</span>
+                            <div class="input-info-tooltip">
+                                <strong>Gợi ý đặt mã khách hàng:</strong><br>
+                                • Khách mua hàng bình thường: <strong>KH-HCM01</strong><br>
+                                &nbsp;&nbsp;(HCM là mã khu vực, 01 là mã shop)<br>
+                                • Đối với doanh nghiệp: Thay chữ <strong>KH</strong> thành <strong>DN</strong><br>
+                                &nbsp;&nbsp;Ví dụ: <strong>DN-HCM01</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-input" name="ngay_sinh" placeholder="Chọn ngày sinh">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="trang_thai">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ</label>
+                    <textarea class="form-textarea" name="dia_chi" rows="3" placeholder="Nhập địa chỉ"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="createCustomer()">Tạo khách hàng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal-overlay" id="editCustomerModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Chỉnh sửa khách hàng</h3>
+            <button class="modal-close" onclick="closeEditCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editCustomerForm">
+                <input type="hidden" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên khách hàng *</label>
+                        <input type="text" class="form-input" name="ten_tk" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="so_dt">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mã khách hàng</label>
+                        <div class="input-with-info">
+                            <input type="text" class="form-input" name="ma_khach_hang">
+                            <span class="input-info-icon">i</span>
+                            <div class="input-info-tooltip">
+                                <strong>Gợi ý đặt mã khách hàng:</strong><br>
+                                • Khách mua hàng bình thường: <strong>KH-HCM01</strong><br>
+                                &nbsp;&nbsp;(HCM là mã khu vực, 01 là mã shop)<br>
+                                • Đối với doanh nghiệp: Thay chữ <strong>KH</strong> thành <strong>DN</strong><br>
+                                &nbsp;&nbsp;Ví dụ: <strong>DN-HCM01</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-input" name="ngay_sinh">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="trang_thai">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ</label>
+                    <textarea class="form-textarea" name="dia_chi" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="updateCustomer()">Cập nhật</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteCustomerModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteCustomerModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa khách hàng này không?</p>
+            <p class="text-gray-600">Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteCustomerModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteCustomer()">Xóa</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let customersData = [];
+let filteredCustomers = [];
+let currentPage = 1;
+const itemsPerPage = 20; // Popup modal: 20 items per page
+let deleteCustomerId = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadCustomersData();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('searchCustomer').addEventListener('input', debounce(filterCustomers, 300));
+    document.getElementById('customerStatusFilter').addEventListener('change', filterCustomers);
+}
+
+
+// Load customers data
+async function loadCustomersData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            // Handle different response formats
+            if (Array.isArray(data)) {
+                customersData = data;
+            } else if (data.customers && Array.isArray(data.customers)) {
+                customersData = data.customers;
+            } else if (data.data && Array.isArray(data.data)) {
+                customersData = data.data;
+            } else {
+                customersData = [];
+            }
+            
+            console.log('Loaded customers:', customersData.length, customersData);
+            filteredCustomers = [...customersData];
+            updateStatistics();
+            updateCustomerTable();
+            updateCustomerPagination();
+        } else {
+            const errorText = await response.text();
+            console.error('Failed to load customers:', response.status, errorText);
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalCustomers = customersData.length;
+    const activeCustomers = customersData.filter(c => c.trang_thai === true).length;
+    const inactiveCustomers = customersData.filter(c => c.trang_thai === false).length;
+    const customersWithEmail = customersData.filter(c => c.email).length;
+    
+    document.getElementById('totalCustomers').textContent = totalCustomers;
+    document.getElementById('activeCustomers').textContent = activeCustomers;
+    document.getElementById('inactiveCustomers').textContent = inactiveCustomers;
+    document.getElementById('customersWithEmail').textContent = customersWithEmail;
+}
+
+// Filter customers
+function filterCustomers() {
+    const searchTerm = document.getElementById('searchCustomer').value.toLowerCase();
+    const statusFilter = document.getElementById('customerStatusFilter').value;
+    
+    filteredCustomers = customersData.filter(customer => {
+        const matchesSearch = !searchTerm || 
+                             (customer.ten_tk && customer.ten_tk.toLowerCase().includes(searchTerm)) ||
+                             (customer.email && customer.email.toLowerCase().includes(searchTerm)) ||
+                             (customer.so_dt && customer.so_dt.toLowerCase().includes(searchTerm));
+        
+        const matchesStatus = !statusFilter || customer.trang_thai.toString() === statusFilter;
+        
+        return matchesSearch && matchesStatus;
+    });
+    
+    currentPage = 1;
+    updateCustomerTable();
+    updateCustomerPagination();
+}
+
+// Clear filters
+function clearCustomerFilters() {
+    document.getElementById('searchCustomer').value = '';
+    document.getElementById('customerStatusFilter').value = '';
+    
+    filteredCustomers = [...customersData];
+    currentPage = 1;
+    updateCustomerTable();
+    updateCustomerPagination();
+}
+
+// Update customer table
+function updateCustomerTable() {
+    const tbody = document.getElementById('customersTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageCustomers = filteredCustomers.slice(startIndex, endIndex);
+    
+    if (pageCustomers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: var(--spacing-4); color: var(--gray-600);">Chưa có khách hàng nào</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = pageCustomers.map((customer, index) => `
+        <tr>
+            <td>${startIndex + index + 1}</td>
+            <td><strong>${customer.ten_tk || '-'}</strong></td>
+            <td>${customer.ma_khach_hang || '-'}</td>
+            <td>${customer.ngay_sinh ? new Date(customer.ngay_sinh).toLocaleDateString('vi-VN') : '-'}</td>
+            <td>${customer.email || '-'}</td>
+            <td>${customer.so_dt || '-'}</td>
+            <td>${customer.dia_chi || '-'}</td>
+            <td>${getStatusBadge(customer.trang_thai)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-primary" onclick="editCustomer(${customer.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteCustomer(${customer.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update pagination
+function updateCustomerPagination() {
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    const pagination = document.getElementById('customersPagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    pagination.innerHTML = generatePaginationHTML(currentPage, totalPages);
+}
+
+// Generate pagination HTML
+function generatePaginationHTML(currentPage, totalPages) {
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    return paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateCustomerTable();
+        updateCustomerPagination();
+    }
+}
+
+// Modal functions
+function openAddCustomerModal() {
+    document.getElementById('addCustomerModal').style.display = 'flex';
+    document.getElementById('addCustomerForm').reset();
+    storeModalState('addCustomerModal', document.getElementById('addCustomerForm'));
+}
+
+function closeAddCustomerModal() {
+    document.getElementById('addCustomerModal').style.display = 'none';
+    clearModalState('addCustomerModal');
+}
+
+function editCustomer(id) {
+    const customer = customersData.find(c => c.id === id);
+    if (customer) {
+        const form = document.getElementById('editCustomerForm');
+        form.querySelector('input[name="id"]').value = customer.id;
+        form.querySelector('input[name="ten_tk"]').value = customer.ten_tk || '';
+        form.querySelector('input[name="email"]').value = customer.email || '';
+        // Set phone value using phone component
+        const phoneInput = form.querySelector('input[data-phone][name="so_dt"]');
+        if (phoneInput && window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, customer.so_dt || '');
+        } else if (phoneInput) {
+            phoneInput.value = customer.so_dt || '';
+        }
+        form.querySelector('select[name="trang_thai"]').value = (customer.trang_thai || false).toString();
+        form.querySelector('input[name="ma_khach_hang"]').value = customer.ma_khach_hang || '';
+        form.querySelector('input[name="ngay_sinh"]').value = customer.ngay_sinh ? customer.ngay_sinh.split('T')[0] : '';
+        form.querySelector('textarea[name="dia_chi"]').value = customer.dia_chi || '';
+        
+        storeModalState('editCustomerModal', form);
+        document.getElementById('editCustomerModal').style.display = 'flex';
+    }
+}
+
+function closeEditCustomerModal() {
+    document.getElementById('editCustomerModal').style.display = 'none';
+    clearModalState('editCustomerModal');
+}
+
+function deleteCustomer(id) {
+    deleteCustomerId = id;
+    document.getElementById('deleteCustomerModal').style.display = 'flex';
+}
+
+function closeDeleteCustomerModal() {
+    document.getElementById('deleteCustomerModal').style.display = 'none';
+    deleteCustomerId = null;
+}
+
+// CRUD operations
+async function createCustomer() {
+    const form = document.getElementById('addCustomerForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    data.trang_thai = data.trang_thai === 'true';
+    // Normalize phone number
+    const phoneEl = form.querySelector('input[data-phone][name="so_dt"]');
+    if (phoneEl) data.so_dt = window.getPhoneValue(phoneEl) || '';
+    
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('addCustomerModal').style.display = 'none';
+            clearModalState('addCustomerModal');
+            loadCustomersData();
+            showSuccessMessage('Tạo khách hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi tạo khách hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi tạo khách hàng');
+    }
+}
+
+async function updateCustomer() {
+    const form = document.getElementById('editCustomerForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const id = data.id;
+    delete data.id;
+    data.trang_thai = data.trang_thai === 'true';
+    // Normalize phone number
+    const phoneEl = form.querySelector('input[data-phone][name="so_dt"]');
+    if (phoneEl) data.so_dt = window.getPhoneValue(phoneEl) || '';
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/accounts/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('editCustomerModal').style.display = 'none';
+            clearModalState('editCustomerModal');
+            loadCustomersData();
+            showSuccessMessage('Cập nhật khách hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi cập nhật khách hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi cập nhật khách hàng');
+    }
+}
+
+async function confirmDeleteCustomer() {
+    if (!deleteCustomerId) return;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/accounts/${deleteCustomerId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            closeDeleteCustomerModal();
+            loadCustomersData();
+            showSuccessMessage('Xóa khách hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi xóa khách hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa khách hàng');
+    }
+}
+
+// Utility functions
+function getStatusBadge(status) {
+    if (status === true || status === 'true') {
+        return '<span class="badge badge-success">Hoạt động</span>';
+    } else {
+        return '<span class="badge badge-danger">Không hoạt động</span>';
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+</script>
+{% endblock %}

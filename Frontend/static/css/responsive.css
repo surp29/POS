@@ -1,0 +1,454 @@
+/* ========================================
+   Responsive — mọi thiết bị (mobile → desktop)
+   ======================================== */
+
+:root {
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --sidebar-width: 280px;
+  --touch-min: 44px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+body.sidebar-open {
+  overflow: hidden;
+}
+
+/* ---------- Content header ---------- */
+.content-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding-top: calc(var(--spacing-4) + var(--safe-top));
+}
+
+.header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.header-titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-left h1,
+.header-titles h1 {
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  word-break: break-word;
+}
+
+.page-description {
+  word-break: break-word;
+}
+
+.header-right {
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: var(--touch-min);
+  padding: 0;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  background: white;
+  color: var(--gray-700);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mobile-menu-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ---------- Stats & grids ---------- */
+.stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.stat-card {
+  min-width: 0;
+}
+
+.stat-number {
+  font-size: clamp(1.125rem, 3.5vw, 1.5rem);
+  word-break: break-word;
+}
+
+/* ---------- Tables ---------- */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  min-width: 520px;
+}
+
+/* ---------- Forms & buttons (touch) ---------- */
+.btn {
+  min-height: var(--touch-min);
+}
+
+.btn-sm {
+  min-height: 36px;
+}
+
+.form-input,
+.form-select,
+textarea.form-input {
+  max-width: 100%;
+}
+
+/* ---------- Modals ---------- */
+.modal-footer {
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.modal-footer .btn {
+  flex: 1 1 auto;
+  min-width: min(100%, 120px);
+}
+
+/* ---------- Action bar (nút thêm / lọc trên trang) ---------- */
+.action-bar,
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.action-bar .btn,
+.page-actions .btn {
+  flex: 1 1 auto;
+  min-width: min(100%, 140px);
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  flex-wrap: wrap;
+}
+
+/* ---------- Tabs ---------- */
+.tabs {
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ========================================
+   Tablet & mobile (≤ 1023px) — drawer menu
+   ======================================== */
+@media (max-width: 1023px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .sidebar {
+    width: min(var(--sidebar-width), 88vw);
+    transform: translateX(-100%);
+    z-index: 1000;
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Trên mobile luôn hiện menu đầy đủ, không thu nhỏ icon */
+  .sidebar.collapsed {
+    width: min(var(--sidebar-width), 88vw);
+  }
+
+  .sidebar.collapsed .sidebar-header-text,
+  .sidebar.collapsed .sidebar-nav li a {
+    text-indent: 0;
+    width: auto;
+    height: auto;
+    white-space: normal;
+    overflow: visible;
+    justify-content: flex-start;
+    padding: var(--spacing-3) var(--spacing-6);
+  }
+
+  .sidebar.collapsed .sidebar-nav li a i {
+    position: static;
+    transform: none;
+    margin-right: var(--spacing-3);
+  }
+
+  .sidebar.collapsed .dropdown-container {
+    display: block !important;
+  }
+
+  .sidebar.collapsed .user-account-section .user-details,
+  .sidebar.collapsed .user-account-section .user-menu-toggle {
+    display: flex;
+  }
+
+  .main-content,
+  .sidebar.collapsed ~ .main-content,
+  .sidebar:not(.collapsed) ~ .main-content {
+    margin-left: 0 !important;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  .content-body {
+    padding: var(--spacing-4);
+    padding-bottom: calc(var(--spacing-4) + var(--safe-bottom));
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .modal.modal-horizontal .form-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chatbot-window {
+    left: var(--spacing-3) !important;
+    right: var(--spacing-3) !important;
+    width: auto !important;
+    max-width: none;
+  }
+
+  .chatbot-container {
+    left: var(--spacing-3);
+    right: var(--spacing-3);
+    width: auto;
+  }
+}
+
+/* ========================================
+   Phone (≤ 768px)
+   ======================================== */
+@media (max-width: 768px) {
+  .content-header {
+    padding: var(--spacing-4);
+    padding-top: calc(var(--spacing-4) + var(--safe-top));
+  }
+
+  .content-body {
+    padding: var(--spacing-3);
+  }
+
+  .card-header,
+  .card-body,
+  .card-footer,
+  .filter-bar {
+    padding: var(--spacing-4);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .stat-card {
+    padding: var(--spacing-4);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    margin-right: var(--spacing-3);
+  }
+
+  /* Modals: sheet style */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal,
+  .modal.modal-large,
+  .modal.modal-horizontal {
+    max-width: 100%;
+    width: 100%;
+    max-height: min(92vh, 92dvh);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    margin: 0;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+  }
+
+  .global-notification {
+    max-width: calc(100vw - 2rem);
+    margin: var(--spacing-4);
+  }
+
+  .table-actions {
+    flex-wrap: wrap;
+  }
+
+  .table-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  /* iOS: tránh zoom khi focus input */
+  .form-input,
+  .form-select,
+  .login-box .input-group input,
+  .chatbot-input {
+    font-size: 16px;
+  }
+
+  .login-box {
+    margin: var(--spacing-4);
+    padding: var(--spacing-6);
+    max-width: calc(100% - 2rem);
+  }
+}
+
+/* ========================================
+   Small phone (≤ 480px)
+   ======================================== */
+@media (max-width: 480px) {
+  .btn {
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+  }
+
+  .header-right .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .badge {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ========================================
+   Desktop (≥ 1024px)
+   ======================================== */
+@media (min-width: 1024px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  .sidebar {
+    transform: translateX(0) !important;
+  }
+
+  .main-content {
+    margin-left: var(--sidebar-width);
+  }
+
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 80px;
+  }
+}
+
+/* ========================================
+   Large desktop (≥ 1280px)
+   ======================================== */
+@media (min-width: 1280px) {
+  .content-body {
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Landscape phone — chiều cao thấp */
+@media (max-height: 500px) and (orientation: landscape) {
+  .login-container {
+    align-items: flex-start;
+    padding: var(--spacing-4) 0;
+    overflow-y: auto;
+  }
+
+  .modal {
+    max-height: 95vh;
+  }
+}
+
+/* In ấn */
+@media print {
+  .sidebar,
+  .mobile-menu-btn,
+  .sidebar-overlay,
+  .chatbot-section,
+  .user-account-section {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+}

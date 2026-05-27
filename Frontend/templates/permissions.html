@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% block title %}Phân quyền - PosPos{% endblock %}
+{% block page_title %}<i class="fas fa-shield-alt"></i> Phân quyền hệ thống{% endblock %}
+{% block page_description %}Phân quyền chi tiết theo từng chức năng cho nhân viên{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-content"><div class="stat-number" id="sTotal">0</div><div class="stat-label">Tổng nhân viên</div></div></div>
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-user-check"></i></div>
+        <div class="stat-content"><div class="stat-number" id="sActive">0</div><div class="stat-label">Đang hoạt động</div></div></div>
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-key"></i></div>
+        <div class="stat-content"><div class="stat-number" id="sHasPerm">0</div><div class="stat-label">Đã phân quyền</div></div></div>
+    <div class="stat-card"><div class="stat-icon"><i class="fas fa-user-slash"></i></div>
+        <div class="stat-content"><div class="stat-number" id="sNoPerm">0</div><div class="stat-label">Chưa phân quyền</div></div></div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-shield-alt"></i> Danh sách nhân viên</h3>
+        <input type="text" id="searchUser" class="form-input" placeholder="Tìm nhân viên..."
+               style="width:200px;" oninput="filterUsers()">
+    </div>
+    <div class="card-body p-0">
+        <table class="table">
+            <thead><tr>
+                <th>Nhân viên</th><th>Chức vụ</th><th>Phòng ban</th>
+                <th>Quyền đang có</th><th>Trạng thái</th><th>Thao tác</th>
+            </tr></thead>
+            <tbody id="usersBody">
+                <tr><td colspan="6" style="text-align:center;padding:2rem;">
+                    <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                </td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal phân quyền chi tiết -->
+<div class="modal-overlay" id="permModal" style="display:none;">
+    <div class="modal" style="max-width:780px;width:95%;max-height:90vh;">
+        <div class="modal-header">
+            <h3><i class="fas fa-key"></i> Phân quyền: <span id="permName"></span></h3>
+            <button class="modal-close" onclick="closePerm()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="max-height:65vh;overflow-y:auto;" id="permBody"></div>
+        <div class="modal-footer" style="justify-content:space-between;">
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-sm btn-secondary" onclick="checkAllPerm(true)">
+                    <i class="fas fa-check-double"></i> Chọn tất cả
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="checkAllPerm(false)">
+                    <i class="fas fa-times"></i> Bỏ chọn tất cả
+                </button>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" onclick="closePerm()">Hủy</button>
+                <button class="btn btn-primary" id="savePermBtn" onclick="savePerm()">
+                    <i class="fas fa-save"></i> Lưu phân quyền
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xác nhận status -->
+<div class="modal-overlay" id="confirmModal" style="display:none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3 id="confirmTitle">Xác nhận</h3>
+            <button class="modal-close" onclick="document.getElementById('confirmModal').style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body"><p id="confirmMsg"></p></div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">Hủy</button>
+            <button class="btn btn-danger" id="confirmBtn">Xác nhận</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const B = window.BACKEND_URL;
+const T = () => sessionStorage.getItem('access_token');
+const H = () => ({'Content-Type':'application/json','Authorization':'Bearer '+T()});
+
+let allUsers=[], permTree={}, editingId=null;
+
+async function init() {
+    const [uRes, tRes] = await Promise.all([
+        fetch(B+'/api/permissions/users',{headers:H()}),
+        fetch(B+'/api/permissions/tree', {headers:H()}),
+    ]);
+    if (!uRes.ok) {
+        document.getElementById('usersBody').innerHTML =
+            '<tr><td colspan="6" style="text-align:center;color:#e53e3e;">Không có quyền truy cập</td></tr>';
+        return;
+    }
+    allUsers  = (await uRes.json()).users || [];
+    permTree  = (await tRes.json()).tree  || {};
+    updateStats(); renderTable(allUsers);
+}
+
+function updateStats() {
+    const active = allUsers.filter(u=>!u.is_admin);
+    const hasPerm = active.filter(u=>u.permissions.length>0);
+    document.getElementById('sTotal').textContent   = allUsers.length;
+    document.getElementById('sActive').textContent  = active.length;
+    document.getElementById('sHasPerm').textContent = hasPerm.length;
+    document.getElementById('sNoPerm').textContent  = active.length-hasPerm.length;
+}
+
+function renderTable(users) {
+    const tbody = document.getElementById('usersBody');
+    tbody.innerHTML = users.map(u => {
+        const statusBadge = u.status
+            ? '<span class="badge badge-success">Hoạt động</span>'
+            : '<span class="badge badge-danger">Vô hiệu</span>';
+
+        let permSummary = '';
+        if (u.is_admin) {
+            permSummary = '<span style="color:#16a34a;font-weight:600;">👑 Admin (toàn quyền)</span>';
+        } else if (u.permissions.length === 0) {
+            permSummary = '<span style="color:#dc2626;font-size:0.85em;">⚠️ Chưa có quyền nào</span>';
+        } else {
+            // Nhóm theo module
+            const modules = {};
+            u.permissions.forEach(p => {
+                const mod = p.split('.')[0];
+                if (!modules[mod]) modules[mod] = 0;
+                modules[mod]++;
+            });
+            permSummary = Object.entries(modules).slice(0,4).map(([mod,cnt]) =>
+                `<span style="background:#eff6ff;color:#1d4ed8;padding:2px 7px;border-radius:4px;
+                              font-size:0.78em;margin:1px;display:inline-block;">
+                    ${mod} (${cnt})
+                </span>`
+            ).join('') + (Object.keys(modules).length>4 ?
+                `<span style="color:#6b7280;font-size:0.8em;"> +${Object.keys(modules).length-4} module</span>` : '');
+        }
+
+        const actions = u.is_admin
+            ? '<span style="color:#9ca3af;font-size:0.85em;">Admin</span>'
+            : `<div class="table-actions">
+                <button class="btn btn-sm btn-primary" onclick="openPerm(${u.id})" title="Phân quyền">
+                    <i class="fas fa-key"></i> Phân quyền
+                </button>
+                ${u.status
+                    ? `<button class="btn btn-sm btn-warning" onclick="confirmToggle(${u.id},'${u.name}',false)" title="Vô hiệu hóa">
+                        <i class="fas fa-user-slash"></i></button>`
+                    : `<button class="btn btn-sm btn-success" onclick="confirmToggle(${u.id},'${u.name}',true)" title="Kích hoạt">
+                        <i class="fas fa-user-check"></i></button>`
+                }
+               </div>`;
+
+        return `<tr>
+            <td><strong>${u.name}</strong><br><small style="color:#6b7280;">@${u.username}</small></td>
+            <td>${u.position||'-'}</td>
+            <td>${u.department||'-'}</td>
+            <td>${permSummary}</td>
+            <td>${statusBadge}</td>
+            <td>${actions}</td>
+        </tr>`;
+    }).join('');
+}
+
+function filterUsers() {
+    const q = document.getElementById('searchUser').value.toLowerCase();
+    renderTable(q ? allUsers.filter(u=>
+        (u.name||'').toLowerCase().includes(q)||
+        (u.username||'').toLowerCase().includes(q)||
+        (u.position||'').toLowerCase().includes(q)
+    ) : allUsers);
+}
+
+// ── Modal phân quyền chi tiết ─────────────────────────────────────────────────
+function openPerm(userId) {
+    editingId = userId;
+    const user = allUsers.find(u=>u.id===userId);
+    if (!user) return;
+    document.getElementById('permName').textContent = user.name + ' (@'+user.username+')';
+
+    // Build UI từ permission tree
+    const body = document.getElementById('permBody');
+    body.innerHTML = Object.entries(permTree).map(([group, modules]) => `
+        <div style="margin-bottom:20px;">
+            <!-- Group header -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+                        padding:8px 12px;background:#f8fafc;border-radius:6px;
+                        border-left:3px solid #3b82f6;">
+                <input type="checkbox" class="group-cb" data-group="${group}"
+                       onchange="toggleGroup('${group}',this.checked)"
+                       style="width:16px;height:16px;cursor:pointer;">
+                <strong style="font-size:0.95em;color:#1e40af;">${group}</strong>
+            </div>
+            <!-- Modules trong group -->
+            ${Object.entries(modules).map(([modKey, modInfo]) => `
+                <div style="margin-left:16px;margin-bottom:12px;border:1px solid #e5e7eb;
+                            border-radius:8px;overflow:hidden;">
+                    <!-- Module header -->
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;
+                                background:#f1f5f9;border-bottom:1px solid #e5e7eb;">
+                        <input type="checkbox" class="module-cb" data-module="${modKey}"
+                               onchange="toggleModule('${modKey}',this.checked)"
+                               style="width:15px;height:15px;cursor:pointer;">
+                        <span style="font-weight:600;font-size:0.9em;color:#374151;">
+                            <i class="fas fa-puzzle-piece" style="color:#6b7280;margin-right:4px;"></i>
+                            ${modInfo.label}
+                        </span>
+                        <span style="margin-left:auto;font-size:0.78em;color:#9ca3af;" id="mod-count-${modKey}"></span>
+                    </div>
+                    <!-- Sub-permissions -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;padding:4px 0;">
+                        ${Object.entries(modInfo.sub).map(([permKey, permLabel]) => {
+                            const checked = user.permissions.includes(permKey);
+                            const isView = permKey.endsWith('.view');
+                            return `
+                            <label style="display:flex;align-items:center;gap:8px;
+                                          padding:8px 14px;cursor:pointer;
+                                          border-bottom:1px solid #f3f4f6;
+                                          transition:background 0.15s;"
+                                   class="perm-row" data-module="${modKey}"
+                                   onmouseenter="this.style.background='#f8fafc'"
+                                   onmouseleave="this.style.background=''">
+                                <input type="checkbox" class="perm-cb" value="${permKey}"
+                                       data-module="${modKey}" data-group="${group}"
+                                       ${checked ? 'checked' : ''}
+                                       onchange="onPermChange('${modKey}','${group}')"
+                                       style="width:15px;height:15px;cursor:pointer;flex-shrink:0;">
+                                <span style="font-size:0.87em;color:#374151;line-height:1.3;">
+                                    ${isView ? '👁️' : '⚡'} ${permLabel}
+                                </span>
+                            </label>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `).join('');
+
+    // Cập nhật trạng thái checkbox group/module
+    updateAllCheckboxStates();
+    document.getElementById('permModal').style.display = 'flex';
+}
+
+function closePerm() { document.getElementById('permModal').style.display='none'; editingId=null; }
+
+// Toggle toàn bộ group
+function toggleGroup(group, checked) {
+    document.querySelectorAll(`.perm-cb[data-group="${group}"]`).forEach(cb => {
+        cb.checked = checked;
+    });
+    updateAllCheckboxStates();
+}
+
+// Toggle toàn bộ module
+function toggleModule(modKey, checked) {
+    document.querySelectorAll(`.perm-cb[data-module="${modKey}"]`).forEach(cb => {
+        cb.checked = checked;
+    });
+    updateAllCheckboxStates();
+}
+
+// Khi thay đổi 1 permission → cập nhật trạng thái module/group checkbox
+function onPermChange(modKey, group) { updateAllCheckboxStates(); }
+
+function updateAllCheckboxStates() {
+    // Cập nhật module checkboxes
+    document.querySelectorAll('.module-cb').forEach(mcb => {
+        const mod = mcb.getAttribute('data-module');
+        const cbs = [...document.querySelectorAll(`.perm-cb[data-module="${mod}"]`)];
+        const checkedCount = cbs.filter(c=>c.checked).length;
+        mcb.checked = checkedCount === cbs.length && cbs.length > 0;
+        mcb.indeterminate = checkedCount > 0 && checkedCount < cbs.length;
+        // Cập nhật count badge
+        const countEl = document.getElementById('mod-count-'+mod);
+        if (countEl) countEl.textContent = checkedCount > 0 ? `${checkedCount}/${cbs.length} quyền` : '';
+    });
+    // Cập nhật group checkboxes
+    document.querySelectorAll('.group-cb').forEach(gcb => {
+        const grp = gcb.getAttribute('data-group');
+        const cbs = [...document.querySelectorAll(`.perm-cb[data-group="${grp}"]`)];
+        const checkedCount = cbs.filter(c=>c.checked).length;
+        gcb.checked = checkedCount === cbs.length && cbs.length > 0;
+        gcb.indeterminate = checkedCount > 0 && checkedCount < cbs.length;
+    });
+}
+
+function checkAllPerm(checked) {
+    document.querySelectorAll('.perm-cb').forEach(cb => cb.checked = checked);
+    updateAllCheckboxStates();
+}
+
+async function savePerm() {
+    if (!editingId) return;
+    const perms = [...document.querySelectorAll('.perm-cb:checked')].map(cb=>cb.value);
+    const btn = document.getElementById('savePermBtn');
+    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; btn.disabled=true;
+    try {
+        const res = await fetch(`${B}/api/permissions/user/${editingId}`,{
+            method:'PUT', headers:H(), body:JSON.stringify({permissions:perms})
+        });
+        const d = await res.json();
+        if (res.ok && d.success) {
+            const u = allUsers.find(u=>u.id===editingId);
+            if (u) u.permissions = perms;
+            closePerm(); updateStats(); filterUsers();
+            if (typeof showSuccessMessage==='function')
+                showSuccessMessage(`Đã lưu ${perms.length} quyền cho nhân viên!`);
+        } else { alert('Lỗi: '+(d.detail||'Không thể lưu')); }
+    } finally {
+        btn.innerHTML='<i class="fas fa-save"></i> Lưu phân quyền'; btn.disabled=false;
+    }
+}
+
+// ── Vô hiệu hóa / kích hoạt ──────────────────────────────────────────────────
+function confirmToggle(id, name, activate) {
+    document.getElementById('confirmTitle').textContent = activate ? 'Kích hoạt tài khoản' : 'Vô hiệu hóa tài khoản';
+    document.getElementById('confirmMsg').innerHTML = activate
+        ? `Kích hoạt lại tài khoản của <strong>${name}</strong>?`
+        : `Vô hiệu hóa tài khoản của <strong>${name}</strong>?<br>
+           <span style="color:#dc2626;font-size:0.9em;">Nhân viên sẽ bị đăng xuất ngay lập tức.</span>`;
+    document.getElementById('confirmBtn').onclick = () => toggleStatus(id, activate);
+    document.getElementById('confirmModal').style.display = 'flex';
+}
+
+async function toggleStatus(id, activate) {
+    document.getElementById('confirmModal').style.display = 'none';
+    const ep = activate ? 'activate' : 'deactivate';
+    const res = await fetch(`${B}/api/permissions/${ep}/${id}`,{method:'POST',headers:H()});
+    const d = await res.json();
+    if (res.ok && d.success) {
+        const u = allUsers.find(u=>u.id===id);
+        if (u) u.status = activate;
+        updateStats(); filterUsers();
+        if (typeof showSuccessMessage==='function') showSuccessMessage(d.message);
+    } else { alert('Lỗi: '+(d.detail||'Thao tác thất bại')); }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+{% endblock %}

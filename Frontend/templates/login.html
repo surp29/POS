@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Đăng nhập - PosPos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-box">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PosPos Logo">
+      </div>
+      <h2>Đăng nhập hệ thống</h2>
+      <form id="loginForm">
+        <div class="input-group">
+          <input type="text" id="username" name="username" placeholder="Tên đăng nhập" required autocomplete="username">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="input-group">
+          <input type="password" id="password" name="password" placeholder="Mật khẩu"
+                 required autocomplete="current-password" style="padding-right:48px;">
+          <i class="fas fa-lock"></i>
+          <button type="button" id="loginTogglePwd" onclick="toggleLoginPassword()"
+                  title="Hiện/ẩn mật khẩu"
+                  style="position:absolute;right:0;top:0;height:100%;width:44px;
+                         background:none;border:none;cursor:pointer;color:#94a3b8;
+                         display:flex;align-items:center;justify-content:center;
+                         border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+                         transition:color 0.2s;z-index:1;">
+            <i class="fas fa-eye" id="loginPwdIcon"></i>
+          </button>
+        </div>
+        <button type="submit" id="loginBtn">Đăng nhập</button>
+      </form>
+      <p style="margin-top: 12px; font-size: 12px; color: #64748b; text-align: center;">
+        Mặc định: <strong>admin</strong> / <strong>admin123</strong>
+      </p>
+    </div>
+  </div>
+
+  <script>
+  function parseLoginError(data, statusCode) {
+    if (!data) return 'Đăng nhập thất bại';
+    if (typeof data.detail === 'string') return data.detail;
+    if (typeof data.error === 'string') return data.error;
+    if (statusCode === 401) return 'Sai tài khoản hoặc mật khẩu';
+    if (statusCode === 403) return 'Tài khoản đã bị vô hiệu hóa';
+    if (statusCode === 404) return 'Tài khoản không tồn tại';
+    if (statusCode === 503) return data.error || 'Không kết nối được Backend. Hãy chạy server port 5001.';
+    return 'Đăng nhập thất bại';
+  }
+
+  function showErrorPopup(message, type = 'error') {
+    const existingPopup = document.querySelector('.error-popup-overlay');
+    if (existingPopup) existingPopup.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'error-popup-overlay';
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5); z-index: 10000;
+      display: flex; justify-content: center; align-items: center;
+    `;
+
+    const iconColor = type === 'warning' ? '#f39c12' : '#e74c3c';
+    const popup = document.createElement('div');
+    popup.className = 'error-popup';
+    popup.style.cssText = `
+      background: white; border-radius: 12px; padding: 24px;
+      max-width: 400px; width: 90%; text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    `;
+    popup.innerHTML = `
+      <p style="margin: 0 0 16px; color: #2c3e50; font-size: 16px;">${message}</p>
+      <button type="button" style="
+        background: ${iconColor}; color: white; border: none;
+        padding: 10px 24px; border-radius: 6px; cursor: pointer;
+      ">Đóng</button>
+    `;
+    popup.querySelector('button').onclick = () => overlay.remove();
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const loginBtn = document.getElementById('loginBtn');
+
+    if (!username || !password) {
+      showErrorPopup('Vui lòng nhập tên đăng nhập và mật khẩu');
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Đang đăng nhập...';
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ username, password })
+      });
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        showErrorPopup('Phản hồi server không hợp lệ. Kiểm tra Backend đang chạy.');
+        return;
+      }
+
+      if (!response.ok) {
+        showErrorPopup(parseLoginError(data, response.status), response.status === 403 ? 'warning' : 'error');
+        return;
+      }
+
+      if (!data.access_token) {
+        showErrorPopup('Đăng nhập thất bại: thiếu token từ server.');
+        return;
+      }
+
+      const loginUsername = data.user?.username || username;
+      try {
+        sessionStorage.setItem('access_token', data.access_token);
+        sessionStorage.setItem('user_id', loginUsername);
+        sessionStorage.setItem('username', loginUsername);
+      } catch (storageErr) {
+        console.warn('sessionStorage:', storageErr);
+      }
+
+      window.location.replace('/general-diary');
+    } catch (error) {
+      console.error('Login error:', error);
+      showErrorPopup(
+        'Không thể kết nối server. Kiểm tra Frontend (5000) và Backend (5001) đang chạy.'
+      );
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Đăng nhập';
+    }
+  });
+  
+  function toggleLoginPassword() {
+      var inp  = document.getElementById('password');
+      var icon = document.getElementById('loginPwdIcon');
+      var btn  = document.getElementById('loginTogglePwd');
+      if (!inp) return;
+      if (inp.type === 'password') {
+          inp.type = 'text';
+          icon.className = 'fas fa-eye-slash';
+          btn.style.color = '#3b82f6';
+      } else {
+          inp.type = 'password';
+          icon.className = 'fas fa-eye';
+          btn.style.color = '#94a3b8';
+      }
+  }
+</script>
+</body>
+</html>

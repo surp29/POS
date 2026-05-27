@@ -1,0 +1,947 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý kho hàng - PosPos{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-warehouse"></i> Quản lý kho hàng
+{% endblock %}
+
+{% block page_description %}
+Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-warehouse"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalWarehouses">0</div>
+            <div class="stat-label">Tổng kho</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalProducts">0</div>
+            <div class="stat-label">Tổng sản phẩm</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="inStockProducts">0</div>
+            <div class="stat-label">Còn hàng</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="outOfStockProducts">0</div>
+            <div class="stat-label">Hết hàng</div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Warehouse Form -->
+<div class="card">
+    <div class="card-header">
+        <h3><i class="fas fa-plus-circle"></i> Tạo kho hàng mới</h3>
+    </div>
+    <div class="card-body">
+        <form id="createWarehouseForm">
+            <div class="form-group" style="margin-bottom: var(--spacing-5);">
+                <label class="form-label" style="cursor: pointer; display: flex; align-items: center; gap: var(--spacing-2);" onclick="toggleWarehouseDropdown()">
+                    <i class="fas fa-warehouse"></i>
+                    Chọn kho hàng có sẵn
+                    <i class="fas fa-chevron-down" id="warehouseDropdownIcon" style="margin-left: auto; transition: transform 0.3s;"></i>
+                </label>
+                <select class="form-select" id="selectExistingWarehouse" style="display: none; margin-top: var(--spacing-2);" onchange="fillWarehouseFromSelection(this.value)">
+                    <option value="">-- Chọn kho hàng --</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Mã kho *</label>
+                    <input type="text" class="form-input" name="ma_kho" id="ma_kho_input" required placeholder="Nhập mã kho">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tên kho *</label>
+                    <input type="text" class="form-input" name="ten_kho" id="ten_kho_input" required placeholder="Nhập tên kho">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group form-half">
+                    <label class="form-label">Mã sản phẩm *</label>
+                    <input type="text" class="form-input" name="ma_sp" required placeholder="Nhập mã sản phẩm">
+                </div>
+                <div class="form-group form-half">
+                    <div class="inline-fields">
+                        <div class="form-group form-flex">
+                            <label class="form-label">Giá nhập</label>
+                            <div class="money-input-container">
+                                <input type="text" id="create_gia_nhap_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('create_gia_nhap'))">
+                                <input type="hidden" name="gia_nhap" id="create_gia_nhap">
+                                <span class="currency-unit">VNĐ</span>
+                            </div>
+                        </div>
+                        <div class="form-group form-qty-small">
+                            <label class="form-label">Số lượng *</label>
+                            <input type="number" class="form-input" name="so_luong" min="0" required placeholder="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="tel" class="form-input" data-phone name="dien_thoai" id="dien_thoai_input" placeholder="Nhập số điện thoại">
+                </div>
+                <div class="form-group form-address">
+                    <label class="form-label">Địa chỉ *</label>
+                    <textarea class="form-textarea" name="dia_chi" id="dia_chi_input" rows="3" required placeholder="Nhập địa chỉ kho"></textarea>
+                </div>
+            </div>
+            
+            
+            
+            <div class="form-group">
+                <label class="form-label">Ghi chú</label>
+                <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Tạo kho hàng
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                    <i class="fas fa-undo"></i>
+                    Làm mới
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Tìm kiếm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="searchWarehouse" placeholder="Tìm theo mã kho, tên kho, sản phẩm...">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Mã kho</label>
+            <select class="form-select" id="warehouseCodeFilter">
+                <option value="">Tất cả mã kho</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Tên kho</label>
+            <select class="form-select" id="warehouseNameFilter">
+                <option value="">Tất cả tên kho</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Nhóm sản phẩm</label>
+            <select class="form-select" id="groupFilter">
+                <option value="">Tất cả nhóm</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" id="statusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Còn hàng">Còn hàng</option>
+                <option value="Hết hàng">Hết hàng</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Warehouse Table -->
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách kho hàng</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="warehouseTable">
+  <thead>
+    <tr>
+                        <th>STT</th>
+                        <th>Mã kho</th>
+                        <th>Tên kho</th>
+                        <th>Mã SP</th>
+                        <th>Giá nhập</th>
+                        <th>Số lượng</th>
+                        <th>Địa chỉ</th>
+                        <th>Số điện thoại</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+    </tr>
+  </thead>
+                <tbody id="warehouseTableBody">
+                    <!-- Data will be loaded here -->
+  </tbody>
+</table>
+    </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="pagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+<!-- Edit Warehouse Modal -->
+<div class="modal-overlay" id="editWarehouseModal" style="display: none;">
+<div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Chỉnh sửa kho hàng</h3>
+            <button class="modal-close" onclick="closeEditWarehouseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+</div>
+        <div class="modal-body">
+            <form id="editWarehouseForm">
+                <input type="hidden" name="id">
+                
+      <div class="form-row">
+        <div class="form-group">
+                        <label class="form-label">Mã kho</label>
+                        <input type="text" class="form-input" name="ma_kho" readonly>
+        </div>
+        <div class="form-group">
+                        <label class="form-label">Tên kho</label>
+                        <input type="text" class="form-input" name="ten_kho" readonly>
+        </div>
+      </div>
+                
+      <div class="form-row">
+        <div class="form-group">
+                        <label class="form-label">Mã sản phẩm</label>
+                        <input type="text" class="form-input" name="ma_sp" readonly>
+        </div>
+      </div>
+                
+      <div class="form-row">
+        <div class="form-group">
+                        <label class="form-label">Số lượng *</label>
+                        <input type="number" class="form-input" name="so_luong" id="edit_so_luong" min="0" required oninput="updateStatusFromQuantity()">
+        </div>
+        <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="trang_thai" id="edit_trang_thai">
+                            <option value="Còn hàng">Còn hàng</option>
+                            <option value="Hết hàng">Hết hàng</option>
+                        </select>
+        </div>
+      </div>
+                
+      <div class="form-row">
+        <div class="form-group">
+                        <label class="form-label">Giá nhập</label>
+                        <div class="money-input-container">
+                            <input type="text" id="edit_gia_nhap_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_gia_nhap'))">
+                            <input type="hidden" name="gia_nhap" id="edit_gia_nhap">
+                            <span class="currency-unit">VNĐ</span>
+        </div>
+      </div>
+      
+</div>
+
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
+    </div>
+            </form>
+    </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditWarehouseModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="updateWarehouse()">Cập nhật</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteWarehouseModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteWarehouseModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa kho hàng này không?</p>
+            <p class="text-gray-600">Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteWarehouseModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteWarehouse()">Xóa</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let warehouseData = [];
+let filteredWarehouse = [];
+let currentPage = 1;
+const itemsPerPage = 20; // Popup modal: 20 items per page
+let deleteWarehouseId = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadWarehouseData();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Form submission
+    document.getElementById('createWarehouseForm').addEventListener('submit', createWarehouse);
+    
+    // Store initial state for create form
+    const createForm = document.getElementById('createWarehouseForm');
+    storeModalState('createWarehouseForm', createForm);
+    
+    // Filter inputs
+    document.getElementById('searchWarehouse').addEventListener('input', debounce(filterWarehouse, 300));
+    document.getElementById('warehouseCodeFilter').addEventListener('change', filterWarehouse);
+    document.getElementById('warehouseNameFilter').addEventListener('change', filterWarehouse);
+    document.getElementById('groupFilter').addEventListener('change', filterWarehouse);
+    document.getElementById('statusFilter').addEventListener('change', filterWarehouse);
+}
+
+// Phone logic now handled globally by phone.js for any input[data-phone]
+
+// Load warehouse data
+async function loadWarehouseData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/', {
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            warehouseData = await response.json();
+            console.log('Loaded warehouse data:', warehouseData);
+            console.log('Number of warehouses:', warehouseData.length);
+            filteredWarehouse = [...warehouseData];
+            updateStatistics();
+            updateFilterOptions();
+            populateWarehouseDropdown(); // Populate dropdown for selection
+            updateWarehouseTable();
+            updatePagination();
+        } else {
+            const errorText = await response.text();
+            console.error('Failed to load warehouse data:', response.status, errorText);
+            showErrorMessage('Không thể tải dữ liệu kho hàng. Vui lòng thử lại.');
+        }
+    } catch (error) {
+        console.error('Error loading warehouse data:', error);
+        showErrorMessage('Đã xảy ra lỗi khi tải dữ liệu kho hàng.');
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalWarehouses = new Set(warehouseData.map(w => w.ma_kho)).size;
+    const totalProducts = warehouseData.length;
+    const inStockProducts = warehouseData.filter(w => w.trang_thai === 'Còn hàng').length;
+    const outOfStockProducts = warehouseData.filter(w => w.trang_thai === 'Hết hàng').length;
+    
+    document.getElementById('totalWarehouses').textContent = totalWarehouses;
+    document.getElementById('totalProducts').textContent = totalProducts;
+    document.getElementById('inStockProducts').textContent = inStockProducts;
+    document.getElementById('outOfStockProducts').textContent = outOfStockProducts;
+}
+
+// Create warehouse
+async function createWarehouse(e) {
+    e.preventDefault();
+    
+    const form = document.getElementById('createWarehouseForm');
+    const formData = new FormData(form);
+    const raw = Object.fromEntries(formData);
+    
+    // Build payload per backend schema WarehouseCreate
+    const payload = {
+        ma_kho: raw.ma_kho,
+        ten_kho: raw.ten_kho,
+        dia_chi: (raw.dia_chi || '').toString(),
+        dien_thoai: (function(){
+            const el = document.querySelector('input[data-phone][name="dien_thoai"]');
+            const full = window.getPhoneValue(el);
+            return full || undefined;
+        })(),
+        ma_sp: raw.ma_sp || undefined,  // Thêm ma_sp
+        gia_nhap: parseFloat(document.getElementById('create_gia_nhap').value || '0') || undefined,  // Thêm gia_nhap
+        so_luong: parseInt(raw.so_luong || '0'),  // Đổi từ so_luong_sp sang so_luong
+        ghi_chu: raw.ghi_chu || undefined,  // Đổi từ mo_ta sang ghi_chu
+        trang_thai: 'Hoạt động',
+    };
+
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/warehouse/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+            document.getElementById('createWarehouseForm').reset();
+            clearModalState('createWarehouseForm');
+            storeModalState('createWarehouseForm', document.getElementById('createWarehouseForm'));
+            
+            // Reset money input fields
+            document.getElementById('create_gia_nhap_display').value = '';
+            document.getElementById('create_gia_nhap').value = '';
+            
+            loadWarehouseData();
+            showSuccessMessage('Tạo kho hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi tạo kho hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi tạo kho hàng');
+    }
+}
+
+// Reset form
+function resetForm() {
+    const form = document.getElementById('createWarehouseForm');
+    form.reset();
+    clearModalState('createWarehouseForm');
+    storeModalState('createWarehouseForm', form);
+    
+    // Reset dropdown
+    const select = document.getElementById('selectExistingWarehouse');
+    if (select) {
+        select.value = '';
+        select.style.display = 'none';
+    }
+    const icon = document.getElementById('warehouseDropdownIcon');
+    if (icon) {
+        icon.style.transform = 'rotate(0deg)';
+    }
+    
+    // Reset phone component if needed
+    const phoneInput = document.querySelector('input[data-phone][name="dien_thoai"]') || 
+                       document.getElementById('dien_thoai_input');
+    if (phoneInput) {
+        if (window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, '');
+        } else {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = 'VN';
+                if (numberInput) numberInput.value = '';
+            } else {
+                phoneInput.value = '';
+            }
+        }
+    }
+    
+    // Reset money input fields
+    document.getElementById('create_gia_nhap_display').value = '';
+    document.getElementById('create_gia_nhap').value = '';
+}
+
+// Update filter options
+function updateFilterOptions() {
+    // Warehouse codes
+    const warehouseCodes = [...new Set(warehouseData.map(w => w.ma_kho))];
+    const codeSelect = document.getElementById('warehouseCodeFilter');
+    codeSelect.innerHTML = '<option value="">Tất cả mã kho</option>';
+    warehouseCodes.forEach(code => {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = code;
+        codeSelect.appendChild(option);
+    });
+    
+    // Warehouse names
+    const warehouseNames = [...new Set(warehouseData.map(w => w.ten_kho))];
+    const nameSelect = document.getElementById('warehouseNameFilter');
+    nameSelect.innerHTML = '<option value="">Tất cả tên kho</option>';
+    warehouseNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        nameSelect.appendChild(option);
+    });
+    
+    // Product groups
+    const groups = [...new Set(warehouseData.map(w => w.nhom_san_pham).filter(Boolean))];
+    const groupSelect = document.getElementById('groupFilter');
+    groupSelect.innerHTML = '<option value="">Tất cả nhóm</option>';
+    groups.forEach(group => {
+        const option = document.createElement('option');
+        option.value = group;
+        option.textContent = group;
+        groupSelect.appendChild(option);
+    });
+}
+
+// Populate warehouse dropdown for selection
+function populateWarehouseDropdown() {
+    const select = document.getElementById('selectExistingWarehouse');
+    if (!select) return;
+    
+    // Get unique warehouses by ma_kho
+    const warehouseMap = new Map();
+    warehouseData.forEach(item => {
+        if (!warehouseMap.has(item.ma_kho)) {
+            warehouseMap.set(item.ma_kho, {
+                ma_kho: item.ma_kho,
+                ten_kho: item.ten_kho,
+                dien_thoai: item.dien_thoai,
+                dia_chi: item.dia_chi
+            });
+        }
+    });
+    
+    // Clear existing options except first
+    select.innerHTML = '<option value="">-- Chọn kho hàng --</option>';
+    
+    // Add warehouses to dropdown
+    Array.from(warehouseMap.values()).forEach(warehouse => {
+        const option = document.createElement('option');
+        option.value = warehouse.ma_kho;
+        option.textContent = `${warehouse.ma_kho} - ${warehouse.ten_kho}`;
+        option.dataset.warehouse = JSON.stringify(warehouse);
+        select.appendChild(option);
+    });
+}
+
+// Toggle warehouse dropdown visibility
+function toggleWarehouseDropdown() {
+    const select = document.getElementById('selectExistingWarehouse');
+    const icon = document.getElementById('warehouseDropdownIcon');
+    
+    if (select && icon) {
+        const isVisible = select.style.display !== 'none';
+        select.style.display = isVisible ? 'none' : 'block';
+        icon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+}
+
+// Fill form fields when warehouse is selected
+function fillWarehouseFromSelection(maKho) {
+    if (!maKho) {
+        // Clear form if no selection
+        document.getElementById('ma_kho_input').value = '';
+        document.getElementById('ten_kho_input').value = '';
+        document.getElementById('dia_chi_input').value = '';
+        const phoneInput = document.querySelector('input[data-phone][name="dien_thoai"]') || 
+                           document.getElementById('dien_thoai_input');
+        if (phoneInput) {
+            if (window.setPhoneValue) {
+                window.setPhoneValue(phoneInput, '');
+            } else {
+                phoneInput.value = '';
+                // Reset phone component if needed
+                const phoneContainer = phoneInput.closest('.phone-input-container');
+                if (phoneContainer) {
+                    const select = phoneContainer.querySelector('.phone-country-select');
+                    if (select) select.value = 'VN';
+                }
+            }
+        }
+        return;
+    }
+    
+    const select = document.getElementById('selectExistingWarehouse');
+    const selectedOption = select.querySelector(`option[value="${maKho}"]`);
+    
+    if (selectedOption && selectedOption.dataset.warehouse) {
+        try {
+            const warehouse = JSON.parse(selectedOption.dataset.warehouse);
+            
+            // Fill form fields
+            document.getElementById('ma_kho_input').value = warehouse.ma_kho || '';
+            document.getElementById('ten_kho_input').value = warehouse.ten_kho || '';
+            document.getElementById('dia_chi_input').value = warehouse.dia_chi || '';
+            
+            // Set phone value using phone component
+            const phoneInput = document.querySelector('input[data-phone][name="dien_thoai"]') || 
+                               document.getElementById('dien_thoai_input');
+            if (phoneInput && warehouse.dien_thoai) {
+                if (window.setPhoneValue) {
+                    window.setPhoneValue(phoneInput, warehouse.dien_thoai);
+                } else {
+                    phoneInput.value = warehouse.dien_thoai;
+                }
+            }
+            
+            // Clear product fields so user can enter new product
+            document.querySelector('input[name="ma_sp"]').value = '';
+            document.getElementById('create_gia_nhap_display').value = '';
+            document.getElementById('create_gia_nhap').value = '';
+            document.querySelector('input[name="so_luong"]').value = '';
+            document.querySelector('textarea[name="ghi_chu"]').value = '';
+            
+        } catch (error) {
+            console.error('Error parsing warehouse data:', error);
+        }
+    }
+}
+
+// Filter warehouse
+function filterWarehouse() {
+    const searchTerm = document.getElementById('searchWarehouse').value.toLowerCase();
+    const codeFilter = document.getElementById('warehouseCodeFilter').value;
+    const nameFilter = document.getElementById('warehouseNameFilter').value;
+    const groupFilter = document.getElementById('groupFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    filteredWarehouse = warehouseData.filter(item => {
+        const matchesSearch = !searchTerm || 
+                             (item.ma_kho && item.ma_kho.toLowerCase().includes(searchTerm)) ||
+                             (item.ten_kho && item.ten_kho.toLowerCase().includes(searchTerm)) ||
+                             (item.ma_sp && item.ma_sp.toLowerCase().includes(searchTerm)) ||
+                             (item.ten_sp && item.ten_sp.toLowerCase().includes(searchTerm));
+        
+        const matchesCode = !codeFilter || item.ma_kho === codeFilter;
+        const matchesName = !nameFilter || item.ten_kho === nameFilter;
+        const matchesGroup = !groupFilter || item.nhom_san_pham === groupFilter;
+        const matchesStatus = !statusFilter || item.trang_thai === statusFilter;
+        
+        return matchesSearch && matchesCode && matchesName && matchesGroup && matchesStatus;
+    });
+    
+    currentPage = 1;
+    updateWarehouseTable();
+    updatePagination();
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('searchWarehouse').value = '';
+    document.getElementById('warehouseCodeFilter').value = '';
+    document.getElementById('warehouseNameFilter').value = '';
+    document.getElementById('groupFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    
+    filteredWarehouse = [...warehouseData];
+    currentPage = 1;
+    updateWarehouseTable();
+    updatePagination();
+}
+
+// Update warehouse table
+function updateWarehouseTable() {
+    const tbody = document.getElementById('warehouseTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageItems = filteredWarehouse.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pageItems.map((item, index) => {
+        // Determine actual status based on quantity
+        let status = item.so_luong > 0 ? 'Còn hàng' : 'Hết hàng';
+        return `
+        <tr>
+            <td>${startIndex + index + 1}</td>
+            <td><strong>${item.ma_kho || '-'}</strong></td>
+            <td>${item.ten_kho || '-'}</td>
+            <td><strong>${item.ma_sp || '-'}</strong></td>
+            <td>${(item.gia_nhap || 0).toLocaleString()} VNĐ</td>
+            <td><span class="badge badge-secondary">${(item.so_luong || 0).toLocaleString()}</span></td>
+            <td>${item.dia_chi || '-'}</td>
+            <td>${item.dien_thoai || '-'}</td>
+            <td>${item.ghi_chu || '-'}</td>
+            <td>${getStatusBadge(status)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-primary" onclick="editWarehouse(${item.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteWarehouse(${item.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        `;
+    }).join('');
+}
+
+// Update pagination
+function updatePagination() {
+    const totalPages = Math.ceil(filteredWarehouse.length / itemsPerPage);
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredWarehouse.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateWarehouseTable();
+        updatePagination();
+    }
+}
+
+// Update status based on quantity
+function updateStatusFromQuantity() {
+    const quantityInput = document.getElementById('edit_so_luong');
+    const statusSelect = document.getElementById('edit_trang_thai');
+    
+    if (quantityInput && statusSelect) {
+        const quantity = parseInt(quantityInput.value) || 0;
+        if (quantity > 0) {
+            statusSelect.value = 'Còn hàng';
+        } else {
+            statusSelect.value = 'Hết hàng';
+        }
+    }
+}
+
+// Modal functions
+function editWarehouse(id) {
+    const item = warehouseData.find(w => w.id === id);
+    if (item) {
+        const form = document.getElementById('editWarehouseForm');
+        form.querySelector('input[name="id"]').value = item.id;
+        form.querySelector('input[name="ma_kho"]').value = item.ma_kho || '';
+        form.querySelector('input[name="ten_kho"]').value = item.ten_kho || '';
+        form.querySelector('input[name="ma_sp"]').value = item.ma_sp || '';
+        
+        const soLuong = item.so_luong || 0;
+        form.querySelector('input[name="so_luong"]').value = soLuong;
+        
+        // Set status based on quantity
+        const statusSelect = form.querySelector('select[name="trang_thai"]');
+        if (statusSelect) {
+            if (soLuong > 0) {
+                statusSelect.value = 'Còn hàng';
+            } else {
+                statusSelect.value = 'Hết hàng';
+            }
+        }
+        
+        form.querySelector('textarea[name="ghi_chu"]').value = item.ghi_chu || '';
+        
+        const giaNhap = item.gia_nhap || 0;
+        document.getElementById('edit_gia_nhap').value = giaNhap;
+        document.getElementById('edit_gia_nhap_display').value = giaNhap.toLocaleString();
+        
+        // Store initial state for edit modal
+        storeModalState('editWarehouseModal', form);
+        
+        document.getElementById('editWarehouseModal').style.display = 'flex';
+    }
+}
+
+function closeEditWarehouseModal() {
+    closeModalWithConfirmation('editWarehouseModal');
+}
+
+async function updateWarehouse() {
+    const form = document.getElementById('editWarehouseForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const id = data.id;
+    delete data.id;
+    
+    // Convert numeric fields
+    data.so_luong = parseInt(data.so_luong || '0');
+    data.gia_nhap = parseInt(document.getElementById('edit_gia_nhap').value || '0');
+    
+    // Update status based on quantity (ensure it matches current quantity)
+    const currentQuantity = data.so_luong;
+    if (currentQuantity > 0) {
+        data.trang_thai = 'Còn hàng';
+    } else {
+        data.trang_thai = 'Hết hàng';
+    }
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/warehouse/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('editWarehouseModal').style.display = 'none';
+            clearModalState('editWarehouseModal');
+            loadWarehouseData();
+            showSuccessMessage('Cập nhật thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi cập nhật kho hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi cập nhật kho hàng');
+    }
+}
+
+// Utility functions
+function getStatusBadge(status) {
+    const badges = {
+        'Còn hàng': '<span class="badge badge-success">Còn hàng</span>',
+        'Hết hàng': '<span class="badge badge-danger">Hết hàng</span>'
+    };
+    return badges[status] || '<span class="badge badge-secondary">Không xác định</span>';
+}
+
+function formatMoneyTyping(sourceInput, hiddenInput) {
+    const raw = (sourceInput.value || '').replace(/[^0-9]/g, '');
+    if (!raw) {
+        sourceInput.value = '';
+        if (hiddenInput) hiddenInput.value = '';
+    return;
+  }
+    if (hiddenInput) hiddenInput.value = raw;
+    sourceInput.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function deleteWarehouse(id) {
+    deleteWarehouseId = id;
+    document.getElementById('deleteWarehouseModal').style.display = 'flex';
+}
+
+function closeDeleteWarehouseModal() {
+    document.getElementById('deleteWarehouseModal').style.display = 'none';
+    deleteWarehouseId = null;
+}
+
+async function confirmDeleteWarehouse() {
+    if (!deleteWarehouseId) return;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/warehouse/${deleteWarehouseId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            closeDeleteWarehouseModal();
+            loadWarehouseData();
+            showSuccessMessage('Xóa kho hàng thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi xóa kho hàng');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa kho hàng');
+    }
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+</script>
+{% endblock %}

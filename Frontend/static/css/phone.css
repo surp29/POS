@@ -1,0 +1,61 @@
+.phone-input-container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-2, 0.5rem);
+  position: relative;
+  flex-wrap: nowrap; /* Đảm bảo select và input luôn cùng hàng */
+  width: 100%;
+}
+
+.phone-input-container.has-error {
+  padding-bottom: 0; /* Không cần padding-bottom vì error sẽ nằm trong form-group */
+  margin-bottom: 0.5rem; /* Thêm margin-bottom để tạo khoảng cách với field tiếp theo */
+}
+
+.phone-input-container .phone-country-select {
+  width: 100px;
+  min-width: 100px; /* Đảm bảo không bị shrink */
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.phone-input-container .phone-number-input {
+  flex: 1 1 auto;
+  min-width: 200px; /* Đảm bảo input có đủ width để hiển thị */
+  width: 0; /* Cho phép flex shrink nhưng vẫn giữ min-width */
+}
+
+.phone-input-container .phone-number-input.is-invalid {
+  border-color: var(--danger-color, #dc3545);
+}
+
+.phone-error {
+  color: #b91c1c; /* Màu đỏ đậm hơn để dễ nhìn */
+  background-color: #fee2e2; /* Nền màu đỏ nhạt để tăng độ tương phản */
+  font-size: 0.875rem;
+  font-weight: 600; /* Chữ đậm hơn */
+  margin-top: 0.375rem; /* Khoảng cách từ input */
+  padding: 0.375rem 0.5rem; /* Thêm padding để dễ đọc */
+  border-radius: 4px; /* Bo góc */
+  border-left: 3px solid #b91c1c; /* Thêm border trái để nổi bật */
+  display: block;
+  width: 100%;
+  position: relative; /* Đổi từ absolute sang relative để không che field khác */
+  z-index: 1;
+  box-shadow: 0 1px 3px rgba(185, 28, 28, 0.2); /* Thêm shadow nhẹ */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .phone-input-container {
+    flex-direction: column;
+  }
+  
+  .phone-input-container .phone-country-select {
+    width: 100%;
+  }
+}
+
+
+

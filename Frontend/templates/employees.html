@@ -1,0 +1,1537 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý nhân viên - PosPos{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-tie"></i> Quản lý nhân viên
+{% endblock %}
+
+{% block page_description %}
+Quản lý thông tin nhân viên và phân ca làm việc
+{% endblock %}
+
+{% block header_actions %}
+<button class="btn btn-primary" onclick="openAddEmployeeModal()">
+    <i class="fas fa-plus"></i>
+    Thêm nhân viên
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Tabs -->
+<div class="tabs-container">
+    <div class="tabs">
+        <button class="tab active" data-tab="employees">Quản lý nhân viên</button>
+        <button class="tab" data-tab="schedules">Quản lý ca làm việc</button>
+    </div>
+</div>
+
+<!-- Employees Tab Content -->
+<div id="employeesSection" class="tab-section">
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalEmployees">0</div>
+            <div class="stat-label">Tổng nhân viên</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="activeEmployees">0</div>
+            <div class="stat-label">Đang hoạt động</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-building"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalDepartments">0</div>
+            <div class="stat-label">Tổng phòng ban</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="employeesWithEmail">0</div>
+            <div class="stat-label">Có email</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-row">
+        <div class="form-group">
+            <label class="form-label">Tìm kiếm</label>
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="searchEmployee" placeholder="Tìm theo tên, email, chức vụ...">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Phòng ban</label>
+            <select class="form-select" id="employeeDepartmentFilter">
+                <option value="">Tất cả phòng ban</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" id="employeeStatusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Hoạt động</option>
+                <option value="false">Không hoạt động</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <button class="btn btn-secondary" onclick="clearEmployeeFilters()">
+                <i class="fas fa-times"></i>
+                Xóa bộ lọc
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Table -->
+<div class="table-container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Danh sách nhân viên</h3>
+        </div>
+        <div class="card-body p-0">
+            <table class="table" id="employeesTable">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên nhân viên</th>
+                        <th>Chức vụ</th>
+                        <th>Phòng ban</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="employeesTableBody">
+                    <!-- Data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination" id="employeesPagination">
+    <!-- Pagination will be generated here -->
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal-overlay" id="addEmployeeModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> Thêm nhân viên mới</h3>
+            <button class="modal-close" onclick="closeAddEmployeeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="addEmployeeForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tài khoản *</label>
+                        <input type="text" class="form-input" name="username" required placeholder="Nhập tài khoản">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu *</label>
+                        <input type="password" class="form-input" name="password" required placeholder="Nhập mật khẩu">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên nhân viên *</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên nhân viên">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="phone" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" placeholder="Nhập email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chức vụ</label>
+                        <input type="text" class="form-input" name="position" placeholder="Nhập chức vụ">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Phòng ban</label>
+                        <input type="text" class="form-input" name="department" placeholder="Nhập phòng ban">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="status">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddEmployeeModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="createEmployee()">Tạo nhân viên</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div class="modal-overlay" id="editEmployeeModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Chỉnh sửa nhân viên</h3>
+            <button class="modal-close" onclick="closeEditEmployeeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editEmployeeForm">
+                <input type="hidden" name="id">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tài khoản *</label>
+                        <input type="text" class="form-input" name="username" required placeholder="Nhập tài khoản">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-input" name="password" placeholder="Để trống nếu không đổi mật khẩu">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên nhân viên *</label>
+                        <input type="text" class="form-input" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="phone">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chức vụ</label>
+                        <input type="text" class="form-input" name="position">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Phòng ban</label>
+                        <input type="text" class="form-input" name="department">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="status">
+                            <option value="true">Hoạt động</option>
+                            <option value="false">Không hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeEditEmployeeModal()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="updateEmployee()">Cập nhật</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteEmployeeModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Xác nhận xóa</h3>
+            <button class="modal-close" onclick="closeDeleteEmployeeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa nhân viên này không?</p>
+            <p class="text-gray-600">Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteEmployeeModal()">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDeleteEmployee()">Xóa</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Schedules Tab Content -->
+<div id="schedulesSection" class="tab-section" style="display: none;">
+    <div class="schedule-container">
+        <div class="schedule-controls">
+            <div class="date-navigation">
+                <button class="btn btn-secondary" onclick="previousMonth()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h3 id="currentMonthDisplay"></h3>
+                <button class="btn btn-secondary" onclick="nextMonth()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="day-header">T2</div>
+                <div class="day-header">T3</div>
+                <div class="day-header">T4</div>
+                <div class="day-header">T5</div>
+                <div class="day-header">T6</div>
+                <div class="day-header">T7</div>
+                <div class="day-header">CN</div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar cells will be generated here -->
+            </div>
+            
+            <!-- Legend -->
+            <div class="calendar-legend">
+                <h4 style="margin-bottom: var(--spacing-3); font-size: var(--font-size-base); color: var(--gray-700);">
+                    <i class="fas fa-info-circle"></i> Chú thích ca làm việc:
+                </h4>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-badge" style="background-color: #3b82f6;"></span>
+                        <span>Ca 1 (7:00 - 15:00)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-badge" style="background-color: #10b981;"></span>
+                        <span>Ca 2 (15:00 - 23:00)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-badge" style="background-color: #f59e0b;"></span>
+                        <span>Ca 3 (23:00 - 7:00)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-badge" style="background-color: #8b5cf6;"></span>
+                        <span>Ca sáng (8:00 - 12:00)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-badge" style="background-color: #ef4444;"></span>
+                        <span>Ca chiều (13:00 - 17:00)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-badge" style="background-color: #6366f1;"></span>
+                        <span>Ca tối (18:00 - 22:00)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Shift Modal -->
+<div class="modal-overlay" id="assignShiftModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-check"></i> Phân ca làm việc</h3>
+            <button class="modal-close" onclick="closeAssignShiftModalDirect()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="assignShiftForm">
+                <div class="form-group">
+                    <label class="form-label">Chọn nhân viên *</label>
+                    <select class="form-select" name="employee_id" id="shiftEmployeeSelect" required>
+                        <option value="">Chọn nhân viên</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ngày làm việc *</label>
+                    <input type="date" class="form-input" name="work_date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ca làm việc *</label>
+                    <select class="form-select" name="shift_type" required>
+                        <option value="">Chọn ca</option>
+                        <option value="Ca 1">Ca 1 (7:00 - 15:00)</option>
+                        <option value="Ca 2">Ca 2 (15:00 - 23:00)</option>
+                        <option value="Ca 3">Ca 3 (23:00 - 7:00)</option>
+                        <option value="Ca sáng">Ca sáng (8:00 - 12:00)</option>
+                        <option value="Ca chiều">Ca chiều (13:00 - 17:00)</option>
+                        <option value="Ca tối">Ca tối (18:00 - 22:00)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" name="notes" rows="3" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAssignShiftModalDirect()">Hủy</button>
+            <button type="button" class="btn btn-primary" onclick="assignShift()">Phân ca</button>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Schedule Modal -->
+<div class="modal-overlay" id="manageScheduleModal" style="display: none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-alt"></i> Quản lý ca làm việc</h3>
+            <button class="modal-close" onclick="closeManageScheduleModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div id="schedulesList">
+                <!-- Schedules list will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-4);
+    margin-bottom: var(--spacing-6);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    transition: all var(--transition-normal);
+}
+
+.stat-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-4);
+}
+
+.stat-icon i {
+    font-size: var(--font-size-xl);
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-1);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+/* Tabs styles */
+.tabs-container {
+    margin-bottom: var(--spacing-6);
+}
+
+.tabs {
+    display: flex;
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-1);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow-x: auto;
+}
+
+.tab {
+    flex: 1;
+    padding: var(--spacing-3) var(--spacing-4);
+    border: none;
+    background: transparent;
+    color: var(--gray-600);
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    white-space: nowrap;
+}
+
+.tab:hover {
+    background: var(--gray-50);
+    color: var(--gray-700);
+}
+
+.tab.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-section {
+    margin-bottom: var(--spacing-6);
+}
+
+/* Schedule styles */
+.schedule-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-6);
+    box-shadow: var(--shadow-md);
+}
+
+.schedule-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+    flex-wrap: wrap;
+    gap: var(--spacing-4);
+}
+
+.date-navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.date-navigation h3 {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    color: var(--gray-900);
+    min-width: 200px;
+    text-align: center;
+}
+
+/* Calendar styles */
+.calendar-container {
+    width: 100%;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-2);
+}
+
+.day-header {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-3);
+    text-align: center;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--spacing-2);
+}
+
+.calendar-cell {
+    min-height: 100px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-2);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.calendar-cell:hover {
+    background: var(--gray-100);
+    border-color: var(--primary-color);
+}
+
+.calendar-cell.other-month {
+    background: var(--gray-100);
+    color: var(--gray-400);
+}
+
+.calendar-cell.today {
+    border: 2px solid var(--primary-color);
+    background: var(--primary-50);
+}
+
+.calendar-cell.has-shifts {
+    background: var(--success-50);
+    border-color: var(--success-color);
+}
+
+.cell-date {
+    font-weight: 600;
+    margin-bottom: var(--spacing-1);
+    color: var(--gray-900);
+}
+
+.cell-shifts {
+    font-size: var(--font-size-xs);
+    color: var(--gray-600);
+}
+
+.shift-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    margin: 2px;
+    font-weight: 500;
+}
+
+/* Calendar Legend */
+.calendar-legend {
+    margin-top: var(--spacing-6);
+    padding-top: var(--spacing-6);
+    border-top: 2px solid var(--gray-200);
+}
+
+.calendar-legend h4 {
+    font-size: var(--font-size-base);
+    margin-bottom: var(--spacing-3);
+    color: var(--gray-700);
+}
+
+.legend-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-3);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--gray-700);
+}
+
+.legend-badge {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let employeesData = [];
+let filteredEmployees = [];
+let currentPage = 1;
+const itemsPerPage = 20; // Popup modal: 20 items per page
+let deleteEmployeeId = null;
+
+// Schedule variables
+let currentDate = new Date();
+let schedulesData = [];
+let currentTab = 'employees';
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadEmployeesData();
+    loadSchedulesData();
+    setupEventListeners();
+    renderCalendar();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('searchEmployee').addEventListener('input', debounce(filterEmployees, 300));
+    document.getElementById('employeeDepartmentFilter').addEventListener('change', filterEmployees);
+    document.getElementById('employeeStatusFilter').addEventListener('change', filterEmployees);
+    
+    // Tab listeners
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            switchTab(this.getAttribute('data-tab'));
+        });
+    });
+}
+
+// Tab switching
+function switchTab(tab) {
+    currentTab = tab;
+    
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+    
+    document.getElementById('employeesSection').style.display = tab === 'employees' ? 'block' : 'none';
+    document.getElementById('schedulesSection').style.display = tab === 'schedules' ? 'block' : 'none';
+}
+
+// Removed header action button logic
+
+// Load employees data
+async function loadEmployeesData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/users/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (response.ok) {
+            employeesData = await response.json();
+            filteredEmployees = [...employeesData];
+            updateStatistics();
+            updateEmployeeTable();
+            updateEmployeePagination();
+            updateDepartmentFilter();
+        } else {
+            console.error('Failed to load employees');
+        }
+    } catch (error) {
+        console.error('Error loading employees:', error);
+    }
+}
+
+// Update department filter
+function updateDepartmentFilter() {
+    const departments = [...new Set(employeesData.map(e => e.department).filter(Boolean))];
+    const select = document.getElementById('employeeDepartmentFilter');
+    select.innerHTML = '<option value="">Tất cả phòng ban</option>';
+    departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        select.appendChild(option);
+    });
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalEmployees = employeesData.length;
+    const activeEmployees = employeesData.filter(e => e.status === true).length;
+    const departments = new Set(employeesData.map(e => e.department).filter(Boolean));
+    const employeesWithEmail = employeesData.filter(e => e.email).length;
+    
+    document.getElementById('totalEmployees').textContent = totalEmployees;
+    document.getElementById('activeEmployees').textContent = activeEmployees;
+    document.getElementById('totalDepartments').textContent = departments.size;
+    document.getElementById('employeesWithEmail').textContent = employeesWithEmail;
+}
+
+// Filter employees
+function filterEmployees() {
+    const searchTerm = document.getElementById('searchEmployee').value.toLowerCase();
+    const departmentFilter = document.getElementById('employeeDepartmentFilter').value;
+    const statusFilter = document.getElementById('employeeStatusFilter').value;
+    
+    filteredEmployees = employeesData.filter(employee => {
+        const matchesSearch = !searchTerm || 
+                             (employee.name && employee.name.toLowerCase().includes(searchTerm)) ||
+                             (employee.email && employee.email.toLowerCase().includes(searchTerm)) ||
+                             (employee.position && employee.position.toLowerCase().includes(searchTerm));
+        
+        const matchesDepartment = !departmentFilter || employee.department === departmentFilter;
+        const matchesStatus = !statusFilter || employee.status.toString() === statusFilter;
+        
+        return matchesSearch && matchesDepartment && matchesStatus;
+    });
+    
+    currentPage = 1;
+    updateEmployeeTable();
+    updateEmployeePagination();
+}
+
+// Clear filters
+function clearEmployeeFilters() {
+    document.getElementById('searchEmployee').value = '';
+    document.getElementById('employeeDepartmentFilter').value = '';
+    document.getElementById('employeeStatusFilter').value = '';
+    
+    filteredEmployees = [...employeesData];
+    currentPage = 1;
+    updateEmployeeTable();
+    updateEmployeePagination();
+}
+
+// Update employee table
+function updateEmployeeTable() {
+    const tbody = document.getElementById('employeesTableBody');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageEmployees = filteredEmployees.slice(startIndex, endIndex);
+    
+    tbody.innerHTML = pageEmployees.map((employee, index) => `
+        <tr>
+            <td>${startIndex + index + 1}</td>
+            <td><strong>${employee.name || '-'}</strong></td>
+            <td>${employee.position || '-'}</td>
+            <td><span class="badge badge-info">${employee.department || '-'}</span></td>
+            <td>${employee.email || '-'}</td>
+            <td>${employee.phone || '-'}</td>
+            <td>${getStatusBadge(employee.status)}</td>
+            <td>
+                <div class="table-actions">
+                    <button class="btn btn-sm btn-primary" onclick="editEmployee(${employee.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${employee.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Update pagination
+function updateEmployeePagination() {
+    const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+    const pagination = document.getElementById('employeesPagination');
+    
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    pagination.innerHTML = generatePaginationHTML(currentPage, totalPages);
+}
+
+// Generate pagination HTML
+function generatePaginationHTML(currentPage, totalPages) {
+    let paginationHTML = '';
+    
+    // Previous button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    `;
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (startPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHTML += `<span class="text-gray-500">...</span>`;
+        }
+        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    paginationHTML += `
+        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    `;
+    
+    return paginationHTML;
+}
+
+// Go to page
+function goToPage(page) {
+    const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        updateEmployeeTable();
+        updateEmployeePagination();
+    }
+}
+
+// Modal functions
+function openAddEmployeeModal() {
+    const modal = document.getElementById('addEmployeeModal');
+    const form = document.getElementById('addEmployeeForm');
+    
+    modal.style.display = 'flex';
+    form.reset();
+    
+    // Wait for modal to be visible, then reset phone component
+    setTimeout(() => {
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                // Phone component already initialized, just reset values
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = '+84';
+                if (numberInput) numberInput.value = '';
+            } else {
+                // Phone component not initialized yet, MutationObserver will handle it
+                // Just ensure it's marked for initialization
+                phoneInput.setAttribute('data-phone', '');
+            }
+        }
+    }, 50);
+    
+    // Store initial state
+    storeModalState('addEmployeeModal', form);
+}
+
+function closeAddEmployeeModal() {
+    closeModalWithConfirmation('addEmployeeModal', function() {
+        document.getElementById('addEmployeeForm').reset();
+        
+        // Reset phone component if needed
+        const form = document.getElementById('addEmployeeForm');
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = '+84';
+                if (numberInput) numberInput.value = '';
+            }
+        }
+    });
+}
+
+function editEmployee(id) {
+    const employee = employeesData.find(e => e.id === id);
+    if (employee) {
+        const form = document.getElementById('editEmployeeForm');
+        form.querySelector('input[name="id"]').value = employee.id;
+        form.querySelector('input[name="username"]').value = employee.username || '';
+        form.querySelector('input[name="password"]').value = ''; // Clear password field
+        form.querySelector('input[name="name"]').value = employee.name || '';
+        form.querySelector('input[name="email"]').value = employee.email || '';
+        
+        // Set phone value using phone component
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput && window.setPhoneValue) {
+            window.setPhoneValue(phoneInput, employee.phone || '');
+        } else if (phoneInput) {
+            phoneInput.value = employee.phone || '';
+        }
+        
+        form.querySelector('input[name="position"]').value = employee.position || '';
+        form.querySelector('input[name="department"]').value = employee.department || '';
+        form.querySelector('select[name="status"]').value = (employee.status || false).toString();
+        
+        // Store initial state for phone component
+        setTimeout(() => {
+            const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+            if (phoneInput) {
+                const phoneContainer = phoneInput.closest('.phone-input-container');
+                if (phoneContainer) {
+                    const numberInput = phoneContainer.querySelector('.phone-number-input');
+                    if (numberInput && employee.phone) {
+                        const phone = employee.phone || '';
+                        const localNumber = phone.replace(/^\+\d+/, '').replace(/^0/, '');
+                        numberInput.value = localNumber;
+                    }
+                }
+            }
+        }, 100);
+        
+        storeModalState('editEmployeeModal', form);
+        document.getElementById('editEmployeeModal').style.display = 'flex';
+    }
+}
+
+function closeEditEmployeeModal() {
+    closeModalWithConfirmation('editEmployeeModal', function() {
+        const form = document.getElementById('editEmployeeForm');
+        form.reset();
+        
+        // Reset phone component if needed
+        const phoneInput = form.querySelector('input[data-phone][name="phone"]');
+        if (phoneInput) {
+            const phoneContainer = phoneInput.closest('.phone-input-container');
+            if (phoneContainer) {
+                const countrySelect = phoneContainer.querySelector('.phone-country-select');
+                const numberInput = phoneContainer.querySelector('.phone-number-input');
+                if (countrySelect) countrySelect.value = '+84';
+                if (numberInput) numberInput.value = '';
+            }
+        }
+    });
+}
+
+function deleteEmployee(id) {
+    deleteEmployeeId = id;
+    document.getElementById('deleteEmployeeModal').style.display = 'flex';
+}
+
+function closeDeleteEmployeeModal() {
+    document.getElementById('deleteEmployeeModal').style.display = 'none';
+    deleteEmployeeId = null;
+}
+
+// CRUD operations
+async function createEmployee() {
+    const form = document.getElementById('addEmployeeForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    data.status = data.status === 'true';
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl) data.phone = window.getPhoneValue(phoneEl) || '';
+    
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/users/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('addEmployeeModal').style.display = 'none';
+            clearModalState('addEmployeeModal');
+            loadEmployeesData();
+            showSuccessMessage('Tạo nhân viên thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi tạo nhân viên');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi tạo nhân viên');
+    }
+}
+
+async function updateEmployee() {
+    const form = document.getElementById('editEmployeeForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const id = data.id;
+    delete data.id;
+    data.status = data.status === 'true';
+    
+    // Handle phone input
+    const phoneEl = form.querySelector('input[data-phone][name="phone"]');
+    if (phoneEl) data.phone = window.getPhoneValue(phoneEl) || '';
+    
+    // Only include password if it's not empty
+    if (!data.password || data.password.trim() === '') {
+        delete data.password;
+    }
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/users/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            document.getElementById('editEmployeeModal').style.display = 'none';
+            clearModalState('editEmployeeModal');
+            loadEmployeesData();
+            showSuccessMessage('Cập nhật nhân viên thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi cập nhật nhân viên');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi cập nhật nhân viên');
+    }
+}
+
+async function confirmDeleteEmployee() {
+    if (!deleteEmployeeId) return;
+    
+    try {
+        const response = await fetch(`{{ BACKEND_URL }}/api/users/${deleteEmployeeId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+            }
+        });
+        
+        if (response.ok) {
+            closeDeleteEmployeeModal();
+            loadEmployeesData();
+            showSuccessMessage('Xóa nhân viên thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra khi xóa nhân viên');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra khi xóa nhân viên');
+    }
+}
+
+// Utility functions
+function getStatusBadge(status) {
+    if (status === true || status === 'true') {
+        return '<span class="badge badge-success">Hoạt động</span>';
+    } else {
+        return '<span class="badge badge-danger">Không hoạt động</span>';
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showSuccessMessage(message) {
+    showSuccessModal('Thành công', message);
+}
+
+function showErrorMessage(message) {
+    showErrorModal('Lỗi', message);
+}
+
+// ===== SCHEDULE CALENDAR FUNCTIONS =====
+
+// Load schedules data
+async function loadSchedulesData() {
+    try {
+        const response = await fetch('{{ BACKEND_URL }}/api/schedules/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (response.ok) {
+            schedulesData = await response.json();
+            renderCalendar();
+        } else {
+            console.error('Failed to load schedules');
+        }
+    } catch (error) {
+        console.error('Error loading schedules:', error);
+    }
+}
+
+// Render calendar
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // Update month display
+    const monthNames = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
+                       'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
+    document.getElementById('currentMonthDisplay').textContent = `${monthNames[month]} ${year}`;
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Adjust Monday to be first day (0 = Monday, 6 = Sunday)
+    const adjustedStartingDay = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+    
+    // Get previous month's days to fill first week
+    const prevMonth = new Date(year, month - 1, 0).getDate();
+    const today = new Date();
+    
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    
+    // Previous month's days
+    for (let i = adjustedStartingDay - 1; i >= 0; i--) {
+        const day = prevMonth - i;
+        const cellDate = new Date(year, month - 1, day);
+        grid.appendChild(createCalendarCell(cellDate, true));
+    }
+    
+    // Current month's days
+    for (let day = 1; day <= daysInMonth; day++) {
+        const cellDate = new Date(year, month, day);
+        const isToday = cellDate.toDateString() === today.toDateString();
+        grid.appendChild(createCalendarCell(cellDate, false, isToday));
+    }
+    
+    // Next month's days to fill last week
+    const totalCells = grid.children.length;
+    const remainingCells = 42 - totalCells; // 6 weeks * 7 days
+    
+    for (let day = 1; day <= remainingCells; day++) {
+        const cellDate = new Date(year, month + 1, day);
+        grid.appendChild(createCalendarCell(cellDate, true));
+    }
+}
+
+// Get shift color based on type
+function getShiftColor(shiftType) {
+    const colorMap = {
+        'Ca 1': '#3b82f6',      // Blue
+        'Ca 2': '#10b981',      // Green
+        'Ca 3': '#f59e0b',      // Yellow/Orange
+        'Ca sáng': '#8b5cf6',   // Purple
+        'Ca chiều': '#ef4444',   // Red
+        'Ca tối': '#6366f1'      // Indigo
+    };
+    return colorMap[shiftType] || '#6b7280'; // Default gray
+}
+
+// Create calendar cell
+function createCalendarCell(date, isOtherMonth, isToday = false) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell' + (isOtherMonth ? ' other-month' : '') + (isToday ? ' today' : '');
+    
+    const day = date.getDate();
+    const dateKey = formatDateKey(date);
+    
+    const schedulesForDay = schedulesData.filter(s => s.work_date === dateKey);
+    const hasShifts = schedulesForDay.length > 0;
+    
+    if (hasShifts) {
+        cell.classList.add('has-shifts');
+    }
+    
+    cell.innerHTML = `
+        <div class="cell-date">${day}</div>
+        <div class="cell-shifts">
+            ${schedulesForDay.map(s => `
+                <span class="shift-badge" style="background-color: ${getShiftColor(s.shift_type)}">
+                    ${s.shift_type}
+                </span>
+            `).join('')}
+        </div>
+    `;
+    
+    cell.onclick = () => selectDate(dateKey);
+    
+    return cell;
+}
+
+// Format date as YYYY-MM-DD
+function formatDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Select date
+function selectDate(dateKey) {
+    document.querySelector('input[name="work_date"]').value = dateKey;
+    openAssignShiftModal();
+}
+
+// Navigate months
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+// Global variables for schedule management
+let selectedDateKey = '';
+let selectedSchedules = [];
+
+// Open assign shift modal
+function openAssignShiftModal(date = null) {
+    const form = document.getElementById('assignShiftForm');
+    
+    // Reset form first
+    form.reset();
+    
+    if (date) {
+        document.querySelector('input[name="work_date"]').value = date;
+    }
+    
+    document.getElementById('assignShiftModal').style.display = 'flex';
+    
+    // Populate employee select
+    const select = document.getElementById('shiftEmployeeSelect');
+    select.innerHTML = '<option value="">Chọn nhân viên</option>';
+    employeesData.forEach(emp => {
+        const option = document.createElement('option');
+        option.value = emp.id;
+        option.textContent = emp.name;
+        select.appendChild(option);
+    });
+    
+    // Store initial form state for change detection
+    storeModalState('assignShiftModal', form);
+}
+
+// Close assign shift modal with conditional confirmation
+function closeAssignShiftModalDirect() {
+    const form = document.getElementById('assignShiftForm');
+    
+    // Check if form data has changed
+    if (shouldConfirmClose('assignShiftModal', form)) {
+        // Show confirmation modal
+        showConfirmModal(
+            'Xác nhận đóng',
+            'Bạn có chắc chắn muốn đóng popup này không? Dữ liệu đã nhập sẽ bị mất.',
+            () => {
+                document.getElementById('assignShiftModal').style.display = 'none';
+                form.reset();
+                clearModalState('assignShiftModal');
+                delete form.dataset.scheduleId;
+            }
+        );
+    } else {
+        // No changes, close directly
+        document.getElementById('assignShiftModal').style.display = 'none';
+        form.reset();
+        clearModalState('assignShiftModal');
+        delete form.dataset.scheduleId;
+    }
+}
+
+// Select date - now opens manage schedule modal
+function selectDate(dateKey) {
+    selectedDateKey = dateKey;
+    const schedulesForDay = schedulesData.filter(s => s.work_date === dateKey);
+    selectedSchedules = schedulesForDay;
+    
+    if (schedulesForDay.length === 0) {
+        // No schedules for this day, open assign modal
+        openAssignShiftModal(dateKey);
+    } else {
+        // Has schedules, open manage modal
+        openManageScheduleModal(dateKey, schedulesForDay);
+    }
+}
+
+// Open manage schedule modal
+function openManageScheduleModal(dateKey, schedules) {
+    selectedDateKey = dateKey;
+    selectedSchedules = schedules;
+    
+    const modal = document.getElementById('manageScheduleModal');
+    const list = document.getElementById('schedulesList');
+    
+    // Format the date
+    const dateObj = new Date(dateKey + 'T00:00:00');
+    const dateStr = dateObj.toLocaleDateString('vi-VN', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    list.innerHTML = `
+        <p><strong>Ngày:</strong> ${dateStr}</p>
+        <div style="margin-top: 20px;">
+            ${schedules.map(s => `
+                <div style="border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: var(--spacing-4); margin-bottom: var(--spacing-3);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <p style="margin: 0 0 var(--spacing-1) 0;"><strong>${s.employee_name || 'Unknown'}</strong></p>
+                            <p style="margin: 0; color: var(--primary-color);"><strong>${s.shift_type}</strong></p>
+                            ${s.notes ? `<p style="margin: var(--spacing-2) 0 0 0; color: var(--gray-600); font-size: var(--font-size-sm);">${s.notes}</p>` : ''}
+                        </div>
+                        <div style="display: flex; gap: var(--spacing-2);">
+                            <button class="btn btn-sm btn-primary" onclick="editSchedule(${s.id})" style="padding: 6px 12px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteSchedule(${s.id})" style="padding: 6px 12px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        <div style="margin-top: var(--spacing-4);">
+            <button class="btn btn-primary" style="width: 100%;" onclick="addScheduleForDay()">
+                <i class="fas fa-plus"></i> Thêm ca mới
+            </button>
+        </div>
+    `;
+    
+    modal.style.display = 'flex';
+}
+
+// Close manage schedule modal
+function closeManageScheduleModal() {
+    document.getElementById('manageScheduleModal').style.display = 'none';
+}
+
+// Add schedule for selected day
+function addScheduleForDay() {
+    closeManageScheduleModal();
+    openAssignShiftModal(selectedDateKey);
+}
+
+// Edit schedule
+async function editSchedule(scheduleId) {
+    const schedule = schedulesData.find(s => s.id === scheduleId);
+    if (!schedule) return;
+    
+    closeManageScheduleModal();
+    
+    // Populate form with existing data
+    document.getElementById('assignShiftModal').style.display = 'flex';
+    const form = document.getElementById('assignShiftForm');
+    
+    // Populate employee select first
+    const select = document.getElementById('shiftEmployeeSelect');
+    select.innerHTML = '<option value="">Chọn nhân viên</option>';
+    employeesData.forEach(emp => {
+        const option = document.createElement('option');
+        option.value = emp.id;
+        option.textContent = emp.name;
+        select.appendChild(option);
+    });
+    
+    // Set form values
+    form.querySelector('select[name="employee_id"]').value = schedule.employee_id;
+    form.querySelector('input[name="work_date"]').value = schedule.work_date;
+    form.querySelector('select[name="shift_type"]').value = schedule.shift_type;
+    form.querySelector('textarea[name="notes"]').value = schedule.notes || '';
+    
+    // Store the schedule ID for update
+    form.dataset.scheduleId = scheduleId;
+    
+    // Store initial form state for change detection
+    storeModalState('assignShiftModal', form);
+}
+
+// Delete schedule
+async function deleteSchedule(scheduleId) {
+    showConfirm(
+        'Xác nhận xóa',
+        'Bạn có chắc chắn muốn xóa ca làm việc này không?',
+        async () => {
+            try {
+                const response = await fetch(`{{ BACKEND_URL }}/api/schedules/${scheduleId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    closeManageScheduleModal();
+                    loadSchedulesData();
+                    showSuccessMessage('Xóa ca làm việc thành công!');
+                } else {
+                    const error = await response.json();
+                    showErrorMessage(error.detail || 'Có lỗi xảy ra khi xóa ca làm việc');
+                }
+            } catch (error) {
+                showErrorMessage('Có lỗi xảy ra khi xóa ca làm việc');
+            }
+        }
+    );
+}
+
+// Assign shift (create or update)
+async function assignShift() {
+    const form = document.getElementById('assignShiftForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData);
+    const scheduleId = form.dataset.scheduleId;
+    
+    try {
+        let response;
+        if (scheduleId) {
+            // Update existing schedule
+            response = await fetch(`{{ BACKEND_URL }}/api/schedules/${scheduleId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify(data)
+            });
+        } else {
+            // Create new schedule
+            response = await fetch('{{ BACKEND_URL }}/api/schedules/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify(data)
+            });
+        }
+        
+        if (response.ok) {
+            // Close modal directly without confirmation
+            document.getElementById('assignShiftModal').style.display = 'none';
+            form.reset();
+            clearModalState('assignShiftModal');
+            delete form.dataset.scheduleId;
+            
+            loadSchedulesData();
+            showSuccessMessage(scheduleId ? 'Cập nhật ca thành công!' : 'Phân ca thành công!');
+        } else {
+            const error = await response.json();
+            showErrorMessage(error.detail || 'Có lỗi xảy ra');
+        }
+    } catch (error) {
+        showErrorMessage('Có lỗi xảy ra');
+    }
+}
+</script>
+{% endblock %}

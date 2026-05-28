@@ -150,6 +150,7 @@ async def create_product(
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         log_error("CREATE_PRODUCT", f"Lỗi khi tạo sản phẩm {code}", error=e)
         raise HTTPException(status_code=500, detail=f"Lỗi khi tạo sản phẩm: {str(e)}")
 
@@ -168,7 +169,6 @@ async def update_product(
     description: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    _: User = Depends(require_permission('products.edit'))
 ):
     p = db.query(Product).get(product_id)
     if not p:

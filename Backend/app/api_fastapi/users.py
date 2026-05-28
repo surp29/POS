@@ -64,9 +64,13 @@ def create_user(
         department=payload.department,
         status=payload.status,
     )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Lỗi tạo nhân viên: {str(e)}')
     return {"success": True, "id": user.id}
 
 

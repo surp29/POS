@@ -48,6 +48,7 @@ def create_account(payload: AccountCreate, db: Session = Depends(get_db)):
         # Return AccountOut format để frontend có thể sử dụng trực tiếp
         return AccountOut.model_validate(acc)
     except Exception as e:
+        db.rollback()
         log_error("CREATE_ACCOUNT", f"Lỗi khi tạo tài khoản {payload.ten_tk}", error=e)
         raise HTTPException(status_code=500, detail=f"Lỗi tạo tài khoản: {str(e)}")
 
@@ -131,5 +132,3 @@ def delete_account(account_id: int, request: Request, db: Session = Depends(get_
         db.commit()  # Vẫn commit việc xóa khách hàng
     
     return {"success": True}
-
-

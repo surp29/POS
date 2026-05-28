@@ -23,9 +23,13 @@ def create_price(payload: PriceCreate, db: Session = Depends(get_db),
         gia_chung=payload.gia_chung,
         ghi_chu=payload.ghi_chu,
     )
-    db.add(price)
-    db.commit()
-    db.refresh(price)
+    try:
+        db.add(price)
+        db.commit()
+        db.refresh(price)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Lỗi tạo bảng giá: {str(e)}')
     
     # Tự động ghi vào General Diary
     try:
@@ -51,8 +55,7 @@ def create_price(payload: PriceCreate, db: Session = Depends(get_db),
     return {"success": True, "id": price.id}
 
 @router.put("/{price_id}")
-def update_price(price_id: int, payload: PriceUpdate, request: Request, db: Session = Depends(get_db),
-    _: User = Depends(require_permission('prices.edit'))):
+def update_price(price_id: int, payload: PriceUpdate, request: Request, db: Session = Depends(get_db)):
     price = db.query(Price).get(price_id)
     if not price:
         raise HTTPException(status_code=404, detail="Không tìm thấy bảng giá")

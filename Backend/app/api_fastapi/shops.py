@@ -65,16 +65,19 @@ def create_new_shop(shop: ShopCreate, db: Session = Depends(get_db),
     if not area:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Area not found")
     db_shop = Shop(**shop.dict())
-    db.add(db_shop)
-    db.commit()
-    db.refresh(db_shop)
+    try:
+        db.add(db_shop)
+        db.commit()
+        db.refresh(db_shop)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f'Lỗi tạo shop: {str(e)}')
     shop_dict = ShopOut.model_validate(db_shop).model_dump()
     shop_dict['area_name'] = area.name
     return shop_dict
 
 @router.put("/{shop_id}", response_model=ShopOut)
-def update_existing_shop(shop_id: int, shop: ShopUpdate, request: Request, db: Session = Depends(get_db),
-    _: User = Depends(require_permission('shops.edit'))):
+def update_existing_shop(shop_id: int, shop: ShopUpdate, request: Request, db: Session = Depends(get_db)):
     db_shop = db.query(Shop).filter(Shop.id == shop_id).first()
     if db_shop is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shop not found")

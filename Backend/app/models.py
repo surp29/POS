@@ -278,51 +278,6 @@ class DiscountCode(Base):
         return f"<DiscountCode(code='{self.code}', name='{self.name}', type='{self.discount_type}')>"
 
 
-class FinanceWallet(Base):
-    """Wallet model for personal finance management."""
-    __tablename__ = "finance_wallets"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, index=True)
-    currency = Column(String(10), nullable=False, default="VND")
-    initial_balance = Column(Numeric(18, 2), nullable=False, default=0)
-    current_balance = Column(Numeric(18, 2), nullable=False, default=0)
-    is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-
-    transactions = relationship(
-        "FinanceTransaction",
-        back_populates="wallet",
-        cascade="all, delete-orphan",
-    )
-
-    def __repr__(self):
-        return f"<FinanceWallet(name='{self.name}', balance={self.current_balance})>"
-
-
-class FinanceTransaction(Base):
-    """Transaction model for income, expense, and transfer records."""
-    __tablename__ = "finance_transactions"
-
-    id = Column(Integer, primary_key=True)
-    wallet_id = Column(Integer, ForeignKey("finance_wallets.id"), nullable=False, index=True)
-    transaction_type = Column(String(20), nullable=False, index=True)  # income, expense, transfer
-    category = Column(String(100), nullable=False, index=True)
-    amount = Column(Numeric(18, 2), nullable=False)
-    note = Column(String(255))
-    occurred_on = Column(Date, nullable=False, index=True)
-    created_at = Column(DateTime, default=func.now(), index=True)
-
-    wallet = relationship("FinanceWallet", back_populates="transactions")
-
-    def __repr__(self):
-        return (
-            f"<FinanceTransaction(wallet_id={self.wallet_id}, "
-            f"type='{self.transaction_type}', amount={self.amount})>"
-        )
-
-
 class Schedule(Base):
     """Schedule model for employee work schedules"""
     __tablename__ = 'schedules'

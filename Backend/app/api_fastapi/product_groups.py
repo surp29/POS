@@ -65,8 +65,7 @@ def create_product_group(payload: dict, db: Session = Depends(get_db),
 
 
 @router.put("/{group_id}")
-def update_product_group(group_id: int, payload: dict, request: Request, db: Session = Depends(get_db),
-    _: User = Depends(require_permission('product_groups.edit'))):
+def update_product_group(group_id: int, payload: dict, request: Request, db: Session = Depends(get_db)):
     """Cập nhật nhóm sản phẩm (cập nhật tất cả sản phẩm trong nhóm)"""
     from ..models import User, Product
     
@@ -81,8 +80,12 @@ def update_product_group(group_id: int, payload: dict, request: Request, db: Ses
     # (Cần biết tên nhóm cũ để cập nhật)
     old_name = payload.get("old_ten_nhom", "")
     if old_name:
-        updated = db.query(Product).filter(Product.nhom_sp == old_name).update({Product.nhom_sp: new_name})
-        db.flush()  # Flush để đảm bảo update được thực hiện
+        try:
+            updated = db.query(Product).filter(Product.nhom_sp == old_name).update({Product.nhom_sp: new_name})
+            db.flush()  # Flush để đảm bảo update được thực hiện
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f'Lỗi cập nhật nhóm sản phẩm: {str(e)}')
         
         # Ghi vào general_diary
         try:

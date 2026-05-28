@@ -162,6 +162,7 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
         <div class="form-group">
                         <label class="form-label">Ngày tạo *</label>
                         <input type="date" class="form-input" name="ngay_tao" required>
+                        <input type="hidden" name="ngay_tao_time" id="addOrderTime">
         </div>
       </div>
       
@@ -226,6 +227,37 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
           </select>
         </div>
       </div>
+
+      <!-- Mã giảm giá -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><i class="fas fa-tags"></i> Mã giảm giá</label>
+          <div style="position:relative;">
+            <div class="search-input">
+              <i class="fas fa-search"></i>
+              <input type="text" id="addOrderDiscountSearch" class="form-input"
+                     placeholder="Tìm và chọn mã giảm giá..."
+                     autocomplete="off" readonly
+                     onclick="toggleOrderDiscountDropdown()"
+                     value="">
+            </div>
+            <input type="hidden" name="ma_giam_gia" id="addOrderDiscountCode">
+            <input type="hidden" name="so_tien_giam" id="addOrderDiscountAmount">
+            <div id="addOrderDiscountList" style="display:none;position:absolute;top:100%;left:0;right:0;
+                 background:white;border:1px solid var(--gray-300);border-radius:8px;
+                 box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:220px;overflow-y:auto;z-index:9999;">
+            </div>
+          </div>
+          <div id="addOrderDiscountInfo" style="margin-top:6px;display:none;
+               background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+               padding:6px 10px;font-size:0.85em;color:#16a34a;">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ghi chú</label>
+          <input type="text" class="form-input" name="ghi_chu" placeholder="Ghi chú đơn hàng (tùy chọn)">
+        </div>
+      </div>
     </form>
     </div>
         <div class="modal-footer">
@@ -256,6 +288,7 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
         <div class="form-group">
                         <label class="form-label">Ngày tạo *</label>
                         <input type="date" class="form-input" name="ngay_tao" required>
+                        <input type="hidden" name="ngay_tao_time" id="addOrderTime">
         </div>
       </div>
       
@@ -668,9 +701,7 @@ function setupEventListeners() {
 // Load orders data
 async function loadOrdersData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/orders/?limit=200', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/orders/?limit=200');
         if (response.ok) {
             const result = await response.json();
             ordersData = normalizeOrdersList(result);
@@ -689,9 +720,7 @@ async function loadOrdersData() {
 // Load products data
 async function loadProductsData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/products/', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/products/');
         if (response.ok) {
             const result = await response.json();
             productsData = result.products || [];
@@ -704,9 +733,7 @@ async function loadProductsData() {
 // Load prices data
 async function loadPricesData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/prices/', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/prices/');
         if (response.ok) {
             const result = await response.json();
             // Handle different response formats
@@ -729,9 +756,7 @@ async function loadPricesData() {
 // Load customers data
 async function loadCustomersData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/accounts/', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/');
         if (response.ok) {
             const result = await response.json();
             // Handle different response formats
@@ -1006,58 +1031,28 @@ function populateAddCustomerList(searchTerm = '') {
     };
     dropdownList.appendChild(walkInDiv);
     
-    // Add active customers
+    // Hiển thị danh sách khách hàng (không có "Thêm khách hàng")
     if (activeCustomers.length === 0 && searchTerm) {
-        // Show option to use typed name as customer name
-        const customCustomerDiv = document.createElement('div');
-        customCustomerDiv.className = 'customer-dropdown-item';
-        customCustomerDiv.dataset.value = searchTerm;
-        customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
-        customCustomerDiv.onclick = function() {
-            selectAddCustomer(searchTerm);
-        };
-        dropdownList.appendChild(customCustomerDiv);
-        
         const noResult = document.createElement('div');
         noResult.className = 'customer-dropdown-item';
-        noResult.innerHTML = '<small style="color: var(--gray-500);">Không tìm thấy khách hàng có sẵn</small>';
+        noResult.style.cssText = 'color:var(--gray-500);pointer-events:none;';
+        noResult.innerHTML = '<small>Không tìm thấy khách hàng nào</small>';
         dropdownList.appendChild(noResult);
     } else {
         activeCustomers.forEach(customer => {
-            const name = customer.ten_tk || '';
-            const email = customer.email || '';
-            const phone = customer.so_dt || '';
-            
-            const item = document.createElement('div');
+            const name  = customer.ten_tk || '';
+            const phone = customer.so_dt  || '';
+            const email = customer.email  || '';
+            const item  = document.createElement('div');
             item.className = 'customer-dropdown-item';
             item.dataset.value = name;
-            
-            let displayText = `<strong>${name}</strong>`;
-            if (email) {
-                displayText += `<small>${email}</small>`;
-            } else if (phone) {
-                displayText += `<small>${phone}</small>`;
-            }
-            
-            item.innerHTML = displayText;
-            item.onclick = function() {
-                selectAddCustomer(name);
-            };
-            
+            let txt = `<strong>${name}</strong>`;
+            if (phone) txt += `<small>${phone}</small>`;
+            else if (email) txt += `<small>${email}</small>`;
+            item.innerHTML = txt;
+            item.onclick = function() { selectAddCustomer(name); };
             dropdownList.appendChild(item);
         });
-        
-        // If user is typing and there are results, also show option to use typed name
-        if (searchTerm && activeCustomers.length > 0) {
-            const customCustomerDiv = document.createElement('div');
-            customCustomerDiv.className = 'customer-dropdown-item';
-            customCustomerDiv.dataset.value = searchTerm;
-            customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
-            customCustomerDiv.onclick = function() {
-                selectAddCustomer(searchTerm);
-            };
-            dropdownList.appendChild(customCustomerDiv);
-        }
     }
 }
 
@@ -1475,8 +1470,7 @@ function populateEditCustomerList(searchTerm = '') {
         const customCustomerDiv = document.createElement('div');
         customCustomerDiv.className = 'customer-dropdown-item';
         customCustomerDiv.dataset.value = searchTerm;
-        customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
-        customCustomerDiv.onclick = function() {
+                customCustomerDiv.onclick = function() {
             selectEditCustomer(searchTerm);
         };
         dropdownList.appendChild(customCustomerDiv);
@@ -1514,8 +1508,7 @@ function populateEditCustomerList(searchTerm = '') {
             const customCustomerDiv = document.createElement('div');
             customCustomerDiv.className = 'customer-dropdown-item';
             customCustomerDiv.dataset.value = searchTerm;
-            customCustomerDiv.innerHTML = `<strong>Thêm khách hàng: "${searchTerm}"</strong><small>Nhấn Enter để sử dụng</small>`;
-            customCustomerDiv.onclick = function() {
+                        customCustomerDiv.onclick = function() {
                 selectEditCustomer(searchTerm);
             };
             dropdownList.appendChild(customCustomerDiv);
@@ -1925,6 +1918,16 @@ function openAddOrderModal() {
             setupAddCustomerDropdownEvents();
             // Populate customer list after setup
             populateAddCustomerList();
+        loadOrderDiscountCodes();
+        clearOrderDiscount();
+        // Set time cho đơn hàng
+        var now = new Date();
+        var timeField = document.getElementById('addOrderTime');
+        if (timeField) {
+            timeField.value = now.getHours().toString().padStart(2,'0') + ':' +
+                              now.getMinutes().toString().padStart(2,'0') + ':' +
+                              now.getSeconds().toString().padStart(2,'0');
+        }
         }, 100);
         
         // Setup product dropdown events
@@ -2254,5 +2257,121 @@ function showSuccessMessage(message) {
 function showErrorMessage(message) {
     showErrorModal('Lỗi', message);
 }
+
+// ── Order Discount Functions ──────────────────────────────────────────────────
+var orderDiscountCodes = [];
+var selectedOrderDiscount = null;
+
+async function loadOrderDiscountCodes() {
+    try {
+        const res = await fetch('{{ BACKEND_URL }}/api/discount-codes/', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            orderDiscountCodes = Array.isArray(data) ? data : (data.discount_codes || data.items || []);
+        }
+    } catch(e) { console.warn('loadOrderDiscountCodes error:', e); }
+}
+
+function toggleOrderDiscountDropdown() {
+    const list = document.getElementById('addOrderDiscountList');
+    if (!list) return;
+    if (list.style.display === 'none') {
+        renderOrderDiscountList('');
+        list.style.display = 'block';
+    } else {
+        list.style.display = 'none';
+    }
+}
+
+function renderOrderDiscountList(term) {
+    const list = document.getElementById('addOrderDiscountList');
+    if (!list) return;
+    const subtotal = parseInt(document.getElementById('add_tong_tien').value || '0');
+    const now = new Date();
+
+    let codes = orderDiscountCodes.filter(c => {
+        if (c.status !== 'active') return false;
+        if (new Date(c.start_date) > now || new Date(c.end_date) < now) return false;
+        if (c.min_order_value && subtotal < c.min_order_value) return false;
+        if (c.max_uses && c.used_count >= c.max_uses) return false;
+        if (term) {
+            const t = term.toLowerCase();
+            return (c.code||'').toLowerCase().includes(t) || (c.name||'').toLowerCase().includes(t);
+        }
+        return true;
+    });
+
+    if (codes.length === 0) {
+        list.innerHTML = '<div style="padding:12px;color:#9ca3af;text-align:center;font-size:0.9em;">Không có mã giảm giá phù hợp</div>';
+        return;
+    }
+
+    list.innerHTML = codes.map(c => {
+        const amt = c.discount_type === 'percent'
+            ? Math.round(subtotal * c.discount_value / 100)
+            : c.discount_value;
+        const badge = c.discount_type === 'percent'
+            ? `-${c.discount_value}%`
+            : `-${c.discount_value.toLocaleString()}đ`;
+        const isSelected = selectedOrderDiscount && selectedOrderDiscount.id === c.id;
+        return `<div onclick="selectOrderDiscount(${c.id})"
+                     style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f3f4f6;
+                            display:flex;justify-content:space-between;align-items:center;
+                            background:${isSelected ? '#eff6ff' : 'white'};"
+                     onmouseenter="this.style.background='#f8fafc'"
+                     onmouseleave="this.style.background='${isSelected ? '#eff6ff' : 'white'}'">
+            <div>
+                <div style="font-weight:700;color:#1e40af;">${c.code}</div>
+                <div style="font-size:0.82em;color:#64748b;">${c.name}</div>
+                ${c.min_order_value ? `<div style="font-size:0.78em;color:#94a3b8;">Từ ${c.min_order_value.toLocaleString()}đ</div>` : ''}
+            </div>
+            <div style="font-weight:700;color:#16a34a;white-space:nowrap;">${badge}</div>
+        </div>`;
+    }).join('');
+}
+
+function selectOrderDiscount(codeId) {
+    const code = orderDiscountCodes.find(c => c.id === codeId);
+    if (!code) return;
+    selectedOrderDiscount = code;
+
+    const subtotal = parseInt(document.getElementById('add_tong_tien').value || '0');
+    const amt = code.discount_type === 'percent'
+        ? Math.round(subtotal * code.discount_value / 100)
+        : code.discount_value;
+
+    document.getElementById('addOrderDiscountSearch').value = `${code.code} — ${code.name}`;
+    document.getElementById('addOrderDiscountCode').value = code.code;
+    document.getElementById('addOrderDiscountAmount').value = amt;
+
+    const info = document.getElementById('addOrderDiscountInfo');
+    info.style.display = 'block';
+    info.innerHTML = `<i class="fas fa-check-circle"></i> Đã chọn: <strong>${code.code}</strong> — Giảm <strong>${amt.toLocaleString()}đ</strong>
+        <span onclick="clearOrderDiscount()" style="float:right;cursor:pointer;color:#dc2626;"
+              title="Xóa mã">✕</span>`;
+
+    document.getElementById('addOrderDiscountList').style.display = 'none';
+}
+
+function clearOrderDiscount() {
+    selectedOrderDiscount = null;
+    document.getElementById('addOrderDiscountSearch').value = '';
+    document.getElementById('addOrderDiscountCode').value = '';
+    document.getElementById('addOrderDiscountAmount').value = '';
+    const info = document.getElementById('addOrderDiscountInfo');
+    if (info) info.style.display = 'none';
+}
+
+// Close discount list when clicking outside
+document.addEventListener('click', function(e) {
+    const list = document.getElementById('addOrderDiscountList');
+    const inp  = document.getElementById('addOrderDiscountSearch');
+    if (list && inp && !list.contains(e.target) && !inp.contains(e.target)) {
+        list.style.display = 'none';
+    }
+});
+
 </script>
 {% endblock %}

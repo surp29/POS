@@ -1041,15 +1041,11 @@ document.addEventListener('DOMContentLoaded', function() {
     loadProducts();
     loadCustomers();
     loadDiscountCodes();
+    // Setup dropdown events after a short delay to ensure elements are loaded
     setTimeout(setupCustomerDropdownEvents, 500);
-
-    // Live search #productSearch
-    var psi = document.getElementById('productSearch');
-    if (psi) {
-        psi.addEventListener('input', function() {
-            searchProducts();
-        });
-    }
+    
+    // Initialize phone inputs when modal is opened
+    // Phone inputs will be initialized when modal opens, not on page load
 });
 
 // Load products
@@ -1073,9 +1069,7 @@ async function loadProducts() {
 // Load customers
 async function loadCustomers() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/accounts/', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/accounts/', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` } });
         if (response.ok) {
             customersData = await response.json();
             populateCustomerList();
@@ -1088,9 +1082,7 @@ async function loadCustomers() {
 // Load discount codes
 async function loadDiscountCodes() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/discount-codes/', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/discount-codes/', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` } });
         if (response.ok) {
             discountCodes = await response.json();
         }
@@ -1431,9 +1423,7 @@ async function renderPriceList() {
     const grid = document.getElementById('productsGrid');
     
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/prices/', {
-            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` }
-        });
+        const response = await fetch('{{ BACKEND_URL }}/api/prices/', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}` } });
         if (response.ok) {
             const data = await response.json();
             

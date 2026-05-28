@@ -23,6 +23,11 @@
     <div class="sidebar" id="appSidebar">
         <div class="sidebar-header">
             <h2><i class="fas fa-calculator"></i> <span class="sidebar-header-text">PosPos</span></h2>
+            <button class="sidebar-toggle-btn" id="sidebarToggleBtn"
+                    onclick="toggleDesktopSidebar()"
+                    title="Đóng/mở menu">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
 
         <nav class="sidebar-nav">
@@ -211,8 +216,6 @@
                             để chuyển nhanh
                         </div>
                     </div>
-                    <!-- Hidden submit button — cho phép Enter trigger onsubmit -->
-                    <button type="submit" style="display:none;" aria-hidden="true"></button>
                 </form>
             </div>
             <div class="modal-footer">
@@ -249,6 +252,35 @@
 
     <!-- JavaScript -->
     <script>
+        // Desktop sidebar toggle
+        function toggleDesktopSidebar() {
+            var isHidden = document.body.classList.toggle('sidebar-hidden');
+            sessionStorage.setItem('sidebar_hidden', isHidden ? '1' : '0');
+            _updateSidebarBtn(isHidden);
+        }
+
+        function _updateSidebarBtn(isHidden) {
+            var btn  = document.getElementById('sidebarToggleBtn');
+            var icon = btn ? btn.querySelector('i') : null;
+            if (!icon) return;
+            if (isHidden) {
+                icon.className = 'fas fa-bars';
+                btn.title = 'Mở menu';
+            } else {
+                icon.className = 'fas fa-times';
+                btn.title = 'Đóng menu';
+            }
+        }
+
+        // Khôi phục trạng thái khi load trang
+        document.addEventListener('DOMContentLoaded', function() {
+            var hidden = sessionStorage.getItem('sidebar_hidden') === '1';
+            if (hidden) {
+                document.body.classList.add('sidebar-hidden');
+            }
+            _updateSidebarBtn(hidden);
+        });
+
         // Mobile / tablet sidebar
         function initResponsiveSidebar() {
             const sidebar = document.getElementById('appSidebar');
@@ -860,7 +892,6 @@
 
     <!-- Permission Guard — phải load TRƯỚC chatbot và sau utils -->
     <script src="{{ url_for('static', filename='js/permissions.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/session_manager.js') }}"></script>
     
     <!-- Chatbot Script -->
     <script>
@@ -1338,5 +1369,18 @@
     </script>
     <!-- ═══ END FLOATING CHATBOT ═══ -->
 
+
+    <!-- Floating button mở lại sidebar khi đã ẩn -->
+    <button class="sidebar-reopen-btn" id="sidebarReopenBtn"
+            onclick="toggleDesktopSidebar()"
+            title="Mở sidebar">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    <script>
+    // Áp dụng sidebar-hidden sớm nhất có thể (trước khi render)
+    if (sessionStorage.getItem('sidebar_hidden') === '1') {
+        document.body.classList.add('sidebar-hidden');
+    }
+    </script>
 </body>
 </html>

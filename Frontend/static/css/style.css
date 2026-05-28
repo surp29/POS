@@ -2879,3 +2879,161 @@ input[type="number"] {
     font-size: 20px;
   }
 }
+
+/* Nút toggle trên sidebar header */
+.sidebar-header {
+    position: relative;
+}
+.sidebar-toggle-btn {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: background 0.2s;
+}
+.sidebar-toggle-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Khi body có class sidebar-hidden → ẩn sidebar */
+body.sidebar-hidden #appSidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+}
+
+/* Khi sidebar ẩn → main-content chiếm full width */
+body.sidebar-hidden .main-content {
+    margin-left: 0 !important;
+    transition: margin-left 0.3s ease;
+}
+
+/* Nút floating mở lại sidebar */
+.sidebar-reopen-btn {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 1001;
+    background: var(--primary-color, #3b82f6);
+    color: white;
+    border: none;
+    width: 22px;
+    height: 56px;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, width 0.2s, background 0.2s;
+}
+.sidebar-reopen-btn:hover {
+    width: 30px;
+    background: #1d4ed8;
+}
+
+/* Hiện nút reopen CHỈ khi sidebar ẩn */
+body.sidebar-hidden .sidebar-reopen-btn {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Transition cho sidebar */
+#appSidebar {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.main-content {
+    transition: margin-left 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════
+   SIDEBAR TOGGLE DESKTOP
+   ═══════════════════════════════════════════════════ */
+
+/* Nút toggle trong sidebar header */
+.sidebar-toggle-btn {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-left: auto;
+    transition: background 0.2s, transform 0.2s;
+}
+.sidebar-toggle-btn:hover {
+    background: rgba(255,255,255,0.35);
+    transform: scale(1.1);
+}
+
+/* Sidebar ẩn — dùng !important để override .sidebar.collapsed */
+body.sidebar-hidden #appSidebar {
+    transform: translateX(-100%) !important;
+    box-shadow: none !important;
+    pointer-events: none;
+}
+
+/* Main content full width khi sidebar ẩn */
+body.sidebar-hidden .main-content {
+    margin-left: 0 !important;
+}
+
+/* Smooth transition */
+#appSidebar {
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), 
+                box-shadow 0.3s ease,
+                width 0.3s ease !important;
+}
+.main-content {
+    transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+/* Nút floating mở lại */
+.sidebar-reopen-btn {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 1100;
+    background: var(--primary-color, #3b82f6);
+    color: white;
+    border: none;
+    width: 20px;
+    height: 52px;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, width 0.15s, background 0.15s;
+}
+.sidebar-reopen-btn:hover {
+    width: 28px;
+    background: #1d4ed8;
+}
+body.sidebar-hidden .sidebar-reopen-btn {
+    opacity: 1;
+    pointer-events: auto;
+}

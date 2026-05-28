@@ -1,119 +1,130 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Script để xóa tất cả dữ liệu trừ tài khoản admin
+POSPOS - CLEAR DATA
+===================
+Xóa toàn bộ dữ liệu nghiệp vụ, giữ lại tài khoản admin.
+
+Thứ tự xóa (tránh lỗi foreign key):
+  1. shipment_history   (FK → shipments)
+  2. shipments
+  3. audit_logs
+  4. user_permissions   (FK → users)
+  5. schedules          (FK → users)
+  6. invoice_items      (FK → invoices, products)
+  7. invoices
+  8. order_items        (FK → orders, products)
+  9. orders
+  10. general_diary
+  11. discount_codes
+  12. warehouses
+  13. products
+  14. product_groups
+  15. prices
+  16. accounts          (khách hàng — không phải users)
+  17. shops             (FK → areas)
+  18. areas
+  19. users             (giữ lại admin)
+
+Sử dụng:
+    cd Backend
+    python clear_data.py
 """
+
 import sys
 import os
-
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from app.database import SessionLocal
-from app.models import (
-    User, InvoiceItem, Invoice, OrderItem, Order, Price, Product, ProductGroup,
-    Warehouse, Shop, Area, Account, GeneralDiary, DiscountCode, Schedule
-)
 import codecs
 
-# Fix encoding for Windows console
 if sys.platform == 'win32':
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
-def clear_data():
-    """Xóa tất cả dữ liệu trừ tài khoản admin"""
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from app.database import SessionLocal
+from app.models import (
+    ShipmentHistory, Shipment,
+    AuditLog,
+    UserPermission, Schedule,
+    InvoiceItem, Invoice,
+    OrderItem, Order,
+    GeneralDiary,
+    DiscountCode,
+    Warehouse,
+    Product, ProductGroup,
+    Price,
+    Account,
+    Shop, Area,
+    User,
+)
+
+
+def clear_data(keep_admin: bool = True):
     db = SessionLocal()
     try:
         print("=" * 60)
-        print("XÓA DỮ LIỆU (GIỮ LẠI TÀI KHOẢN ADMIN)")
+        print("  POSPOS — XÓA DỮ LIỆU")
         print("=" * 60)
-        print("\n⚠️  CẢNH BÁO: Thao tác này sẽ xóa TẤT CẢ dữ liệu!")
-        print("   Chỉ tài khoản 'admin' sẽ được giữ lại.\n")
-        
-        # Auto-confirm if running non-interactively
-        if not sys.stdin.isatty():
-            confirm = 'yes'
-            print("Chạy trong môi trường không tương tác, tự động xác nhận...")
-        else:
+        print("\n⚠️  Thao tác này sẽ xóa TẤT CẢ dữ liệu nghiệp vụ!")
+        if keep_admin:
+            print("   Tài khoản 'admin' sẽ được giữ lại.\n")
+
+        # Xác nhận
+        if sys.stdin.isatty():
             confirm = input("Bạn có chắc muốn tiếp tục? (yes/no): ").strip().lower()
-        
-        if confirm != 'yes':
-            print("❌ Đã hủy thao tác.")
-            return
-        
-        print("\n🗑️  Đang xóa dữ liệu cũ...")
-        
-        # Xóa theo thứ tự để tránh lỗi foreign key
-        db.query(InvoiceItem).delete()
-        print("  ✓ Đã xóa InvoiceItem")
-        
-        db.query(Invoice).delete()
-        print("  ✓ Đã xóa Invoice")
-        
-        db.query(OrderItem).delete()
-        print("  ✓ Đã xóa OrderItem")
-        
-        db.query(Order).delete()
-        print("  ✓ Đã xóa Order")
-        
-        db.query(Price).delete()
-        print("  ✓ Đã xóa Price")
-        
-        db.query(Product).delete()
-        print("  ✓ Đã xóa Product")
-        
-        db.query(ProductGroup).delete()
-        print("  ✓ Đã xóa ProductGroup")
-        
-        db.query(Warehouse).delete()
-        print("  ✓ Đã xóa Warehouse")
-        
-        db.query(Shop).delete()
-        print("  ✓ Đã xóa Shop")
-        
-        db.query(Area).delete()
-        print("  ✓ Đã xóa Area")
-        
-        # Xóa Account (Account là khách hàng, không phải user)
-        db.query(Account).delete()
-        print("  ✓ Đã xóa Account")
-        
-        # Xóa Schedule trước khi xóa User (vì Schedule có foreign key đến User)
-        db.query(Schedule).delete()
-        print("  ✓ Đã xóa Schedule")
-        
-        # Giữ lại User admin
-        admin_user = db.query(User).filter(User.username == 'admin').first()
-        if admin_user:
-            # Xóa tất cả user khác
-            db.query(User).filter(User.username != 'admin').delete()
-            print("  ✓ Đã xóa User (giữ lại admin)")
+            if confirm != 'yes':
+                print("❌ Đã hủy."); return
         else:
-            db.query(User).delete()
-            print("  ✓ Đã xóa User (không tìm thấy admin)")
-        
-        db.query(GeneralDiary).delete()
-        print("  ✓ Đã xóa GeneralDiary")
-        
-        db.query(DiscountCode).delete()
-        print("  ✓ Đã xóa DiscountCode")
-        
+            print("Chạy tự động — tự xác nhận...")
+
+        print("\n🗑️  Đang xóa...")
+
+        steps = [
+            (ShipmentHistory, "ShipmentHistory"),
+            (Shipment,        "Shipment"),
+            (AuditLog,        "AuditLog"),
+            (UserPermission,  "UserPermission"),
+            (Schedule,        "Schedule"),
+            (InvoiceItem,     "InvoiceItem"),
+            (Invoice,         "Invoice"),
+            (OrderItem,       "OrderItem"),
+            (Order,           "Order"),
+            (GeneralDiary,    "GeneralDiary"),
+            (DiscountCode,    "DiscountCode"),
+            (Warehouse,       "Warehouse"),
+            (Product,         "Product"),
+            (ProductGroup,    "ProductGroup"),
+            (Price,           "Price"),
+            (Account,         "Account"),
+            (Shop,            "Shop"),
+            (Area,            "Area"),
+        ]
+
+        for Model, label in steps:
+            n = db.query(Model).delete()
+            print(f"   ✓ {label:<20} {n} bản ghi")
+
+        # Xóa users — giữ lại admin
+        if keep_admin:
+            n_other = db.query(User).filter(User.username != 'admin').delete()
+            print(f"   ✓ User (non-admin)   {n_other} bản ghi (admin giữ lại)")
+        else:
+            n_all = db.query(User).delete()
+            print(f"   ✓ User (tất cả)      {n_all} bản ghi")
+
         db.commit()
-        
-        print("\n✅ Đã xóa tất cả dữ liệu thành công (trừ tài khoản admin).")
-        print("\n📋 Tóm tắt:")
-        print("  - Tất cả dữ liệu đã được xóa")
-        print("  - Tài khoản 'admin' đã được giữ lại")
-        print("  - Database sẵn sàng để nhập dữ liệu mới theo lộ trình của bạn")
-        
+        print("\n✅ Xóa xong!")
+        if keep_admin:
+            print("   Tài khoản 'admin' vẫn còn.")
+        print("   Chạy create_sample_data.py để tạo dữ liệu mới.\n")
+
     except Exception as e:
         db.rollback()
-        print(f"\n❌ Lỗi khi xóa dữ liệu: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"\n❌ Lỗi: {e}")
+        import traceback; traceback.print_exc()
     finally:
         db.close()
 
-if __name__ == "__main__":
-    clear_data()
 
+if __name__ == "__main__":
+    clear_data(keep_admin=True)

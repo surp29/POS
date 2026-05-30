@@ -200,6 +200,7 @@ def revenue_report_async(
             "poll_url": f"/api/reports/task/{task.id}",
         }
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=503, detail=f"Celery không khả dụng: {str(e)}")
 
 
@@ -214,6 +215,7 @@ def debt_report_async():
             "poll_url": f"/api/reports/task/{task.id}",
         }
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=503, detail=f"Celery không khả dụng: {str(e)}")
 
 
@@ -231,4 +233,5 @@ def get_task_result(task_id: str):
             return {"task_id": task_id, "status": "FAILURE", "error": str(result.result)}
         return {"task_id": task_id, "status": result.state}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Lỗi: {str(e)}")

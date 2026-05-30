@@ -37,12 +37,11 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-if Config.ENV == 'development':
-    Base.metadata.create_all(bind=engine)
+# Tables are created in startup_event()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://127.0.0.1:5000", "*"],
+    allow_origins=Config.CORS_ORIGINS,  # Đọc từ config, không dùng wildcard
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -130,6 +129,8 @@ app.include_router(audit_api.router,           prefix="/api")
 app.include_router(permissions_api.router,     prefix="/api")
 app.include_router(shipping_api.router,        prefix="/api")
 
+# NOTE: @app.on_event is deprecated in FastAPI >= 0.93
+# Được giữ lại để tương thích. Chuyển sang lifespan khi nâng cấp.
 @app.on_event("startup")
 async def startup_event():
     try:

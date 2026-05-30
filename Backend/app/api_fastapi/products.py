@@ -87,7 +87,7 @@ def list_products(db: Session = Depends(get_db),
 
 @router.get("/{product_id}", response_model=ProductOut)
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(Product).get(product_id)
+    product = db.get(Product, product_id)
     if not product:
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
     return ProductOut.model_validate(product).model_dump()
@@ -138,6 +138,7 @@ async def create_product(
             )
             db.commit()
         except Exception as diary_error:
+            db.rollback()
             log_error("CREATE_PRODUCT_DIARY", "Lỗi ghi General Diary", error=diary_error)
 
         # ── Invalidate cache sau khi tạo mới ─────────────────────────────
@@ -170,7 +171,7 @@ async def update_product(
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
 ):
-    p = db.query(Product).get(product_id)
+    p = db.get(Product, product_id)
     if not p:
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
 
@@ -217,7 +218,7 @@ async def update_product(
 @router.delete("/{product_id}")
 def delete_product(product_id: int, request: Request, db: Session = Depends(get_db),
     _: User = Depends(require_permission('products.delete'))):
-    p = db.query(Product).get(product_id)
+    p = db.get(Product, product_id)
     if not p:
         raise HTTPException(status_code=404, detail="Không tìm thấy sản phẩm")
 

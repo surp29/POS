@@ -145,6 +145,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         log_error("LOGIN", "Lỗi đăng nhập", error=e)
         raise HTTPException(status_code=500, detail="Lỗi server khi đăng nhập")
 
@@ -165,6 +166,7 @@ def logout(credentials: HTTPAuthorizationCredentials = Security(security)):
     except jwt.ExpiredSignatureError:
         return {"message": "Đăng xuất thành công"}
     except Exception as e:
+        db.rollback()
         log_error("LOGOUT", "Lỗi logout", error=e)
         raise HTTPException(status_code=500, detail="Lỗi server khi đăng xuất")
 
@@ -226,6 +228,7 @@ def refresh_token(
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         log_error("REFRESH", "Lỗi refresh token", error=e)
         raise HTTPException(status_code=500, detail="Lỗi server khi refresh token")
 

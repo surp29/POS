@@ -56,7 +56,7 @@ def create_price(payload: PriceCreate, db: Session = Depends(get_db),
 
 @router.put("/{price_id}")
 def update_price(price_id: int, payload: PriceUpdate, request: Request, db: Session = Depends(get_db)):
-    price = db.query(Price).get(price_id)
+    price = db.get(Price, price_id)
     if not price:
         raise HTTPException(status_code=404, detail="Không tìm thấy bảng giá")
     
@@ -97,7 +97,7 @@ def update_price(price_id: int, payload: PriceUpdate, request: Request, db: Sess
 @router.delete("/{price_id}")
 def delete_price(price_id: int, request: Request, db: Session = Depends(get_db),
     _: User = Depends(require_permission('prices.delete'))):
-    price = db.query(Price).get(price_id)
+    price = db.get(Price, price_id)
     if not price:
         raise HTTPException(status_code=404, detail="Không tìm thấy bảng giá")
     

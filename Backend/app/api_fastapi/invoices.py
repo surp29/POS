@@ -98,6 +98,7 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
             )
             db.commit()
         except Exception as diary_error:
+            db.rollback()
             # Log lỗi nhưng không làm gián đoạn việc tạo invoice
             log_error("CREATE_INVOICE_DIARY", f"Lỗi khi ghi vào General Diary: {str(diary_error)}", error=diary_error)
             # Không rollback vì invoice đã được tạo thành công
@@ -114,7 +115,7 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
 def update_invoice(invoice_id: int, payload: InvoiceUpdate, request: Request, db: Session = Depends(get_db),
     _: User = Depends(require_permission('invoices.edit'))):
     try:
-        inv = db.query(Invoice).get(invoice_id)
+        inv = db.get(Invoice, invoice_id)
         if not inv:
             raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
         
@@ -168,7 +169,7 @@ def update_invoice(invoice_id: int, payload: InvoiceUpdate, request: Request, db
 
 @router.get("/{invoice_id:int}", response_model=InvoiceOut)
 def get_invoice(invoice_id: int, db: Session = Depends(get_db)):
-    inv = db.query(Invoice).get(invoice_id)
+    inv = db.get(Invoice, invoice_id)
     if not inv:
         raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
     return InvoiceOut.model_validate(inv).model_dump()
@@ -178,7 +179,7 @@ def get_invoice(invoice_id: int, db: Session = Depends(get_db)):
 def get_invoice_details(invoice_id: int, db: Session = Depends(get_db)):
     """Lấy chi tiết hóa đơn bao gồm các sản phẩm"""
     try:
-        inv = db.query(Invoice).get(invoice_id)
+        inv = db.get(Invoice, invoice_id)
         if not inv:
             raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
         
@@ -227,6 +228,7 @@ def get_invoice_details(invoice_id: int, db: Session = Depends(get_db)):
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         import traceback
         error_details = traceback.format_exc()
         log_error("GET_INVOICE_DETAILS", f"Lỗi khi lấy chi tiết hóa đơn {invoice_id}", error=e)
@@ -238,7 +240,7 @@ def get_invoice_details(invoice_id: int, db: Session = Depends(get_db)):
 def delete_invoice(invoice_id: int, request: Request, db: Session = Depends(get_db),
     _: User = Depends(require_permission('invoices.delete'))):
     try:
-        inv = db.query(Invoice).get(invoice_id)
+        inv = db.get(Invoice, invoice_id)
         if not inv:
             raise HTTPException(status_code=404, detail="Không tìm thấy hóa đơn")
         

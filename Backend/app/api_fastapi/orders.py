@@ -114,7 +114,7 @@ def search_orders(
 
     if customer_id is not None:
         try:
-            acc = db.query(Account).get(int(customer_id))
+            acc = db.get(Account, int(customer_id))
         except Exception:
             acc = None
         if acc:
@@ -169,7 +169,7 @@ def search_orders(
 
 @router.get("/{order_id}", response_model=OrderOut)
 def get_order(order_id: int, db: Session = Depends(get_db)):
-    o = db.query(Order).get(order_id)
+    o = db.get(Order, order_id)
     if not o:
         raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
     return OrderOut.model_validate(o).model_dump()
@@ -240,6 +240,7 @@ async def create_order(payload: OrderCreate, db: Session = Depends(get_db),
             )
             db.commit()
         except Exception as e:
+            db.rollback()
             log_error("CREATE_ORDER_DIARY", "Lỗi ghi General Diary", error=e)
 
         # ── Broadcast order created event ──────────────────────────────────
@@ -273,7 +274,7 @@ async def update_order(
     _: User = Depends(require_permission('orders.edit')),
 ):
     """Cập nhật đơn hàng + broadcast WebSocket event."""
-    o = db.query(Order).get(order_id)
+    o = db.get(Order, order_id)
     if not o:
         raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
 
@@ -296,6 +297,7 @@ async def update_order(
         )
         db.commit()
     except Exception as e:
+        db.rollback()
         log_error("UPDATE_ORDER_DIARY", "Lỗi ghi General Diary", error=e)
 
     # ── Broadcast order updated / status_changed ───────────────────────────
@@ -316,7 +318,7 @@ async def update_order(
 async def delete_order(order_id: int, request: Request, db: Session = Depends(get_db),
     _: User = Depends(require_permission('orders.delete'))):
     """Xóa đơn hàng + broadcast WebSocket event."""
-    o = db.query(Order).get(order_id)
+    o = db.get(Order, order_id)
     if not o:
         raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
 

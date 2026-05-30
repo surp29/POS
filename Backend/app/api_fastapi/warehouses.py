@@ -21,6 +21,7 @@ def list_warehouses(db: Session = Depends(get_db),
         log_info("LIST_WAREHOUSES", f"Đã lấy {len(warehouses)} kho hàng")
         return [WarehouseOut.model_validate(w).model_dump() for w in warehouses]
     except Exception as e:
+        db.rollback()
         log_error("LIST_WAREHOUSES", "Lỗi khi lấy danh sách kho hàng", error=e)
         raise HTTPException(status_code=500, detail=f"Lỗi khi lấy danh sách kho hàng: {str(e)}")
 
@@ -28,7 +29,7 @@ def list_warehouses(db: Session = Depends(get_db),
 @router.get("/{warehouse_id}", response_model=WarehouseOut)
 def get_warehouse(warehouse_id: int, db: Session = Depends(get_db)):
     """Lấy thông tin một kho hàng theo ID"""
-    wh = db.query(Warehouse).get(warehouse_id)
+    wh = db.get(Warehouse, warehouse_id)
     if not wh:
         raise HTTPException(status_code=404, detail="Không tìm thấy kho hàng")
     return WarehouseOut.model_validate(wh).model_dump()
@@ -123,7 +124,7 @@ def update_warehouse(warehouse_id: int, payload: WarehouseUpdate, request: Reque
     """Cập nhật thông tin kho hàng"""
     log_info("UPDATE_WAREHOUSE", f"Cập nhật kho hàng ID: {warehouse_id}")
     
-    wh = db.query(Warehouse).get(warehouse_id)
+    wh = db.get(Warehouse, warehouse_id)
     if not wh:
         raise HTTPException(status_code=404, detail="Không tìm thấy kho hàng")
     
@@ -186,7 +187,7 @@ def delete_warehouse(warehouse_id: int, request: Request, db: Session = Depends(
     """Xóa kho hàng"""
     log_info("DELETE_WAREHOUSE", f"Xóa kho hàng ID: {warehouse_id}")
     
-    wh = db.query(Warehouse).get(warehouse_id)
+    wh = db.get(Warehouse, warehouse_id)
     if not wh:
         raise HTTPException(status_code=404, detail="Không tìm thấy kho hàng")
     

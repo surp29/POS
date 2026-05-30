@@ -39,7 +39,7 @@ def get_user(
     db: Session = Depends(get_db),
     _: User = Depends(require_staff),
 ):
-    user = db.query(User).get(user_id)
+    user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Không tìm thấy nhân viên")
     return UserOut.model_validate(user).model_dump()
@@ -81,7 +81,7 @@ def update_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),   # CHỈ ADMIN
 ):
-    user = db.query(User).get(user_id)
+    user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Không tìm thấy nhân viên")
 
@@ -120,7 +120,7 @@ def delete_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),   # CHỈ ADMIN
 ):
-    user = db.query(User).get(user_id)
+    user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="Không tìm thấy nhân viên")
     if user.username == 'admin':

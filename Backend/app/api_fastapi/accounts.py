@@ -19,7 +19,7 @@ def list_accounts(db: Session = Depends(get_db)):
 
 @router.get("/{account_id}", response_model=AccountOut)
 def get_account(account_id: int, db: Session = Depends(get_db)):
-    row = db.query(Account).get(account_id)
+    row = db.get(Account, account_id)
     if not row:
         raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
     return AccountOut.model_validate(row)
@@ -55,7 +55,7 @@ def create_account(payload: AccountCreate, db: Session = Depends(get_db)):
 
 @router.put("/{account_id}")
 def update_account(account_id: int, payload: AccountUpdate, request: Request, db: Session = Depends(get_db)):
-    acc = db.query(Account).get(account_id)
+    acc = db.get(Account, account_id)
     if not acc:
         raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
     
@@ -101,7 +101,7 @@ def update_account(account_id: int, payload: AccountUpdate, request: Request, db
 
 @router.delete("/{account_id}")
 def delete_account(account_id: int, request: Request, db: Session = Depends(get_db)):
-    acc = db.query(Account).get(account_id)
+    acc = db.get(Account, account_id)
     if not acc:
         raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
     

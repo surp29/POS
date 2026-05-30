@@ -9,7 +9,7 @@ class Config:
     # Database
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL',
-        'postgresql://postgres:29042003@localhost:5432/pos'
+        'postgresql://postgres:postgres@localhost:5432/pos'  # Override bằng DATABASE_URL trong .env
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

@@ -142,7 +142,7 @@ def get_users(db:Session=Depends(get_db),_:User=Depends(require_admin)):
 
 @router.put("/user/{uid}")
 def set_perms(uid:int,payload:dict,db:Session=Depends(get_db),admin:User=Depends(require_admin)):
-    u=db.query(User).get(uid)
+    u=db.get(User, uid)
     if not u: raise HTTPException(404,"Không tìm thấy user")
     if _is_admin(u): raise HTTPException(400,"Không thể thay đổi quyền Admin")
     new=payload.get("permissions",[])
@@ -158,7 +158,7 @@ def set_perms(uid:int,payload:dict,db:Session=Depends(get_db),admin:User=Depends
 
 @router.post("/deactivate/{uid}")
 def deactivate(uid:int,db:Session=Depends(get_db),admin:User=Depends(require_admin)):
-    u=db.query(User).get(uid)
+    u=db.get(User, uid)
     if not u: raise HTTPException(404,"Không tìm thấy")
     if _is_admin(u): raise HTTPException(400,"Không thể vô hiệu hóa Admin")
     u.status=False; db.commit()
@@ -166,7 +166,7 @@ def deactivate(uid:int,db:Session=Depends(get_db),admin:User=Depends(require_adm
 
 @router.post("/activate/{uid}")
 def activate(uid:int,db:Session=Depends(get_db),admin:User=Depends(require_admin)):
-    u=db.query(User).get(uid)
+    u=db.get(User, uid)
     if not u: raise HTTPException(404,"Không tìm thấy")
     u.status=True; db.commit()
     return {"success":True,"message":f"Đã kích hoạt: {u.username}"}
@@ -174,13 +174,13 @@ def activate(uid:int,db:Session=Depends(get_db),admin:User=Depends(require_admin
 @router.get("/my")
 def my_perms(db:Session=Depends(get_db),cu:User=Depends(_get_current_user_for_rbac)):
     if _is_admin(cu): return {"success":True,"is_admin":True,"permissions":list(ALL_PERMISSIONS.keys())}
-    f=db.query(User).get(cu.id)
+    f=db.get(User, cu.id)
     if not f or not f.status: raise HTTPException(401,"Tài khoản đã bị vô hiệu hóa")
     return {"success":True,"is_admin":False,"permissions":_get_perms(db,f.id)}
 
 @router.get("/check/{permission}")
 def check(permission:str,db:Session=Depends(get_db),cu:User=Depends(_get_current_user_for_rbac)):
-    f=db.query(User).get(cu.id)
+    f=db.get(User, cu.id)
     if not f or not f.status: raise HTTPException(401,"Tài khoản đã bị vô hiệu hóa")
     if _is_admin(f): return {"success":True,"allowed":True}
     ok=permission in _get_perms(db,f.id)

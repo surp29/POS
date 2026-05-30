@@ -128,7 +128,7 @@ def list_shipments(
 def get_shipment(shipment_id: int, db: Session = Depends(get_db),
     _: User = Depends(require_permission('shipping.view'))
 ):
-    s = db.query(Shipment).get(shipment_id)
+    s = db.get(Shipment, shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
     hist = db.query(ShipmentHistory).filter(
         ShipmentHistory.shipment_id == shipment_id
@@ -218,7 +218,7 @@ def update_status(shipment_id: int, payload: dict, request: Request, db: Session
     _: User = Depends(require_permission('shipping.update_status'))
 ):
     """Cập nhật trạng thái đơn vận chuyển."""
-    s = db.query(Shipment).get(shipment_id)
+    s = db.get(Shipment, shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
 
     new_status = payload.get("status")
@@ -256,7 +256,7 @@ def update_shipment(shipment_id: int, payload: dict, request: Request, db: Sessi
     _: User = Depends(require_permission('shipping.update_status'))
 ):
     """Cập nhật thông tin đơn (shipper, ghi chú...)."""
-    s = db.query(Shipment).get(shipment_id)
+    s = db.get(Shipment, shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
     if s.status in ("delivered", "returned", "cancelled"):
         raise HTTPException(400, "Không thể sửa đơn đã hoàn tất")
@@ -272,7 +272,7 @@ def update_shipment(shipment_id: int, payload: dict, request: Request, db: Sessi
 def cancel_shipment(shipment_id: int, request: Request, db: Session = Depends(get_db),
     _: User = Depends(require_permission('shipping.cancel'))
 ):
-    s = db.query(Shipment).get(shipment_id)
+    s = db.get(Shipment, shipment_id)
     if not s: raise HTTPException(404, "Không tìm thấy đơn vận chuyển")
     if s.status not in ("pending",):
         raise HTTPException(400, "Chỉ có thể hủy đơn khi còn ở trạng thái 'Chờ lấy hàng'")

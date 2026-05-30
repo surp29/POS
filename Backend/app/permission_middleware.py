@@ -110,3 +110,41 @@ def require_permission(permission: str):
         return user
 
     return checker
+
+# ── Backward-compatibility aliases (rbac.py đã được hợp nhất vào đây) ─────────
+# Các file cũ import từ rbac sẽ vẫn hoạt động qua permission_middleware
+
+def get_role(user: "User") -> str:
+    """Trả về role string của user."""
+    return _is_admin(user) and "admin" or "staff"
+
+
+def require_admin(
+    credentials: "HTTPAuthorizationCredentials" = Security(_security),
+    db: "Session" = Depends(get_db),
+) -> "User":
+    """Dependency: chỉ cho phép admin."""
+    user = _get_user_from_credentials(credentials, db)
+    if not _is_admin(user):
+        raise HTTPException(
+            status_code=403,
+            detail="Chỉ quản trị viên mới có quyền thực hiện thao tác này.",
+        )
+    return user
+
+
+def require_staff(
+    credentials: "HTTPAuthorizationCredentials" = Security(_security),
+    db: "Session" = Depends(get_db),
+) -> "User":
+    """Dependency: cho phép mọi user đã đăng nhập (admin + staff)."""
+    return _get_user_from_credentials(credentials, db)
+
+
+def get_user_role_info(user: "User") -> dict:
+    """Trả về thông tin role của user."""
+    return {
+        "is_admin": _is_admin(user),
+        "role": get_role(user),
+        "position": user.position or "",
+    }

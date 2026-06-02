@@ -397,7 +397,7 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 let productsData = [];
 let filteredProducts = [];
 let currentPage = 1;
-const itemsPerPage = 20; // Popup modal: 20 items per page
+let itemsPerPage = 20; // Có thể thay đổi qua per-page selector
 let deleteProductId = null;
 let warehouseDataForProducts = [];
 let warehouseCodeToItem = {};
@@ -548,64 +548,94 @@ function updateProductsTable() {
     `).join('');
 }
 
+// ── Per-page selector ──────────────────────────────────────────────────────
+function changePerPage(val) {
+    if (val === 'ALL') {
+        itemsPerPage = Infinity;
+    } else {
+        itemsPerPage = parseInt(val, 10);
+    }
+    currentPage = 1;
+    updateProductsTable();
+    updatePagination();
+}
+
 // Update pagination
 function updatePagination() {
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const data       = filteredProducts || [];
+    const realItems  = itemsPerPage === Infinity ? data.length : itemsPerPage;
+    const totalPages = itemsPerPage === Infinity ? 1 : Math.ceil(data.length / itemsPerPage);
     const pagination = document.getElementById('pagination');
-    
-    if (totalPages <= 1) {
-        pagination.innerHTML = '';
+    if (!pagination) return;
+
+    // Thông tin hiển thị
+    const start = data.length === 0 ? 0 : (currentPage - 1) * realItems + 1;
+    const end   = itemsPerPage === Infinity ? data.length : Math.min(currentPage * itemsPerPage, data.length);
+    const infoText = data.length === 0 ? 'Không có dữ liệu'
+        : `Hiển thị ${start}–${end} / ${data.length} bản ghi`;
+
+    // Per-page options
+    const currentVal = itemsPerPage === Infinity ? 'ALL' : String(itemsPerPage);
+    const options = ['10','20','30','40','50','ALL'];
+    const perPageSelect = `
+        <div class="per-page-selector">
+            <span>Hiển thị</span>
+            <select onchange="changePerPage(this.value)" title="Số dòng mỗi trang">
+                ${options.map(o =>
+                    `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`
+                ).join('')}
+            </select>
+            <span>dòng</span>
+        </div>`;
+
+    if (totalPages <= 1 && data.length <= realItems) {
+        pagination.innerHTML = `
+            <div class="pagination-wrapper">
+                <span class="pagination-info">${infoText}</span>
+                <div class="pagination-controls">
+                    ${perPageSelect}
+                </div>
+            </div>`;
         return;
     }
-    
-    let paginationHTML = '';
-    
-    // Previous button
-    paginationHTML += `
-        <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-    `;
-    
-    // Page numbers
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-    
-    if (startPage > 1) {
-        paginationHTML += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
-        if (startPage > 2) {
-            paginationHTML += `<span class="text-gray-500">...</span>`;
-        }
+
+    // Nút prev/next/numbers
+    let btns = '';
+    btns += `<button class="pagination-btn" ${
+        currentPage === 1 ? 'disabled' : ''
+    } onclick="goToPage(${ currentPage - 1 })"><i class="fas fa-chevron-left"></i></button>`;
+
+    const startPg = Math.max(1, currentPage - 2);
+    const endPg   = Math.min(totalPages, currentPage + 2);
+    if (startPg > 1) {
+        btns += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+        if (startPg > 2) btns += `<span style="padding:0 4px;color:#94a3b8;">…</span>`;
     }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        paginationHTML += `
-            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">
-                ${i}
-            </button>
-        `;
+    for (let i = startPg; i <= endPg; i++) {
+        btns += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
     }
-    
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            paginationHTML += `<span class="text-gray-500">...</span>`;
-        }
-        paginationHTML += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+    if (endPg < totalPages) {
+        if (endPg < totalPages - 1) btns += `<span style="padding:0 4px;color:#94a3b8;">…</span>`;
+        btns += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
     }
-    
-    // Next button
-    paginationHTML += `
-        <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    `;
-    
-    pagination.innerHTML = paginationHTML;
+    btns += `<button class="pagination-btn" ${
+        currentPage === totalPages ? 'disabled' : ''
+    } onclick="goToPage(${ currentPage + 1 })"><i class="fas fa-chevron-right"></i></button>`;
+
+    pagination.innerHTML = `
+        <div class="pagination-wrapper">
+            <span class="pagination-info">${infoText}</span>
+            <div class="pagination-controls">
+                ${btns}
+                ${perPageSelect}
+            </div>
+        </div>`;
 }
 
 // Go to page
 function goToPage(page) {
-    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const data = filteredProducts || [];
+    const totalPages = itemsPerPage === Infinity ? 1 : Math.ceil(data.length / itemsPerPage);
     if (page >= 1 && page <= totalPages) {
         currentPage = page;
         updateProductsTable();

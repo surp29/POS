@@ -124,9 +124,9 @@ input[type="number"] {
   position: fixed;
   left: 0;
   top: 0;
-  display: flex;                /* make inner sections stack vertically */
+  display: flex;                
   flex-direction: column;
-  overflow: hidden;             /* delegate scrolling to sidebar-nav */
+  overflow: hidden;             
   z-index: 1000;
   box-shadow: var(--shadow-lg);
   transition: width var(--transition-normal), transform var(--transition-normal);
@@ -150,18 +150,42 @@ input[type="number"] {
 }
 
 .sidebar-header {
-  padding: var(--spacing-6);
+  padding: var(--spacing-5) var(--spacing-4); 
   border-bottom: 1px solid var(--gray-200);
   background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
   color: white;
-  position: sticky;            /* keep visible while scrolling */
+  position: sticky;
   top: 0;
   z-index: 2;
-  flex-shrink: 0;              /* don't shrink header */
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: fit-content;
+  min-height: 80px;           
+  box-sizing: border-box;
+}
+.sidebar-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+  z-index: 1;
+  transition: background 0.2s;
+}
+.sidebar-toggle-btn:hover {
+  background: rgba(255,255,255,0.3);
 }
 
 .sidebar-header h2 {
@@ -185,11 +209,11 @@ input[type="number"] {
 
 .sidebar-nav {
   padding: var(--spacing-4) 0;
-  flex: 1 1 auto;              /* take remaining height */
-  overflow-y: auto;            /* enable inner scroll */
-  min-height: 0;               /* allow flex child to shrink for scrolling */
-  -webkit-overflow-scrolling: touch; /* smooth on mobile */
-  overscroll-behavior: contain;      /* keep wheel scroll inside nav */
+  flex: 1 1 auto;              
+  overflow-y: auto;            
+  min-height: 0;               
+  -webkit-overflow-scrolling: touch; 
+  overscroll-behavior: contain;      
 }
 
 /* Explicit scrollbar styling for inner nav */
@@ -350,8 +374,12 @@ input[type="number"] {
 .content-header {
   background: white;
   border-bottom: 1px solid var(--gray-200);
-  padding: var(--spacing-6);
+  padding: var(--spacing-5) var(--spacing-6);  
   box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  position: relative;          
+  min-height: 80px;            
 }
 
 .content-header h1 {
@@ -1291,20 +1319,21 @@ input[type="number"] {
 
 .chatbot-window {
   position: fixed;
-  bottom: 80px;
-  left: 300px; /* Default: next to expanded sidebar */
-  width: 380px;
-  max-width: calc(100vw - 320px); /* không bao giờ rộng hơn viewport - sidebar */
-  height: min(600px, 80vh);
+  bottom: 88px;
+  right: 20px;
+  left: auto;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  height: min(560px, 75vh);
   background: white;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
-  z-index: 999; /* THẤP HƠN sidebar (1000) -> không che sidebar */
+  z-index: 999;
   border: 1px solid var(--gray-200);
   overflow: hidden;
-  transition: left var(--transition-normal);
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 .chatbot-header {
@@ -1700,17 +1729,40 @@ input[type="number"] {
    Content Header Styles
    ======================================== */
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  flex: 1;
+}
+
 .header-left h1 {
-  margin: 0 0 var(--spacing-2) 0;
+  margin: 0;
   font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--gray-900);
 }
 
+/* Tiêu đề trang — luôn căn giữa tuyệt đối, không phụ thuộc sidebar */
+.header-titles {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  width: 60%;                  /* giới hạn chiều rộng, tự xuống dòng */
+  max-width: 700px;            /* không quá rộng trên màn hình lớn */
+}
+.header-titles h1,
+.header-titles .page-description {
+  pointer-events: auto;
+}
+
 .page-description {
-  margin: 0;
+  margin: 2px 0 0 0;
   color: var(--gray-600);
   font-size: var(--font-size-sm);
+  text-align: center;
 }
 
 .header-right {
@@ -2884,25 +2936,8 @@ input[type="number"] {
 .sidebar-header {
     position: relative;
 }
-.sidebar-toggle-btn {
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.25);
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    flex-shrink: 0;
-    margin-left: auto;
-    transition: background 0.2s;
-}
-.sidebar-toggle-btn:hover {
-    background: rgba(255,255,255,0.3);
-}
+
+
 
 /* Khi body có class sidebar-hidden → ẩn sidebar */
 body.sidebar-hidden #appSidebar {
@@ -2963,26 +2998,8 @@ body.sidebar-hidden .sidebar-reopen-btn {
    ═══════════════════════════════════════════════════ */
 
 /* Nút toggle trong sidebar header */
-.sidebar-toggle-btn {
-    background: rgba(255,255,255,0.18);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    flex-shrink: 0;
-    margin-left: auto;
-    transition: background 0.2s, transform 0.2s;
-}
-.sidebar-toggle-btn:hover {
-    background: rgba(255,255,255,0.35);
-    transform: scale(1.1);
-}
+
+
 
 /* Sidebar ẩn — dùng !important để override .sidebar.collapsed */
 body.sidebar-hidden #appSidebar {
@@ -3037,3 +3054,45 @@ body.sidebar-hidden .sidebar-reopen-btn {
     opacity: 1;
     pointer-events: auto;
 }
+
+/* ═══════════════════════════════════
+   SIDEBAR TOGGLE — body class approach
+   ═══════════════════════════════════ */
+body.sidebar-hidden #appSidebar {
+  transform: translateX(-100%) !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+body.sidebar-hidden .main-content {
+  margin-left: 0 !important;
+}
+#appSidebar {
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease;
+}
+.main-content {
+  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+}
+.sidebar-reopen-btn {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  z-index: 1100;
+  background: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  width: 20px;
+  height: 52px;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, width 0.15s;
+}
+.sidebar-reopen-btn:hover { width: 28px; background: #1d4ed8; }
+body.sidebar-hidden .sidebar-reopen-btn { opacity: 1; pointer-events: auto; }

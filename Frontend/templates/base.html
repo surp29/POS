@@ -216,6 +216,7 @@
                             để chuyển nhanh
                         </div>
                     </div>
+                    <button type="submit" style="display:none;" aria-hidden="true" tabindex="-1"></button>
                 </form>
             </div>
             <div class="modal-footer">
@@ -1008,34 +1009,7 @@
             `;
         }
         
-        function updateChatbotPosition() {
-            const chatbotWindow = document.getElementById('chatbotWindow');
-            const sidebar = document.querySelector('.sidebar');
-            
-            if (sidebar && chatbotWindow) {
-                if (sidebar.classList.contains('collapsed')) {
-                    chatbotWindow.style.left = '100px';
-                } else {
-                    chatbotWindow.style.left = '300px';
-                }
-            }
-        }
-        
-        // Update chatbot position when sidebar state changes
-        document.addEventListener('DOMContentLoaded', function() {
-            // Watch for sidebar class changes
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                const observer = new MutationObserver(function(mutations) {
-                    mutations.forEach(function(mutation) {
-                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                            updateChatbotPosition();
-                        }
-                    });
-                });
-                observer.observe(sidebar, { attributes: true });
-            }
-        });
+        // updateChatbotPosition removed — chatbot dùng right:20px fixed, không phụ thuộc sidebar
         
         function handleChatbotKeypress(event) {
             if (event.key === 'Enter') {

@@ -148,3 +148,11 @@ def get_user_role_info(user: "User") -> dict:
         "role": get_role(user),
         "position": user.position or "",
     }
+
+# ── FastAPI Depends-compatible wrapper ────────────────────────────────────────
+def _get_current_user_for_rbac(
+    credentials: HTTPAuthorizationCredentials = Security(_security),
+    db: Session = Depends(get_db),
+) -> User:
+    """Depends-compatible: Decode token → trả về User hiện tại."""
+    return _get_user_from_credentials(credentials, db)

@@ -18,7 +18,8 @@ from .api_fastapi import (
     products, prices, orders, invoices, users,
     accounts, product_groups, warehouses,
     auth, general_diary, areas, shops,
-    customers_analytics, discount_codes, reports, schedules, chatbot
+    discount_codes, reports, schedules, chatbot
+    # customers_analytics đã được gộp vào reports.py
 )
 from .api_fastapi import websocket as ws_router
 from .api_fastapi import audit_api
@@ -119,7 +120,7 @@ app.include_router(shops.router,               prefix="/api")
 app.include_router(areas.router,               prefix="/api")
 app.include_router(auth.router,                prefix="/api")
 app.include_router(general_diary.router,       prefix="/api")
-app.include_router(customers_analytics.router, prefix="/api")
+# customers_analytics.router đã được gộp vào reports.py
 app.include_router(discount_codes.router,      prefix="/api/discount-codes")
 app.include_router(reports.router,             prefix="/api")
 app.include_router(schedules.router,           prefix="/api")

@@ -14,6 +14,7 @@ from datetime import datetime, date
 from typing import Optional
 
 from ..database import get_db
+from ..services.customers import calc_customer_tier, customer_aggregates, customer_leaderboard, customer_debts_from_invoices
 from ..models import User, Invoice, InvoiceItem, Product
 from ..tasks.report_tasks import generate_revenue_report, generate_debt_report
 from ..celery_app import celery_app
@@ -235,3 +236,18 @@ def get_task_result(task_id: str):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Lỗi: {str(e)}")
+
+# ── Customers Analytics (merged from customers_analytics.py) ──
+
+@router.get("/aggregates")
+def api_customer_aggregates(db: Session = Depends(get_db)):
+    return customer_aggregates(db)
+
+@router.get("/leaderboard")
+def api_customer_leaderboard(limit: int = 100, db: Session = Depends(get_db)):
+    return customer_leaderboard(db, limit=limit)
+
+@router.get("/debts")
+def api_customer_debts(db: Session = Depends(get_db)):
+    """Lấy danh sách công nợ từ các hóa đơn chưa thanh toán, kèm thông tin khách hàng và hạn mức thành viên."""
+    return customer_debts_from_invoices(db)

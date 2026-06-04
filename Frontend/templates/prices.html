@@ -11,71 +11,67 @@ Quản lý và theo dõi giá sản phẩm, cập nhật giá vốn và giá bá
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-tags"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-tags" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalPrices">0</div>
-            <div class="stat-label">Tổng bảng giá</div>
+            <div class="stat-number" id="totalPrices" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng dịch vụ</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-box"></i>
-    </div>
-        <div class="stat-content">
-            <div class="stat-number" id="productPrices">0</div>
-            <div class="stat-label">Sản phẩm</div>
-    </div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-chart-line"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-box" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="avgPrice">0 VNĐ</div>
-            <div class="stat-label">Giá TB</div>
+            <div class="stat-number" id="productPrices" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Loại dịch vụ</div>
+        </div>
+    </div>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#05966920;">
+            <i class="fas fa-chart-line" style="color:#059669;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="avgPrice" style="color:#059669;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Giá trung bình</div>
         </div>
     </div>
 </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchPrice" placeholder="Tìm theo mã, tên sản phẩm...">
-            </div>
-  </div>
 
-        <div class="form-group">
-            <label class="form-label">Mã bảng giá</label>
-            <input type="text" class="form-input" id="priceCodeFilter" placeholder="Nhập mã bảng giá">
+
+<!-- Filter Bar -->
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchPrice" class="form-input"
+                           placeholder="Tìm mã, tên dịch vụ..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')applyFilters()">
+                </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
+            </button>
+            <button class="btn btn-success" onclick="openAddPriceModal()">
+                <i class="fas fa-plus"></i> Thêm dịch vụ
+            </button>
         </div>
-        
-        <div class="form-group">
-            <label class="form-label">Tên sản phẩm</label>
-            <input type="text" class="form-input" id="productNameFilter" placeholder="Nhập tên sản phẩm">
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Tên bảng giá</label>
-            <input type="text" class="form-input" id="priceNameFilter" placeholder="Nhập tên bảng giá">
-        </div>
-        
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
-              </button>
-        </div>
+    </div>
+</div>
+  </div>
     </div>
 </div>
 
@@ -237,6 +233,17 @@ let itemsPerPage = 20; // Có thể thay đổi qua per-page selector
 let deletePriceId = null;
 
 // Initialize
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterPrices, 350);
+}
+function clearFilters() {
+    document.getElementById('searchPrice').value = '';
+    filterPrices();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadPricesData();
     setupEventListeners();
@@ -245,10 +252,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // Setup event listeners
 function setupEventListeners() {
     // Filter inputs
-    document.getElementById('searchPrice').addEventListener('input', debounce(filterPrices, 300));
-    document.getElementById('priceCodeFilter').addEventListener('input', debounce(filterPrices, 300));
-    document.getElementById('productNameFilter').addEventListener('input', debounce(filterPrices, 300));
-    document.getElementById('priceNameFilter').addEventListener('input', debounce(filterPrices, 300));
+    var _el_searchPrice = document.getElementById('searchPrice');
+    if (_el_searchPrice) _el_searchPrice.addEventListener('input', debounce(filterPrices, 300));
+    var _el_priceCodeFilter = document.getElementById('priceCodeFilter');
+    if (_el_priceCodeFilter) _el_priceCodeFilter.addEventListener('input', debounce(filterPrices, 300));
+    
+    var _el_priceNameFilter = document.getElementById('priceNameFilter');
+    if (_el_priceNameFilter) _el_priceNameFilter.addEventListener('input', debounce(filterPrices, 300));
 }
 
 // Load prices data
@@ -285,9 +295,8 @@ function updateStatistics() {
 // Filter prices
 function filterPrices() {
     const searchTerm = document.getElementById('searchPrice').value.toLowerCase();
-    const codeFilter = document.getElementById('priceCodeFilter').value.toLowerCase();
-    const productNameFilter = document.getElementById('productNameFilter').value.toLowerCase();
-    const nameFilter = document.getElementById('priceNameFilter').value.toLowerCase();
+    const codeFilter = (document.getElementById('priceCodeFilter') || {}).value || '';
+    const nameFilter = (document.getElementById('priceNameFilter') || {}).value || '';
     
     filteredPrices = pricesData.filter(price => {
         const matchesSearch = !searchTerm || 
@@ -295,10 +304,9 @@ function filterPrices() {
                              (price.ten_sp && price.ten_sp.toLowerCase().includes(searchTerm));
         
         const matchesCode = !codeFilter || (price.ma_sp && price.ma_sp.toLowerCase().includes(codeFilter));
-        const matchesProductName = !productNameFilter || (price.ten_sp && price.ten_sp.toLowerCase().includes(productNameFilter));
         const matchesName = !nameFilter || (price.ten_sp && price.ten_sp.toLowerCase().includes(nameFilter));
         
-        return matchesSearch && matchesCode && matchesProductName && matchesName;
+        return matchesSearch && matchesCode && matchesName;
     });
     
     currentPage = 1;
@@ -306,18 +314,6 @@ function filterPrices() {
     updatePagination();
 }
 
-// Clear filters
-function clearFilters() {
-    document.getElementById('searchPrice').value = '';
-    document.getElementById('priceCodeFilter').value = '';
-    document.getElementById('productNameFilter').value = '';
-    document.getElementById('priceNameFilter').value = '';
-    
-    filteredPrices = [...pricesData];
-    currentPage = 1;
-    updatePricesTable();
-    updatePagination();
-}
 
 // Update prices table
 function updatePricesTable() {
@@ -400,9 +396,8 @@ function updatePagination() {
 
     // Nút prev/next/numbers
     let btns = '';
-    btns += `<button class="pagination-btn" ${
-        currentPage === 1 ? 'disabled' : ''
-    } onclick="goToPage(${ currentPage - 1 })"><i class="fas fa-chevron-left"></i></button>`;
+    const prevDisabled = currentPage === 1 ? 'disabled' : '';
+    btns += `<button class="pagination-btn" ${prevDisabled} onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
 
     const startPg = Math.max(1, currentPage - 2);
     const endPg   = Math.min(totalPages, currentPage + 2);
@@ -417,9 +412,8 @@ function updatePagination() {
         if (endPg < totalPages - 1) btns += `<span style="padding:0 4px;color:#94a3b8;">…</span>`;
         btns += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
     }
-    btns += `<button class="pagination-btn" ${
-        currentPage === totalPages ? 'disabled' : ''
-    } onclick="goToPage(${ currentPage + 1 })"><i class="fas fa-chevron-right"></i></button>`;
+    const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+    btns += `<button class="pagination-btn" ${nextDisabled} onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
 
     pagination.innerHTML = `
         <div class="pagination-wrapper">

@@ -11,135 +11,79 @@ Tạo và quản lý các shop, theo dõi thông tin chi tiết từng shop
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-store"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-store" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalShops">0</div>
-            <div class="stat-label">Tổng shop</div>
+            <div class="stat-number" id="totalShops" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng cửa hàng</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-map-marker-alt"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="activeShops">0</div>
-            <div class="stat-label">Đang hoạt động</div>
+            <div class="stat-number" id="activeShops" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đang hoạt động</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-city"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-city" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="cityShops">0</div>
-            <div class="stat-label">Thành phố</div>
+            <div class="stat-number" id="cityShops" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Nội thành</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-users"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#05966920;">
+            <i class="fas fa-user-tie" style="color:#059669;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalManagers">0</div>
-            <div class="stat-label">Người quản lý</div>
+            <div class="stat-number" id="totalManagers" style="color:#059669;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Quản lý</div>
         </div>
     </div>
 </div>
+
+
 
 <!-- Create Shop Form -->
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-plus-circle"></i> Tạo shop mới</h3>
-    </div>
-    <div class="card-body">
-        <form id="createShopForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Tên shop *</label>
-                    <input type="text" class="form-input" name="name" required placeholder="Nhập tên shop">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mã shop *</label>
-                    <input type="text" class="form-input" name="code" required placeholder="Nhập mã shop">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Khu vực *</label>
-                    <select class="form-select" name="area_id" required>
-                        <option value="">Chọn khu vực</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Địa chỉ *</label>
-                <textarea class="form-textarea" name="address" rows="3" required placeholder="Nhập địa chỉ shop"></textarea>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Số điện thoại</label>
-                    <input type="tel" class="form-input" data-phone name="phone" placeholder="Nhập số điện thoại">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-input" name="email" placeholder="Nhập email">
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Người quản lý</label>
-                    <input type="text" class="form-input" name="manager" placeholder="Nhập tên người quản lý">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Trạng thái</label>
-                    <select class="form-select" name="status">
-                        <option value="active">Hoạt động</option>
-                        <option value="inactive">Không hoạt động</option>
-                        <option value="maintenance">Bảo trì</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="form-label">Mô tả</label>
-                <textarea class="form-textarea" name="description" rows="3" placeholder="Mô tả shop"></textarea>
-            </div>
-            
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-plus"></i>
-                    Tạo shop
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                    <i class="fas fa-undo"></i>
-                    Làm mới
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+
 
 <!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchShop" placeholder="Tìm theo tên, mã, địa chỉ...">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchShop" class="form-input"
+                           placeholder="Tìm tên, mã, địa chỉ cửa hàng..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')applyFilters()">
+                </div>
             </div>
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
+            </button>
+            <button class="btn btn-success" onclick="openAddShopModal()">
+                <i class="fas fa-plus"></i> Thêm cửa hàng
+            </button>
+        </div>
+    </div>
+</div>
         </div>
         
         <div class="form-group">
@@ -157,13 +101,6 @@ Tạo và quản lý các shop, theo dõi thông tin chi tiết từng shop
                 <option value="inactive">Không hoạt động</option>
                 <option value="maintenance">Bảo trì</option>
             </select>
-        </div>
-        
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
-            </button>
         </div>
     </div>
 </div>
@@ -218,6 +155,76 @@ Tạo và quản lý các shop, theo dõi thông tin chi tiết từng shop
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeViewShopModal()">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Shop Modal -->
+<div class="modal-overlay" id="addShopModal" style="display: none;">
+    <div class="modal modal-horizontal">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus-circle"></i> Thêm cửa hàng mới</h3>
+            <button class="modal-close" onclick="closeAddShopModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="createShopForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tên shop *</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên cửa hàng">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Mã shop *</label>
+                        <input type="text" class="form-input" name="code" required placeholder="Nhập mã cửa hàng">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Khu vực *</label>
+                        <select class="form-select" name="area_id" required>
+                            <option value="">Chọn khu vực</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="tel" class="form-input" data-phone name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="email" placeholder="Nhập email">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Người quản lý</label>
+                        <input type="text" class="form-input" name="manager" placeholder="Nhập tên người quản lý">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="status">
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Không hoạt động</option>
+                            <option value="maintenance">Bảo trì</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Địa chỉ *</label>
+                    <textarea class="form-textarea" name="address" rows="2" required placeholder="Nhập địa chỉ"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả cửa hàng"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddShopModal()">Hủy</button>
+            <button type="submit" form="createShopForm" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Tạo cửa hàng
+            </button>
         </div>
     </div>
 </div>
@@ -410,6 +417,29 @@ const itemsPerPage = 10;
 let deleteShopId = null;
 
 // Initialize
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterShops, 350);
+}
+function applyFilters() { filterShops(); }
+function clearFilters() {
+    document.getElementById('searchShop').value = '';
+    var el;
+    el = document.getElementById('areaFilter'); if (el) el.value = '';
+    el = document.getElementById('statusFilter'); if (el) el.value = '';
+    filterShops();
+}
+function openAddShopModal() {
+    updateAreaSelects();
+    document.getElementById('addShopModal').style.display = 'flex';
+}
+function closeAddShopModal() {
+    document.getElementById('addShopModal').style.display = 'none';
+    var f = document.getElementById('createShopForm'); if (f) f.reset();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadAreasData();
     loadShopsData();
@@ -419,12 +449,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Setup event listeners
 function setupEventListeners() {
     // Form submission
-    document.getElementById('createShopForm').addEventListener('submit', createShop);
+    var _el_createShopForm = document.getElementById('createShopForm');
+    if (_el_createShopForm) _el_createShopForm.addEventListener('submit', createShop);
     
-    // Filter inputs
-    document.getElementById('searchShop').addEventListener('input', debounce(filterShops, 300));
-    document.getElementById('areaFilter').addEventListener('change', filterShops);
-    document.getElementById('statusFilter').addEventListener('change', filterShops);
+    // Filter inputs — search debounce handled by oninput="debounceFilter()" in HTML
+    var _el_areaFilter = document.getElementById('areaFilter');
+    if (_el_areaFilter) _el_areaFilter.addEventListener('change', filterShops);
+    var _el_statusFilter = document.getElementById('statusFilter');
+    if (_el_statusFilter) _el_statusFilter.addEventListener('change', filterShops);
 }
 
 // Load areas data
@@ -534,6 +566,8 @@ async function createShop(e) {
         if (response.ok) {
             document.getElementById('createShopForm').reset();
             clearModalState('createShopForm');
+            var _addModal = document.getElementById('addShopModal');
+            if (_addModal) _addModal.style.display = 'none';
             storeModalState('createShopForm', document.getElementById('createShopForm'));
             loadShopsData();
             showSuccessMessage('Tạo shop thành công!');
@@ -575,17 +609,6 @@ function filterShops() {
     updatePagination();
 }
 
-// Clear filters
-function clearFilters() {
-    document.getElementById('searchShop').value = '';
-    document.getElementById('areaFilter').value = '';
-    document.getElementById('statusFilter').value = '';
-    
-    filteredShops = [...shopsData];
-    currentPage = 1;
-    updateShopsTable();
-    updatePagination();
-}
 
 // Update shops table
 function updateShopsTable() {

@@ -11,48 +11,52 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-plus-circle"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-book-open" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalEntries">0</div>
-            <div class="stat-label">Tổng phát sinh</div>
+            <div class="stat-number" id="totalEntries" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng phát sinh</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-arrow-up"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-arrow-circle-up" style="color:#16a34a;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalImport">0</div>
-            <div class="stat-label">Tổng nhập</div>
+            <div class="stat-number" id="totalImport" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng nhập</div>
         </div>
+    </div>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#dc262620;">
+            <i class="fas fa-arrow-circle-down" style="color:#dc2626;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalExport" style="color:#dc2626;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng xuất</div>
+        </div>
+    </div>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#05966920;">
+            <i class="fas fa-money-bill-wave" style="color:#059669;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalAmount" style="color:#059669;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng tiền</div>
+        </div>
+    </div>
 </div>
 
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-arrow-down"></i>
-      </div>
-        <div class="stat-content">
-            <div class="stat-number" id="totalExport">0</div>
-            <div class="stat-label">Tổng xuất</div>
-       </div>
-      </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-money-bill-wave"></i>
-      </div>
-        <div class="stat-content">
-            <div class="stat-number" id="totalAmount">0 VNĐ</div>
-            <div class="stat-label">Tổng tiền</div>
-      </div>
-    </div>
-</div>
+
 
 <!-- Create Entry Form -->
 <div class="card">
@@ -116,31 +120,31 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
 </div>
 
 <!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchEntry" placeholder="Tìm theo mã kí hiệu, ghi chú...">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchEntry" class="form-input"
+                           placeholder="Tìm mã kí hiệu, ghi chú..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')filterEntries()">
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Ngày từ</label>
-            <input type="date" class="form-input" id="dateFrom">
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Ngày đến</label>
-            <input type="date" class="form-input" id="dateTo">
-        </div>
-        
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
+            <input type="date" id="dateFrom" class="form-input" style="width:140px;" onchange="filterEntries()">
+            <span style="color:#9ca3af;font-size:0.9em;">→</span>
+            <input type="date" id="dateTo" class="form-input" style="width:140px;" onchange="filterEntries()">
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
             </button>
+            <button class="btn btn-success" onclick="openAddEntryModal()">
+                <i class="fas fa-plus"></i> Thêm phát sinh
+            </button>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -273,6 +277,28 @@ let itemsPerPage = 10;
 let deleteEntryId = null;
 
 // Initialize
+
+function openAddEntryModal() {
+    var form = document.getElementById('generalDiaryForm');
+    if (form) {
+        form.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var first = form.querySelector('input:not([type=hidden]),textarea,select');
+        if (first) setTimeout(function() { first.focus(); }, 300);
+    }
+}
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterEntries, 350);
+}
+function clearFilters() {
+    document.getElementById('searchEntry').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    filterEntries();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadEntriesData();
     setupEventListeners();
@@ -281,16 +307,20 @@ document.addEventListener('DOMContentLoaded', function() {
 // Setup event listeners
 function setupEventListeners() {
     // Form submission
-    document.getElementById('generalDiaryForm').addEventListener('submit', createEntry);
+    var _el_generalDiaryForm = document.getElementById('generalDiaryForm');
+    if (_el_generalDiaryForm) _el_generalDiaryForm.addEventListener('submit', createEntry);
     
     // Store initial state for create form
     const createForm = document.getElementById('generalDiaryForm');
     storeModalState('generalDiaryForm', createForm);
     
     // Filter inputs
-    document.getElementById('searchEntry').addEventListener('input', debounce(filterEntries, 300));
-    document.getElementById('dateFrom').addEventListener('change', filterEntries);
-    document.getElementById('dateTo').addEventListener('change', filterEntries);
+    var _el_searchEntry = document.getElementById('searchEntry');
+    if (_el_searchEntry) _el_searchEntry.addEventListener('input', debounce(filterEntries, 300));
+    var _el_dateFrom = document.getElementById('dateFrom');
+    if (_el_dateFrom) _el_dateFrom.addEventListener('change', filterEntries);
+    var _el_dateTo = document.getElementById('dateTo');
+    if (_el_dateTo) _el_dateTo.addEventListener('change', filterEntries);
     
     // Set today's date as default for create form
     const todayInput = document.getElementById('generalDiaryForm').querySelector('input[name="ngay_nhap"]');
@@ -415,17 +445,6 @@ function filterEntries() {
     updatePagination();
 }
 
-// Clear filters
-function clearFilters() {
-    document.getElementById('searchEntry').value = '';
-    document.getElementById('dateFrom').value = '';
-    document.getElementById('dateTo').value = '';
-    
-    filteredEntries = [...entriesData];
-    currentPage = 1;
-    updateEntriesTable();
-    updatePagination();
-}
 
 // Update entries table
 function updateEntriesTable() {
@@ -510,9 +529,8 @@ function updatePagination() {
 
     // Nút prev/next/numbers
     let btns = '';
-    btns += `<button class="pagination-btn" ${
-        currentPage === 1 ? 'disabled' : ''
-    } onclick="goToPage(${ currentPage - 1 })"><i class="fas fa-chevron-left"></i></button>`;
+    const prevDisabled = currentPage === 1 ? 'disabled' : '';
+    btns += `<button class="pagination-btn" ${prevDisabled} onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
 
     const startPg = Math.max(1, currentPage - 2);
     const endPg   = Math.min(totalPages, currentPage + 2);
@@ -527,9 +545,8 @@ function updatePagination() {
         if (endPg < totalPages - 1) btns += `<span style="padding:0 4px;color:#94a3b8;">…</span>`;
         btns += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
     }
-    btns += `<button class="pagination-btn" ${
-        currentPage === totalPages ? 'disabled' : ''
-    } onclick="goToPage(${ currentPage + 1 })"><i class="fas fa-chevron-right"></i></button>`;
+    const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+    btns += `<button class="pagination-btn" ${nextDisabled} onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
 
     pagination.innerHTML = `
         <div class="pagination-wrapper">

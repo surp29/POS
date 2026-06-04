@@ -11,42 +11,42 @@ Quan sát công nợ theo khách hàng dựa trên đơn hàng và thanh toán
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-users"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#dc262620;">
+            <i class="fas fa-users" style="color:#dc2626;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalDebtCustomers">0</div>
-            <div class="stat-label">Khách hàng có công nợ</div>
+            <div class="stat-number" id="totalDebtCustomers" style="color:#dc2626;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Khách có nợ</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-money-bill-wave"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#d9770620;">
+            <i class="fas fa-money-bill-wave" style="color:#d97706;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalDebtAmount">0 VNĐ</div>
-            <div class="stat-label">Tổng công nợ</div>
+            <div class="stat-number" id="totalDebtAmount" style="color:#d97706;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng công nợ</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-file-invoice"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-file-invoice" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalUnpaidInvoices">0</div>
-            <div class="stat-label">Hóa đơn chưa thanh toán</div>
+            <div class="stat-number" id="totalUnpaidInvoices" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Hóa đơn chưa TT</div>
         </div>
     </div>
-    
 </div>
 
-<div class="table-container">
-    <div class="card">
+<div class="card">
         <div class="card-header">
             <h3>Công nợ khách hàng</h3>
         </div>
@@ -82,13 +82,24 @@ let filteredDebts = [];
 let currentPage = 1;
 const itemsPerPage = 20; // Popup modal: 20 items per page
 
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(loadDebts, 350);
+}
+function clearFilters() {
+    document.getElementById('searchDebt').value = '';
+    loadDebts();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadDebtsData();
 });
 
 async function loadDebtsData() {
     try {
-        const response = await fetch('{{ BACKEND_URL }}/api/customers-analytics/debts', {
+        const response = await fetch('{{ BACKEND_URL }}/api/reports/debts', {
             headers: {
                 'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
             }
@@ -168,6 +179,3 @@ function goToPage(page) {
 window.goToPage = goToPage;
 </script>
 {% endblock %}
-
-
-

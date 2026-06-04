@@ -18,90 +18,79 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-boxes"></i>
-		</div>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-boxes" style="color:#3b82f6;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalProducts">0</div>
-            <div class="stat-label">Tổng sản phẩm</div>
-					</div>
-				</div>
+            <div class="stat-number" id="totalProducts" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng sản phẩm</div>
+        </div>
+    </div>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-cubes" style="color:#7c3aed;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="totalQuantity" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng tồn kho</div>
+        </div>
+    </div>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="availableProducts" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Còn hàng</div>
+        </div>
+    </div>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#dc262620;">
+            <i class="fas fa-exclamation-circle" style="color:#dc2626;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="outOfStockProducts" style="color:#dc2626;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Hết hàng</div>
+        </div>
+    </div>
+</div>
 
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-cubes"></i>
-			</div>
-        <div class="stat-content">
-            <div class="stat-number" id="totalQuantity">0</div>
-            <div class="stat-label">Tổng số lượng</div>
-					</div>
-				</div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
-					</div>
-        <div class="stat-content">
-            <div class="stat-number" id="availableProducts">0</div>
-            <div class="stat-label">Còn hàng</div>
-				</div>
-			</div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-					</div>
-        <div class="stat-content">
-            <div class="stat-number" id="outOfStockProducts">0</div>
-            <div class="stat-label">Hết hàng</div>
-				</div>
-						</div>
-					</div>
+
 
 <!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Nhóm sản phẩm</label>
-            <select class="form-select" id="productGroupFilter">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="productCodeFilter" class="form-input"
+                           placeholder="Tìm mã, tên sản phẩm..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')applyFilters()">
+                </div>
+            </div>
+            <select id="productGroupFilter" class="form-select" style="width:160px;" onchange="applyFilters()">
                 <option value="">Tất cả nhóm</option>
             </select>
-				</div>
-        
-				<div class="form-group">
-            <label class="form-label">Mã sản phẩm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="productCodeFilter" placeholder="Nhập mã sản phẩm">
-						</div>
-					</div>
-        
-        <div class="form-group">
-            <label class="form-label">Tên sản phẩm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="productNameFilter" placeholder="Nhập tên sản phẩm">
-				</div>
-        </div>
-        
-				<div class="form-group">
-            <label class="form-label">Trạng thái</label>
-            <select class="form-select" id="productStatusFilter">
-                <option value="">Tất cả trạng thái</option>
-							<option value="Còn hàng">Còn hàng</option>
-							<option value="Hết hàng">Hết hàng</option>
-						</select>
-					</div>
-        
-			<div class="form-group">
-            <button class="btn btn-secondary" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
             </button>
-			</div>
+            <button class="btn btn-success" onclick="openAddProductModal()">
+                <i class="fas fa-plus"></i> Thêm sản phẩm
+            </button>
+        </div>
+    </div>
+</div>
 	</div>
 </div>
 
@@ -406,6 +395,21 @@ let filteredWarehouseForSelector = [];
 let editProductWarehouseQuantity = 0; // Store max quantity from warehouse for edit modal
 
 // Initialize
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterProducts, 350);
+}
+function applyFilters() { filterProducts(); }
+function clearFilters() {
+    var el;
+    el = document.getElementById('productCodeFilter'); if (el) el.value = '';
+    el = document.getElementById('productGroupFilter'); if (el) el.value = '';
+    el = document.getElementById('productStatusFilter'); if (el) el.value = '';
+    filterProducts();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadProductsData();
     loadWarehouseDataForProducts();
@@ -415,10 +419,11 @@ document.addEventListener('DOMContentLoaded', function() {
 // Setup event listeners
 function setupEventListeners() {
     // Filter inputs
-    document.getElementById('productGroupFilter').addEventListener('change', filterProducts);
-    document.getElementById('productCodeFilter').addEventListener('input', debounce(filterProducts, 300));
-    document.getElementById('productNameFilter').addEventListener('input', debounce(filterProducts, 300));
-    document.getElementById('productStatusFilter').addEventListener('change', filterProducts);
+    var _el_productGroupFilter = document.getElementById('productGroupFilter');
+    if (_el_productGroupFilter) _el_productGroupFilter.addEventListener('change', filterProducts);
+    // productCodeFilter debounce handled by oninput="debounceFilter()" in HTML
+    var _el_productStatusFilter = document.getElementById('productStatusFilter');
+    if (_el_productStatusFilter) _el_productStatusFilter.addEventListener('change', filterProducts);
 }
 
 // Load products data
@@ -485,9 +490,9 @@ function updateStatistics() {
 // Filter products
 function filterProducts() {
     const groupFilter = document.getElementById('productGroupFilter').value;
-    const codeFilter = document.getElementById('productCodeFilter').value.toLowerCase();
-    const nameFilter = document.getElementById('productNameFilter').value.toLowerCase();
-    const statusFilter = document.getElementById('productStatusFilter').value;
+    const codeFilter = (document.getElementById('productCodeFilter') || {}).value || '';
+    const nameFilter = '';
+    const statusFilter = (document.getElementById('productStatusFilter') || {}).value || '';
     
     filteredProducts = productsData.filter(product => {
         const matchesGroup = !groupFilter || product.nhom_sp === groupFilter;
@@ -505,18 +510,6 @@ function filterProducts() {
     updatePagination();
 }
 
-// Clear filters
-function clearFilters() {
-    document.getElementById('productGroupFilter').value = '';
-    document.getElementById('productCodeFilter').value = '';
-    document.getElementById('productNameFilter').value = '';
-    document.getElementById('productStatusFilter').value = '';
-    
-    filteredProducts = [...productsData];
-    currentPage = 1;
-    updateProductsTable();
-    updatePagination();
-}
 
 // Update products table
 function updateProductsTable() {
@@ -601,9 +594,8 @@ function updatePagination() {
 
     // Nút prev/next/numbers
     let btns = '';
-    btns += `<button class="pagination-btn" ${
-        currentPage === 1 ? 'disabled' : ''
-    } onclick="goToPage(${ currentPage - 1 })"><i class="fas fa-chevron-left"></i></button>`;
+    const prevDisabled = currentPage === 1 ? 'disabled' : '';
+    btns += `<button class="pagination-btn" ${prevDisabled} onclick="goToPage(${currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
 
     const startPg = Math.max(1, currentPage - 2);
     const endPg   = Math.min(totalPages, currentPage + 2);
@@ -618,9 +610,8 @@ function updatePagination() {
         if (endPg < totalPages - 1) btns += `<span style="padding:0 4px;color:#94a3b8;">…</span>`;
         btns += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
     }
-    btns += `<button class="pagination-btn" ${
-        currentPage === totalPages ? 'disabled' : ''
-    } onclick="goToPage(${ currentPage + 1 })"><i class="fas fa-chevron-right"></i></button>`;
+    const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+    btns += `<button class="pagination-btn" ${nextDisabled} onclick="goToPage(${currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
 
     pagination.innerHTML = `
         <div class="pagination-wrapper">

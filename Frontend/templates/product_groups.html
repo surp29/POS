@@ -11,57 +11,67 @@ Quản lý và phân loại các nhóm sản phẩm, theo dõi số lượng t�
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-layer-group"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-layer-group" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalGroups">0</div>
-            <div class="stat-label">Tổng nhóm</div>
+            <div class="stat-number" id="totalGroups" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng nhóm</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-boxes"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-boxes" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalQuantity">0</div>
-            <div class="stat-label">Tổng số lượng</div>
+            <div class="stat-number" id="totalQuantity" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng sản phẩm</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-chart-bar"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#05966920;">
+            <i class="fas fa-chart-bar" style="color:#059669;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="avgQuantity">0</div>
-            <div class="stat-label">Số lượng TB</div>
+            <div class="stat-number" id="avgQuantity" style="color:#059669;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Trung bình/nhóm</div>
         </div>
     </div>
-    
 </div>
 
+
+
 <!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchGroup" placeholder="Tìm theo tên nhóm sản phẩm...">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchGroup" class="form-input"
+                           placeholder="Tìm tên nhóm sản phẩm..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')applyFilters()">
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
             </button>
-  </div>
+            <button class="btn btn-success" onclick="openAddGroupModal()">
+                <i class="fas fa-plus"></i> Thêm nhóm
+            </button>
+        </div>
+    </div>
+</div>
+        </div>
 </div>
 </div>
 
@@ -210,6 +220,17 @@ const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteGroupName = null;
 
 // Initialize
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterGroups, 350);
+}
+function clearFilters() {
+    document.getElementById('searchGroup').value = '';
+    filterGroups();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadGroupsData();
     setupEventListeners();
@@ -218,7 +239,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Setup event listeners
 function setupEventListeners() {
     // Filter inputs
-    document.getElementById('searchGroup').addEventListener('input', debounce(filterGroups, 300));
+    var _el_searchGroup = document.getElementById('searchGroup');
+    if (_el_searchGroup) _el_searchGroup.addEventListener('input', debounce(filterGroups, 300));
 }
 
 // Load groups data
@@ -292,15 +314,6 @@ function filterGroups() {
     updatePagination();
 }
 
-// Clear filters
-function clearFilters() {
-    document.getElementById('searchGroup').value = '';
-    
-    filteredGroups = [...groupsData];
-    currentPage = 1;
-    updateGroupsTable();
-    updatePagination();
-}
 
 // Update groups table
 function updateGroupsTable() {

@@ -28,81 +28,79 @@ Quản lý thông tin nhân viên và phân ca làm việc
 
 <!-- Employees Tab Content -->
 <div id="employeesSection" class="tab-section">
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-user-tie"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-user-tie" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalEmployees">0</div>
-            <div class="stat-label">Tổng nhân viên</div>
+            <div class="stat-number" id="totalEmployees" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng nhân viên</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="activeEmployees">0</div>
-            <div class="stat-label">Đang hoạt động</div>
+            <div class="stat-number" id="activeEmployees" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đang làm việc</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-building"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-building" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalDepartments">0</div>
-            <div class="stat-label">Tổng phòng ban</div>
+            <div class="stat-number" id="totalDepartments" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Phòng ban</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-envelope"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#05966920;">
+            <i class="fas fa-envelope" style="color:#059669;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="employeesWithEmail">0</div>
-            <div class="stat-label">Có email</div>
+            <div class="stat-number" id="employeesWithEmail" style="color:#059669;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Có email</div>
         </div>
     </div>
 </div>
 
+
+
 <!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchEmployee" placeholder="Tìm theo tên, email, chức vụ...">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchEmployee" class="form-input"
+                           placeholder="Tìm tên, username, email..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')applyFilters()">
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Phòng ban</label>
-            <select class="form-select" id="employeeDepartmentFilter">
+            <select id="deptFilter" class="form-select" style="width:160px;" onchange="applyFilters()">
                 <option value="">Tất cả phòng ban</option>
             </select>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Trạng thái</label>
-            <select class="form-select" id="employeeStatusFilter">
-                <option value="">Tất cả trạng thái</option>
-                <option value="true">Hoạt động</option>
-                <option value="false">Không hoạt động</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearEmployeeFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
             </button>
+            <button class="btn btn-success" onclick="openAddEmployeeModal()">
+                <i class="fas fa-plus"></i> Thêm nhân viên
+            </button>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -686,6 +684,20 @@ let schedulesData = [];
 let currentTab = 'employees';
 
 // Initialize
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterEmployees, 350);
+}
+function clearFilters() {
+    var se = document.getElementById('searchEmployee');
+    var df = document.getElementById('deptFilter');
+    if (se) se.value = '';
+    if (df) df.value = '';
+    filterEmployees();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadEmployeesData();
     loadSchedulesData();
@@ -695,9 +707,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Setup event listeners
 function setupEventListeners() {
-    document.getElementById('searchEmployee').addEventListener('input', debounce(filterEmployees, 300));
-    document.getElementById('employeeDepartmentFilter').addEventListener('change', filterEmployees);
-    document.getElementById('employeeStatusFilter').addEventListener('change', filterEmployees);
+    var se = document.getElementById('searchEmployee');
+    var df = document.getElementById('deptFilter');
+    if (se) se.addEventListener('input', debounce(filterEmployees, 300));
+    if (df) df.addEventListener('change', filterEmployees);
     
     // Tab listeners
     document.querySelectorAll('.tab').forEach(tab => {
@@ -741,10 +754,12 @@ async function loadEmployeesData() {
     }
 }
 
-// Update department filter
+// Update department filter — populate toolbar deptFilter
 function updateDepartmentFilter() {
     const departments = [...new Set(employeesData.map(e => e.department).filter(Boolean))];
-    const select = document.getElementById('employeeDepartmentFilter');
+    const select = document.getElementById('deptFilter');
+    if (!select) return;
+    const currentVal = select.value;
     select.innerHTML = '<option value="">Tất cả phòng ban</option>';
     departments.forEach(dept => {
         const option = document.createElement('option');
@@ -752,6 +767,7 @@ function updateDepartmentFilter() {
         option.textContent = dept;
         select.appendChild(option);
     });
+    select.value = currentVal; // giữ giá trị đang chọn
 }
 
 // Update statistics
@@ -769,9 +785,11 @@ function updateStatistics() {
 
 // Filter employees
 function filterEmployees() {
-    const searchTerm = document.getElementById('searchEmployee').value.toLowerCase();
-    const departmentFilter = document.getElementById('employeeDepartmentFilter').value;
-    const statusFilter = document.getElementById('employeeStatusFilter').value;
+    const se = document.getElementById('searchEmployee');
+    const df = document.getElementById('deptFilter');
+    const searchTerm      = se ? se.value.toLowerCase() : '';
+    const departmentFilter = df ? df.value : '';
+    const statusFilter    = '';   // status filter removed
     
     filteredEmployees = employeesData.filter(employee => {
         const matchesSearch = !searchTerm || 
@@ -792,10 +810,10 @@ function filterEmployees() {
 
 // Clear filters
 function clearEmployeeFilters() {
-    document.getElementById('searchEmployee').value = '';
-    document.getElementById('employeeDepartmentFilter').value = '';
-    document.getElementById('employeeStatusFilter').value = '';
-    
+    var se = document.getElementById('searchEmployee');
+    var df = document.getElementById('deptFilter');
+    if (se) se.value = '';
+    if (df) df.value = '';
     filteredEmployees = [...employeesData];
     currentPage = 1;
     updateEmployeeTable();
@@ -1347,19 +1365,6 @@ function closeAssignShiftModalDirect() {
 }
 
 // Select date - now opens manage schedule modal
-function selectDate(dateKey) {
-    selectedDateKey = dateKey;
-    const schedulesForDay = schedulesData.filter(s => s.work_date === dateKey);
-    selectedSchedules = schedulesForDay;
-    
-    if (schedulesForDay.length === 0) {
-        // No schedules for this day, open assign modal
-        openAssignShiftModal(dateKey);
-    } else {
-        // Has schedules, open manage modal
-        openManageScheduleModal(dateKey, schedulesForDay);
-    }
-}
 
 // Open manage schedule modal
 function openManageScheduleModal(dateKey, schedules) {

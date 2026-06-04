@@ -11,48 +11,52 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-file-invoice"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-file-invoice" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalInvoices">0</div>
-            <div class="stat-label">Tổng hóa đơn</div>
+            <div class="stat-number" id="totalInvoices" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng hóa đơn</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
+    <div class="stat-card" onclick="filterByPayStatus('Đã thanh toán')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="paidInvoices">0</div>
-            <div class="stat-label">Đã thanh toán</div>
+            <div class="stat-number" id="paidInvoices" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đã thanh toán</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-clock"></i>
+    <div class="stat-card" onclick="filterByPayStatus('Chưa thanh toán')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#d9770620;">
+            <i class="fas fa-clock" style="color:#d97706;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="pendingInvoices">0</div>
-            <div class="stat-label">Chưa thanh toán</div>
+            <div class="stat-number" id="pendingInvoices" style="color:#d97706;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Chưa thanh toán</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-money-bill-wave"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#05996920;">
+            <i class="fas fa-money-bill-wave" style="color:#059969;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalRevenue">0 VNĐ</div>
-            <div class="stat-label">Tổng doanh thu</div>
+            <div class="stat-number" id="totalRevenue" style="color:#059969;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Doanh thu</div>
         </div>
     </div>
 </div>
+
+
 
 <!-- Status Tabs -->
 <div class="tabs-container">
@@ -63,53 +67,37 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
     </div>
 </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchInvoice" placeholder="Tìm theo số hóa đơn, khách hàng...">
-  </div>
-  </div>
-        
-        <div class="form-group">
-            <label class="form-label">Tìm khách hàng</label>
-            <div class="customer-search-container">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
                 <div class="search-input">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="customerSearch" class="form-input" placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleCustomerKeypress(event)">
-                </div>
-                <!-- Custom dropdown list -->
-                <div class="customer-dropdown-list" id="customerDropdownList" style="display: none;">
-                    <!-- Options will be populated dynamically -->
+                    <input type="text" id="searchInvoice" class="form-input"
+                           placeholder="Tìm số hóa đơn, khách hàng..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')filterInvoices()">
                 </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Từ ngày</label>
-            <input type="date" class="form-input" id="fromDate">
-  </div>
-        
-        <div class="form-group">
-            <label class="form-label">Đến ngày</label>
-            <input type="date" class="form-input" id="toDate">
-  </div>
-        
-    
-
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
+            <select id="payStatusFilter" class="form-select" style="width:170px;" onchange="filterInvoices()">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Đã thanh toán">Đã thanh toán</option>
+                <option value="Chưa thanh toán">Chưa thanh toán</option>
+            </select>
+            <input type="date" id="dateFrom" class="form-input" style="width:140px;" onchange="filterInvoices()">
+            <span style="color:#9ca3af;font-size:0.9em;">→</span>
+            <input type="date" id="dateTo" class="form-input" style="width:140px;" onchange="filterInvoices()">
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
+            </button>
+            <button class="btn btn-success" onclick="openAddInvoiceModal()">
+                <i class="fas fa-plus"></i> Tạo hóa đơn
             </button>
         </div>
     </div>
-  </div>
+</div>
 
-<!-- Invoices Table -->
 <div class="table-container">
     <div class="card">
         <div class="card-header">
@@ -367,6 +355,21 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
 
 {% block extra_js %}
 <script>
+
+let _filterTimer = null;
+function debounceFilter() { clearTimeout(_filterTimer); _filterTimer = setTimeout(filterInvoices, 350); }
+function clearFilters() {
+    document.getElementById('searchInvoice').value = '';
+    if (document.getElementById('payStatusFilter')) document.getElementById('payStatusFilter').value = '';
+    if (document.getElementById('dateFrom')) document.getElementById('dateFrom').value = '';
+    if (document.getElementById('dateTo')) document.getElementById('dateTo').value = '';
+    filterInvoices();
+}
+function filterByPayStatus(s) {
+    var el = document.getElementById('payStatusFilter');
+    if (el) { el.value = s; filterInvoices(); }
+}
+
 // Global variables
 let invoicesData = [];
 let filteredInvoices = [];
@@ -392,14 +395,15 @@ function setupEventListeners() {
             this.classList.add('active');
             currentStatus = this.getAttribute('data-status');
             filterInvoices();
-  });
-});
+        });
+    });
 
     // Filter inputs
-    document.getElementById('searchInvoice').addEventListener('input', debounce(filterInvoices, 300));
-    document.getElementById('fromDate').addEventListener('change', filterInvoices);
-    document.getElementById('toDate').addEventListener('change', filterInvoices);
-    document.getElementById('customerSearch').addEventListener('input', debounce(filterInvoices, 300));
+    var si = document.getElementById('searchInvoice'); if(si) si.addEventListener('input', debounce(filterInvoices, 300));
+    var df = document.getElementById('dateFrom'); if(df) df.addEventListener('change', filterInvoices);
+    var dt = document.getElementById('dateTo'); if(dt) dt.addEventListener('change', filterInvoices);
+    var _el_customerSearch = document.getElementById('customerSearch');
+    if (_el_customerSearch) _el_customerSearch.addEventListener('input', debounce(filterInvoices, 300));
     // removed type filter
 }
 
@@ -411,11 +415,8 @@ async function loadCustomers() {
         });
         if (response.ok) {
             customersData = await response.json();
-            console.log('Loaded customers:', customersData);
-            populateCustomerList();
+            // populateAddCustomerList khi modal mở (element chỉ tồn tại khi modal open)
             populateAddCustomerList();
-            // Setup dropdown events after customers are loaded
-            setupCustomerDropdownEvents();
             setupAddCustomerDropdownEvents();
         }
     } catch (error) {
@@ -425,6 +426,7 @@ async function loadCustomers() {
 
 // Populate customer dropdown
 function populateCustomerList(searchTerm = '') {
+    if (!document.getElementById('customerDropdownList')) return; // element removed
     const dropdownList = document.getElementById('customerDropdownList');
     const customerInput = document.getElementById('customerSearch');
     
@@ -525,6 +527,7 @@ function handleCustomerKeypress(event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         const customerInput = document.getElementById('customerSearch');
+    if (!customerInput) return;
         const searchTerm = customerInput.value.trim();
         
         if (searchTerm) {
@@ -572,6 +575,7 @@ function toggleAddDropdown() {
 // Select customer
 function selectCustomer(customerName) {
     const customerInput = document.getElementById('customerSearch');
+    if (!customerInput) return;
     
     if (customerInput) {
         customerInput.value = customerName;
@@ -734,6 +738,7 @@ function populateAddCustomerList(searchTerm = '') {
 
 // Setup customer input events
 function setupCustomerDropdownEvents() {
+    if (!document.getElementById('customerSearch')) return; // element removed
     const customerInput = document.getElementById('customerSearch');
     const dropdown = document.getElementById('customerDropdownList');
     
@@ -943,36 +948,31 @@ function updateStatistics() {
 
 // Filter invoices
 function filterInvoices() {
-    const searchTerm = document.getElementById('searchInvoice').value.toLowerCase();
-    const customerSearch = document.getElementById('customerSearch').value.toLowerCase();
-    const fromDate = document.getElementById('fromDate').value;
-    const toDate = document.getElementById('toDate').value;
-    const typeFilter = '';
-    
-    console.log('Filtering invoices with customer search:', customerSearch);
-    console.log('Available invoices:', invoicesData);
-    
+    const searchEl  = document.getElementById('searchInvoice');
+    const fromEl    = document.getElementById('dateFrom');   // toolbar mới
+    const toEl      = document.getElementById('dateTo');     // toolbar mới
+    const statusEl  = document.getElementById('payStatusFilter');
+
+    const searchTerm = searchEl  ? searchEl.value.toLowerCase()  : '';
+    const fromDate   = fromEl    ? fromEl.value                  : '';
+    const toDate     = toEl      ? toEl.value                    : '';
+    const statusFilt = statusEl  ? statusEl.value                : '';
+
     filteredInvoices = invoicesData.filter(invoice => {
-        const matchesSearch = !searchTerm || 
-                             (invoice.so_hd && invoice.so_hd.toLowerCase().includes(searchTerm)) ||
-                             (invoice.nguoi_mua && invoice.nguoi_mua.toLowerCase().includes(searchTerm));
-        
-        const matchesCustomer = !customerSearch || 
-                               (invoice.nguoi_mua && invoice.nguoi_mua.toLowerCase().includes(customerSearch));
-        
-        const invoiceDate = invoice.ngay_hd;
-        const matchesFromDate = !fromDate || !invoiceDate || invoiceDate >= fromDate;
-        const matchesToDate = !toDate || !invoiceDate || invoiceDate <= toDate;
-        
-        const matchesTypeFilter = true; // no type filter
-        
-        const matchesTabStatus = currentStatus === 'all' || invoice.trang_thai === currentStatus;
-        
-        return matchesSearch && matchesCustomer && matchesFromDate && matchesToDate && matchesTypeFilter && matchesTabStatus;
+        const matchesSearch = !searchTerm ||
+            (invoice.so_hd    && invoice.so_hd.toLowerCase().includes(searchTerm)) ||
+            (invoice.nguoi_mua && invoice.nguoi_mua.toLowerCase().includes(searchTerm));
+
+        const invoiceDate    = invoice.ngay_hd || '';
+        const matchesFrom    = !fromDate || invoiceDate >= fromDate;
+        const matchesTo      = !toDate   || invoiceDate <= toDate;
+
+        const matchesStatus  = !statusFilt || invoice.trang_thai === statusFilt;
+        const matchesTab     = currentStatus === 'all' || invoice.trang_thai === currentStatus;
+
+        return matchesSearch && matchesFrom && matchesTo && matchesStatus && matchesTab;
     });
-    
-    console.log('Filtered invoices result:', filteredInvoices);
-    
+
     currentPage = 1;
     updateInvoicesTable();
     updatePagination();
@@ -981,9 +981,8 @@ function filterInvoices() {
 // Clear filters
 function clearFilters() {
     document.getElementById('searchInvoice').value = '';
-    document.getElementById('customerSearch').value = '';
-    document.getElementById('fromDate').value = '';
-    document.getElementById('toDate').value = '';
+    var _df = document.getElementById('dateFrom'); if (_df) _df.value = '';
+    var _dt = document.getElementById('dateTo'); if (_dt) _dt.value = '';
     // typeFilter element removed from HTML
     
     // Reset to all tab
@@ -1635,9 +1634,8 @@ function toggleOrderDropdown() {
 }
 
 // Close order dropdown when clicking outside
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {
-        const orderInput = document.getElementById('addOrderCode');
+document.addEventListener('click', function(e) {
+    const orderInput = document.getElementById('addOrderCode');
         const orderDropdown = document.getElementById('addOrderDropdownList');
         
         if (orderInput && orderDropdown) {
@@ -1645,7 +1643,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 orderDropdown.style.display = 'none';
             }
         }
-    });
 });
 </script>
 {% endblock %}

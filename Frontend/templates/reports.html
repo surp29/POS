@@ -391,8 +391,10 @@ function setupEventListeners() {
     });
     
     // Date inputs
-    document.getElementById('fromDate').addEventListener('change', updateRevenueReport);
-    document.getElementById('toDate').addEventListener('change', updateRevenueReport);
+    var _el_fromDate = document.getElementById('fromDate');
+    if (_el_fromDate) _el_fromDate.addEventListener('change', updateRevenueReport);
+    var _el_toDate = document.getElementById('toDate');
+    if (_el_toDate) _el_toDate.addEventListener('change', updateRevenueReport);
 }
 
 // Switch report tab

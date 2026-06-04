@@ -18,74 +18,76 @@ Quản lý thông tin khách hàng, theo dõi tài khoản và trạng thái ho�
 {% endblock %}
 
 {% block content %}
-<!-- Statistics Cards -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-users"></i>
+<!-- ── KPI Cards ──────────────────────────────────────── -->
+<div class="stats-grid"
+     style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-users" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalCustomers">0</div>
-            <div class="stat-label">Tổng khách hàng</div>
+            <div class="stat-number" id="totalCustomers" style="color:#3b82f6;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Tổng khách hàng</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-check-circle"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="activeCustomers">0</div>
-            <div class="stat-label">Đang hoạt động</div>
+            <div class="stat-number" id="activeCustomers" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đang hoạt động</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-ban"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#dc262620;">
+            <i class="fas fa-ban" style="color:#dc2626;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="inactiveCustomers">0</div>
-            <div class="stat-label">Không hoạt động</div>
+            <div class="stat-number" id="inactiveCustomers" style="color:#dc2626;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Không hoạt động</div>
         </div>
     </div>
-    
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-envelope"></i>
+    <div class="stat-card"
+         style="transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-envelope" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="customersWithEmail">0</div>
-            <div class="stat-label">Có email</div>
+            <div class="stat-number" id="customersWithEmail" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Có email</div>
         </div>
     </div>
 </div>
 
+
+
 <!-- Filter Bar -->
-<div class="filter-bar">
-    <div class="filter-row">
-        <div class="form-group">
-            <label class="form-label">Tìm kiếm</label>
-            <div class="search-input">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-input" id="searchCustomer" placeholder="Tìm theo tên, email, số điện thoại...">
+<!-- ── Thanh công cụ ──────────────────────────────────── -->
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <div style="flex:1;min-width:220px;">
+                <div class="search-input">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchCustomer" class="form-input"
+                           placeholder="Tìm tên, email, số điện thoại..."
+                           oninput="debounceFilter()"
+                           onkeypress="if(event.key==='Enter')applyFilters()">
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label class="form-label">Trạng thái</label>
-            <select class="form-select" id="customerStatusFilter">
-                <option value="">Tất cả trạng thái</option>
-                <option value="true">Hoạt động</option>
-                <option value="false">Không hoạt động</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <button class="btn btn-secondary" onclick="clearCustomerFilters()">
-                <i class="fas fa-times"></i>
-                Xóa bộ lọc
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
             </button>
+            <button class="btn btn-success" onclick="openAddCustomerModal()">
+                <i class="fas fa-plus"></i> Thêm khách hàng
+            </button>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -292,6 +294,19 @@ const itemsPerPage = 20; // Popup modal: 20 items per page
 let deleteCustomerId = null;
 
 // Initialize
+
+let _filterTimer = null;
+function debounceFilter() {
+    clearTimeout(_filterTimer);
+    _filterTimer = setTimeout(filterCustomers, 350);
+}
+function applyFilters() { filterCustomers(); }
+function clearFilters() {
+    document.getElementById('searchCustomer').value = '';
+    var el = document.getElementById('customerStatusFilter'); if (el) el.value = '';
+    filterCustomers();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadCustomersData();
     setupEventListeners();
@@ -299,8 +314,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Setup event listeners
 function setupEventListeners() {
-    document.getElementById('searchCustomer').addEventListener('input', debounce(filterCustomers, 300));
-    document.getElementById('customerStatusFilter').addEventListener('change', filterCustomers);
+    // search debounce handled by oninput="debounceFilter()" in HTML
+    var _el_customerStatusFilter = document.getElementById('customerStatusFilter');
+    if (_el_customerStatusFilter) _el_customerStatusFilter.addEventListener('change', filterCustomers);
 }
 
 
@@ -353,7 +369,7 @@ function updateStatistics() {
 // Filter customers
 function filterCustomers() {
     const searchTerm = document.getElementById('searchCustomer').value.toLowerCase();
-    const statusFilter = document.getElementById('customerStatusFilter').value;
+    const statusFilter = (document.getElementById('customerStatusFilter') || {}).value || '';
     
     filteredCustomers = customersData.filter(customer => {
         const matchesSearch = !searchTerm || 
@@ -374,7 +390,7 @@ function filterCustomers() {
 // Clear filters
 function clearCustomerFilters() {
     document.getElementById('searchCustomer').value = '';
-    document.getElementById('customerStatusFilter').value = '';
+    (document.getElementById('customerStatusFilter') || {}).value || '' == '';
     
     filteredCustomers = [...customersData];
     currentPage = 1;

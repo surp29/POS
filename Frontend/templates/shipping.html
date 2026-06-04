@@ -1,85 +1,120 @@
 {% extends "base.html" %}
 {% block title %}Vận chuyển - PosPos{% endblock %}
 {% block page_title %}<i class="fas fa-truck"></i> Quản lý vận chuyển{% endblock %}
-{% block page_description %}Tạo và theo dõi hành trình giao hàng{% endblock %}
+{% block page_description %}Theo dõi hành trình giao hàng — cập nhật trạng thái theo thời gian thực{% endblock %}
 
 {% block content %}
-<!-- Stats -->
-<div class="stats-grid" id="statsGrid">
-    <div class="stat-card" onclick="filterByStatus('pending')" style="cursor:pointer;">
-        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+
+<!-- ── KPI Cards ─────────────────────────────────────────────────────────── -->
+<div class="stats-grid" id="statsGrid"
+     style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;">
+
+    <div class="stat-card" id="card-pending" onclick="filterByStatus('pending')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#d9770620;">
+            <i class="fas fa-clock" style="color:#d97706;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="st-pending">0</div>
-            <div class="stat-label">Chờ lấy hàng</div>
+            <div class="stat-number" id="st-pending" style="color:#d97706;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Chờ lấy hàng</div>
         </div>
     </div>
-    <div class="stat-card" onclick="filterByStatus('in_transit')" style="cursor:pointer;">
-        <div class="stat-icon"><i class="fas fa-shipping-fast"></i></div>
+
+    <div class="stat-card" id="card-picked" onclick="filterByStatus('picked')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#ca8a0420;">
+            <i class="fas fa-box-open" style="color:#ca8a04;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="st-in_transit">0</div>
-            <div class="stat-label">Đang vận chuyển</div>
+            <div class="stat-number" id="st-picked" style="color:#ca8a04;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đã lấy hàng</div>
         </div>
     </div>
-    <div class="stat-card" onclick="filterByStatus('delivering')" style="cursor:pointer;">
-        <div class="stat-icon"><i class="fas fa-motorcycle"></i></div>
+
+    <div class="stat-card" id="card-in_transit" onclick="filterByStatus('in_transit')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#2563eb20;">
+            <i class="fas fa-shipping-fast" style="color:#2563eb;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="st-delivering">0</div>
-            <div class="stat-label">Đang giao</div>
+            <div class="stat-number" id="st-in_transit" style="color:#2563eb;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đang vận chuyển</div>
         </div>
     </div>
-    <div class="stat-card" onclick="filterByStatus('delivered')" style="cursor:pointer;">
-        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+
+    <div class="stat-card" id="card-delivering" onclick="filterByStatus('delivering')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-motorcycle" style="color:#7c3aed;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="st-delivered">0</div>
-            <div class="stat-label">Đã giao</div>
+            <div class="stat-number" id="st-delivering" style="color:#7c3aed;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đang giao</div>
         </div>
     </div>
-    <div class="stat-card" onclick="filterByStatus('failed')" style="cursor:pointer;">
-        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+
+    <div class="stat-card" id="card-delivered" onclick="filterByStatus('delivered')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="st-failed">0</div>
-            <div class="stat-label">Giao thất bại</div>
+            <div class="stat-number" id="st-delivered" style="color:#16a34a;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Đã giao</div>
         </div>
     </div>
-    <div class="stat-card" onclick="filterByStatus('returned')" style="cursor:pointer;">
-        <div class="stat-icon"><i class="fas fa-undo"></i></div>
+
+    <div class="stat-card" id="card-failed" onclick="filterByStatus('failed')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#dc262620;">
+            <i class="fas fa-times-circle" style="color:#dc2626;"></i>
+        </div>
         <div class="stat-content">
-            <div class="stat-number" id="st-returned">0</div>
-            <div class="stat-label">Hoàn hàng</div>
+            <div class="stat-number" id="st-failed" style="color:#dc2626;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Giao thất bại</div>
         </div>
     </div>
+
+    <div class="stat-card" id="card-returned" onclick="filterByStatus('returned')"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#ea580c20;">
+            <i class="fas fa-undo" style="color:#ea580c;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="st-returned" style="color:#ea580c;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Hoàn hàng</div>
+        </div>
+    </div>
+
+    <div class="stat-card" id="card-overdue" onclick="filterOverdue()"
+         style="cursor:pointer;transition:all 0.2s;border:2px solid transparent;">
+        <div class="stat-icon" style="background:#fef2f2;">
+            <i class="fas fa-exclamation-triangle" style="color:#dc2626;"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-number" id="st-overdue" style="color:#dc2626;">0</div>
+            <div class="stat-label" style="font-size:0.78em;">Quá hạn giao</div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Tra cứu nhanh -->
+<!-- ── Thanh công cụ ──────────────────────────────────────────────────────── -->
 <div class="card" style="margin-bottom:16px;">
-    <div class="card-body" style="padding:16px;">
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-            <div style="flex:1;min-width:220px;">
+    <div class="card-body" style="padding:14px 16px;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <!-- Tra cứu -->
+            <div style="flex:1;min-width:220px;position:relative;">
                 <div class="search-input">
                     <i class="fas fa-search"></i>
                     <input type="text" id="trackInput" class="form-input"
-                           placeholder="Nhập mã vận đơn để tra cứu..."
+                           placeholder="Nhập mã vận đơn / tên / SĐT..."
+                           oninput="debounceSearch()"
                            onkeypress="if(event.key==='Enter')quickTrack()">
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="quickTrack()">
-                <i class="fas fa-search"></i> Tra cứu
-            </button>
-            <button class="btn btn-success" onclick="openCreate()">
-                <i class="fas fa-plus"></i> Tạo đơn vận chuyển
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Danh sách đơn -->
-<div class="card">
-    <div class="card-header">
-        <h3><i class="fas fa-list"></i> Danh sách đơn vận chuyển
-            <span id="filterLabel" style="font-size:0.8em;color:#718096;font-weight:400;margin-left:8px;"></span>
-        </h3>
-        <div style="display:flex;gap:8px;align-items:center;">
-            <select id="svcFilter" class="form-select" style="width:160px;" onchange="loadShipments()">
+            <!-- Filter dịch vụ -->
+            <select id="svcFilter" class="form-select" style="width:150px;" onchange="loadShipments()">
                 <option value="">Tất cả dịch vụ</option>
                 <option>Giao hàng thường</option>
                 <option>Giao hàng nhanh</option>
@@ -87,26 +122,46 @@
                 <option>Giao nội thành</option>
                 <option>Giao liên tỉnh</option>
             </select>
-            <input type="text" id="searchQ" class="form-input" placeholder="Tìm kiếm..."
-                   style="width:180px;" oninput="loadShipments()">
-            <button class="btn btn-secondary btn-sm" onclick="clearFilter()" title="Xóa filter">
-                <i class="fas fa-times"></i>
+            <!-- Filter ngày -->
+            <input type="date" id="fromDate" class="form-input" style="width:140px;" onchange="loadShipments()">
+            <span style="color:#9ca3af;font-size:0.9em;">→</span>
+            <input type="date" id="toDate" class="form-input" style="width:140px;" onchange="loadShipments()">
+            <!-- Nút -->
+            <button class="btn btn-secondary btn-sm" onclick="clearAllFilters()" title="Xóa bộ lọc">
+                <i class="fas fa-times"></i> Xóa lọc
+            </button>
+            <button class="btn btn-primary" onclick="quickTrack()">
+                <i class="fas fa-search"></i> Tra cứu
+            </button>
+            <button class="btn btn-success" onclick="openCreate()">
+                <i class="fas fa-plus"></i> Tạo đơn
             </button>
         </div>
     </div>
-    <div class="card-body p-0">
-        <table class="table">
+</div>
+
+<!-- ── Bảng danh sách ─────────────────────────────────────────────────────── -->
+<div class="card">
+    <div class="card-header" style="padding:12px 16px;">
+        <h3 style="margin:0;font-size:1em;">
+            <i class="fas fa-list"></i> Danh sách đơn vận chuyển
+            <span id="filterLabel" style="font-size:0.82em;color:#718096;font-weight:400;margin-left:8px;"></span>
+        </h3>
+        <div style="font-size:0.82em;color:#9ca3af;" id="summaryLine"></div>
+    </div>
+    <div class="card-body p-0" style="overflow-x:auto;">
+        <table class="table" style="min-width:900px;">
             <thead>
                 <tr>
                     <th>Mã vận đơn</th>
-                    <th>Đơn hàng</th>
+                    <th>Đơn / HĐ</th>
                     <th>Người nhận</th>
                     <th>Địa chỉ</th>
                     <th>Dịch vụ</th>
                     <th>COD</th>
                     <th>Trạng thái</th>
                     <th>Dự kiến</th>
-                    <th>Thao tác</th>
+                    <th style="width:110px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="shipmentsBody">
@@ -118,12 +173,16 @@
     </div>
 </div>
 
-<!-- ═══ Modal tạo đơn ═══ -->
+<!-- ══════════════════════ MODALS ══════════════════════════════════════════ -->
+
+<!-- Modal tạo đơn -->
 <div class="modal-overlay" id="createModal" style="display:none;">
     <div class="modal modal-horizontal">
-        <div class="modal-header">
-            <h3><i class="fas fa-plus-circle"></i> Tạo đơn vận chuyển</h3>
-            <button class="modal-close" onclick="closeCreate()"><i class="fas fa-times"></i></button>
+        <div class="modal-header" style="position:relative;justify-content:center;">
+            <h3 style="margin:0;"><i class="fas fa-plus-circle"></i> Tạo đơn vận chuyển</h3>
+            <button class="modal-close" onclick="closeCreate()"
+                    style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
+                <i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <form id="createForm">
@@ -149,7 +208,8 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Địa chỉ giao hàng *</label>
-                    <input class="form-input" name="receiver_address" placeholder="123 Đường ABC, Phường XYZ, Quận 1, TP.HCM" required>
+                    <input class="form-input" name="receiver_address"
+                           placeholder="123 Đường ABC, Phường XYZ, Quận 1, TP.HCM" required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -157,7 +217,7 @@
                         <input class="form-input" name="receiver_province" placeholder="TP. Hồ Chí Minh">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Dịch vụ vận chuyển</label>
+                        <label class="form-label">Dịch vụ</label>
                         <select class="form-select" name="service_type" onchange="updateFee(this)">
                             <option>Giao hàng thường</option>
                             <option>Giao hàng nhanh</option>
@@ -180,7 +240,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Tiền COD (thu hộ)</label>
-                        <input class="form-input" name="cod_amount" type="number" value="0" min="0" placeholder="0 = không COD">
+                        <input class="form-input" name="cod_amount" type="number" value="0" min="0">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Địa chỉ gửi hàng</label>
@@ -198,79 +258,91 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Ghi chú</label>
+                    <label class="form-label">Ghi chú giao hàng</label>
                     <input class="form-input" name="note" placeholder="Gọi trước khi giao, để hàng trước cửa...">
                 </div>
             </form>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeCreate()">Hủy</button>
-            <button class="btn btn-success" onclick="submitCreate()">
+            <button class="btn btn-success" id="createBtn" onclick="submitCreate()">
                 <i class="fas fa-truck"></i> Tạo đơn vận chuyển
             </button>
         </div>
     </div>
 </div>
 
-<!-- ═══ Modal chi tiết + lịch sử ═══ -->
+<!-- Modal chi tiết + lịch sử -->
 <div class="modal-overlay" id="detailModal" style="display:none;">
-    <div class="modal" style="max-width:700px;width:95%;">
+    <div class="modal" style="max-width:720px;width:95%;">
         <div class="modal-header" style="position:relative;justify-content:center;">
             <h3 style="margin:0;text-align:center;">
                 <i class="fas fa-map-marked-alt"></i> Chi tiết vận chuyển
             </h3>
             <button class="modal-close" onclick="closeDetail()"
-                    style="position:absolute;right:var(--spacing-4);top:50%;transform:translateY(-50%);">
+                    style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="modal-body" id="detailBody" style="max-height:70vh;overflow-y:auto;"></div>
+        <div class="modal-body" id="detailBody" style="max-height:75vh;overflow-y:auto;"></div>
         <div class="modal-footer" id="detailFooter"></div>
     </div>
 </div>
 
-<!-- ═══ Modal cập nhật trạng thái ═══ -->
+<!-- Modal cập nhật trạng thái -->
 <div class="modal-overlay" id="statusModal" style="display:none;">
-    <div class="modal modal-small" style="max-width:480px;">
+    <div class="modal modal-small" style="max-width:500px;">
         <div class="modal-header" style="position:relative;justify-content:center;">
             <h3 style="margin:0;text-align:center;">
                 <i class="fas fa-exchange-alt"></i> Cập nhật trạng thái
             </h3>
             <button class="modal-close" onclick="closeStatusModal()"
-                    style="position:absolute;right:var(--spacing-4);top:50%;transform:translateY(-50%);">
+                    style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="modal-body">
+            <div id="statusCurrentBadge" style="margin-bottom:14px;text-align:center;"></div>
             <div class="form-group">
-                <label class="form-label">Trạng thái mới</label>
+                <label class="form-label">Trạng thái mới *</label>
                 <select class="form-select" id="newStatusSelect"></select>
             </div>
             <div class="form-group">
-                <label class="form-label">Vị trí hiện tại</label>
+                <label class="form-label">Vị trí / Bưu cục</label>
                 <input class="form-input" id="newLocation" placeholder="Bưu cục Quận 1, TP.HCM">
             </div>
             <div class="form-group">
-                <label class="form-label">Mô tả</label>
-                <input class="form-input" id="newDesc" placeholder="Ghi chú thêm...">
+                <label class="form-label">Ghi chú</label>
+                <textarea class="form-input" id="newDesc" rows="2"
+                          placeholder="Giao lần 1 thành công / Không có người nhận..."
+                          style="resize:none;"></textarea>
+            </div>
+            <div class="form-group" id="shipperFields" style="display:none;">
+                <label class="form-label">Thông tin Shipper (tùy chọn)</label>
+                <div class="form-row" style="gap:8px;">
+                    <input class="form-input" id="newShipperName" placeholder="Tên shipper">
+                    <input class="form-input" id="newShipperPhone" placeholder="SĐT shipper">
+                </div>
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeStatusModal()">Hủy</button>
-            <button class="btn btn-primary" onclick="submitStatus()">
-                <i class="fas fa-check"></i> Xác nhận cập nhật
+            <button class="btn btn-primary" id="submitStatusBtn" onclick="submitStatus()">
+                <i class="fas fa-check"></i> Xác nhận
             </button>
         </div>
     </div>
 </div>
+
 <!-- Modal xác nhận hủy đơn -->
 <div class="modal-overlay" id="cancelConfirmModal" style="display:none;">
     <div class="modal" style="max-width:440px;">
-        <div class="modal-header" style="border-bottom:2px solid #fee2e2;">
-            <h3 style="color:#dc2626;">
+        <div class="modal-header" style="border-bottom:2px solid #fee2e2;position:relative;justify-content:center;">
+            <h3 style="color:#dc2626;margin:0;text-align:center;">
                 <i class="fas fa-exclamation-triangle"></i> Xác nhận hủy đơn
             </h3>
-            <button class="modal-close" onclick="closeCancelModal()">
+            <button class="modal-close" onclick="closeCancelModal()"
+                    style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -279,14 +351,14 @@
                 <div style="width:64px;height:64px;background:#fee2e2;border-radius:50%;
                             display:flex;align-items:center;justify-content:center;
                             margin:0 auto 16px;font-size:2em;">❌</div>
-                <p style="color:#374151;margin:0 0 8px;font-size:1em;font-weight:600;">
+                <p style="color:#374151;margin:0 0 8px;font-weight:600;">
                     Bạn muốn hủy đơn vận chuyển này?
                 </p>
                 <p style="color:#6b7280;margin:0;font-size:0.9em;">
                     Mã vận đơn: <strong id="cancelTrackingCode" style="color:#dc2626;"></strong>
                 </p>
-                <p style="color:#9ca3af;margin:8px 0 0;font-size:0.85em;">
-                    ⚠️ Chỉ có thể hủy khi trạng thái <strong>Chờ lấy hàng</strong>.<br>
+                <p style="color:#9ca3af;margin:10px 0 0;font-size:0.82em;">
+                    ⚠️ Chỉ hủy được khi đang ở trạng thái <strong>Chờ lấy hàng</strong>.<br>
                     Thao tác này không thể hoàn tác.
                 </p>
             </div>
@@ -302,21 +374,26 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-const B = window.BACKEND_URL;
-const T = () => sessionStorage.getItem('access_token');
-const HDR = () => ({ 'Content-Type':'application/json', Authorization:'Bearer '+T() });
+const B   = window.BACKEND_URL;
+const T   = () => sessionStorage.getItem('access_token');
+const HDR = () => ({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + T() });
 
-let allStats = {};
-let currentFilter = '';
-let currentStatusId = null;
-let statusFlow = {};
-let serviceFees = {};
+let statusFlow       = {};
+let serviceFees      = {};
+let currentFilter    = '';
+let currentOverdue   = false;
+let currentStatusId  = null;
+let currentStatusVal = '';
+let _cancelId        = null;
+let _searchTimer     = null;
 
-const STATUS_COLORS = {
+// ── Màu sắc trạng thái ────────────────────────────────────────────────────
+const SC = {
     pending:    { bg:'#fffbeb', color:'#d97706', border:'#fcd34d' },
     picked:     { bg:'#fefce8', color:'#ca8a04', border:'#fde047' },
     in_transit: { bg:'#eff6ff', color:'#2563eb', border:'#93c5fd' },
@@ -328,39 +405,92 @@ const STATUS_COLORS = {
 };
 
 function badge(status, label) {
-    const c = STATUS_COLORS[status] || {bg:'#f3f4f6',color:'#374151',border:'#d1d5db'};
+    const c = SC[status] || { bg:'#f3f4f6', color:'#374151', border:'#d1d5db' };
     return `<span style="background:${c.bg};color:${c.color};border:1px solid ${c.border};
-            padding:3px 10px;border-radius:20px;font-size:0.8em;font-weight:600;white-space:nowrap;">${label||status}</span>`;
+        padding:3px 12px;border-radius:20px;font-size:0.8em;font-weight:600;
+        white-space:nowrap;display:inline-block;">${label || status}</span>`;
 }
 
-// ── Load data ─────────────────────────────────────────────────────────────────
+function fmt(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleString('vi-VN', {
+        day:'2-digit', month:'2-digit', year:'numeric',
+        hour:'2-digit', minute:'2-digit'
+    });
+}
+
+function fmtDate(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('vi-VN');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
 async function init() {
     try {
-        const res = await fetch(B+'/api/shipping/statuses', {headers:HDR()});
-        if (res.ok) { const d=await res.json(); statusFlow=d.statuses||{}; serviceFees=d.service_fees||{}; }
-    } catch(e){}
+        const res = await fetch(B + '/api/shipping/statuses', { headers: HDR() });
+        if (res.ok) {
+            const d = await res.json();
+            statusFlow = d.statuses || {};
+            serviceFees = d.service_fees || {};
+        }
+    } catch(e) {}
     await loadShipments();
+    await loadSummary();
 }
 
+// ── Load summary KPI ──────────────────────────────────────────────────────
+async function loadSummary() {
+    try {
+        const res = await fetch(B + '/api/shipping/summary', { headers: HDR() });
+        if (!res.ok) return;
+        const d = await res.json();
+        document.getElementById('st-overdue').textContent = d.overdue || 0;
+        const line = document.getElementById('summaryLine');
+        if (line && d.total > 0) {
+            line.textContent = `Tổng ${d.total} đơn · Phí ship: ${(d.total_fee||0).toLocaleString()}đ · Tỷ lệ giao: ${d.success_rate}%`;
+        }
+    } catch(e) {}
+}
+
+// ── Load danh sách ────────────────────────────────────────────────────────
 async function loadShipments() {
-    const q       = document.getElementById('searchQ').value.trim();
-    const svc     = document.getElementById('svcFilter').value;
-    const params  = new URLSearchParams({ limit:100 });
-    if (currentFilter) params.set('status', currentFilter);
-    if (q)             params.set('q', q);
+    const q    = document.getElementById('trackInput').value.trim();
+    const svc  = document.getElementById('svcFilter').value;
+    const from = document.getElementById('fromDate').value;
+    const to   = document.getElementById('toDate').value;
+
+    const params = new URLSearchParams({ limit: 100 });
+    if (currentFilter)  params.set('status',    currentFilter);
+    if (currentOverdue) params.set('overdue',    'true');
+    if (q)              params.set('q',          q);
+    if (from)           params.set('from_date',  from);
+    if (to)             params.set('to_date',    to);
 
     try {
-        const res  = await fetch(`${B}/api/shipping/?${params}`, {headers:HDR()});
+        const res = await fetch(`${B}/api/shipping/?${params}`, { headers: HDR() });
         if (!res.ok) { renderEmpty(); return; }
         const data = await res.json();
 
-        // Stats
+        // Cập nhật stat cards
         const stats = data.stats || {};
-        allStats = stats;
         ['pending','picked','in_transit','delivering','delivered','failed','returned'].forEach(s => {
-            const el = document.getElementById('st-'+s);
+            const el = document.getElementById('st-' + s);
             if (el) el.textContent = stats[s] || 0;
         });
+
+        // Highlight active card
+        document.querySelectorAll('.stat-card[id^="card-"]').forEach(el => {
+            el.style.borderColor = 'transparent';
+            el.style.transform = '';
+        });
+        if (currentFilter) {
+            const ac = document.getElementById('card-' + currentFilter);
+            if (ac) { ac.style.borderColor = '#3b82f6'; ac.style.transform = 'scale(1.02)'; }
+        }
+        if (currentOverdue) {
+            const ao = document.getElementById('card-overdue');
+            if (ao) { ao.style.borderColor = '#dc2626'; ao.style.transform = 'scale(1.02)'; }
+        }
 
         let items = data.shipments || [];
         if (svc) items = items.filter(s => s.service_type === svc);
@@ -368,48 +498,81 @@ async function loadShipments() {
         renderTable(items);
 
         const lbl = document.getElementById('filterLabel');
-        if (currentFilter && statusFlow[currentFilter]) {
-            lbl.textContent = '— Lọc: ' + statusFlow[currentFilter].label;
+        if (currentOverdue) {
+            lbl.textContent = `— Quá hạn giao (${items.length} đơn)`;
+        } else if (currentFilter && statusFlow[currentFilter]) {
+            lbl.textContent = `— ${statusFlow[currentFilter].label} (${items.length} đơn)`;
         } else {
             lbl.textContent = items.length ? `(${data.total} đơn)` : '';
         }
+
     } catch(e) { renderEmpty(); }
 }
 
 function renderEmpty() {
     document.getElementById('shipmentsBody').innerHTML =
-        '<tr><td colspan="9" style="text-align:center;padding:2rem;color:#9ca3af;">Chưa có đơn vận chuyển nào</td></tr>';
+        `<tr><td colspan="9" style="text-align:center;padding:3rem;color:#9ca3af;">
+            <i class="fas fa-inbox" style="font-size:2em;display:block;margin-bottom:8px;"></i>
+            Chưa có đơn vận chuyển nào
+         </td></tr>`;
 }
 
 function renderTable(items) {
-    const tbody = document.getElementById('shipmentsBody');
     if (!items.length) { renderEmpty(); return; }
-    tbody.innerHTML = items.map(s => {
-        const est = s.estimated_date ? new Date(s.estimated_date).toLocaleDateString('vi-VN') : '-';
-        const cod = s.cod_amount > 0 ? `<span style="color:#16a34a;font-weight:600;">${s.cod_amount.toLocaleString()}đ</span>` : '<span style="color:#9ca3af;">-</span>';
-        return `<tr>
+    document.getElementById('shipmentsBody').innerHTML = items.map(s => {
+        const c   = SC[s.status] || {};
+        const cod = s.cod_amount > 0
+            ? `<strong style="color:#16a34a;">${s.cod_amount.toLocaleString()}đ</strong>`
+            : '<span style="color:#d1d5db;">—</span>';
+        const estStyle = s.is_overdue
+            ? 'color:#dc2626;font-weight:700;'
+            : 'color:#374151;';
+        const overdueTag = s.is_overdue
+            ? `<br><span style="font-size:0.72em;color:#dc2626;"><i class="fas fa-exclamation-triangle"></i> Quá hạn</span>`
+            : '';
+
+        return `<tr style="transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'"
+                    onmouseout="this.style.background=''">
             <td>
-                <strong style="cursor:pointer;color:var(--primary-color);" onclick="viewDetail(${s.id})">${s.tracking_code}</strong>
+                <strong style="cursor:pointer;color:var(--primary-color);font-family:monospace;"
+                        onclick="viewDetail(${s.id})">${s.tracking_code}</strong>
                 ${s.shipper_name ? `<br><small style="color:#6b7280;"><i class="fas fa-motorcycle"></i> ${s.shipper_name}</small>` : ''}
             </td>
-            <td>${s.order_code}<br>${s.invoice_code?`<small style="color:#9ca3af;">${s.invoice_code}</small>`:''}</td>
-            <td><strong>${s.receiver_name}</strong><br><small style="color:#6b7280;">${s.receiver_phone}</small></td>
-            <td style="max-width:160px;font-size:0.85em;color:#4b5563;">${s.receiver_address}</td>
-            <td><span style="font-size:0.82em;">${s.service_type}</span><br><small style="color:#9ca3af;">${(s.shipping_fee||0).toLocaleString()}đ</small></td>
+            <td style="font-size:0.85em;">
+                <div>${s.order_code}</div>
+                ${s.invoice_code ? `<div style="color:#9ca3af;">${s.invoice_code}</div>` : ''}
+            </td>
+            <td>
+                <strong style="font-size:0.9em;">${s.receiver_name}</strong>
+                <br><small style="color:#6b7280;">${s.receiver_phone}</small>
+            </td>
+            <td style="max-width:150px;font-size:0.82em;color:#4b5563;line-height:1.3;">
+                ${s.receiver_address}
+                ${s.receiver_province ? `<br><span style="color:#9ca3af;">${s.receiver_province}</span>` : ''}
+            </td>
+            <td style="font-size:0.82em;">
+                <div>${s.service_type}</div>
+                <div style="color:#9ca3af;">${(s.shipping_fee||0).toLocaleString()}đ</div>
+            </td>
             <td>${cod}</td>
             <td>${badge(s.status, s.status_label)}</td>
-            <td style="font-size:0.82em;${s.status!=='delivered'&&new Date(s.estimated_date)<new Date()?'color:#dc2626;font-weight:600;':''}">${est}</td>
+            <td style="font-size:0.82em;${estStyle}">
+                ${fmtDate(s.estimated_date)}${overdueTag}
+            </td>
             <td>
-                <div class="table-actions">
-                    <button class="btn btn-sm btn-primary" onclick="viewDetail(${s.id})" title="Chi tiết & Lịch sử">
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-primary" onclick="viewDetail(${s.id})"
+                            title="Chi tiết & Lịch sử" style="padding:4px 8px;">
                         <i class="fas fa-eye"></i>
                     </button>
-                    ${(s.next_statuses||[]).length ? `
-                    <button class="btn btn-sm btn-success" onclick="openStatusModal(${s.id},'${s.status}')" title="Cập nhật trạng thái">
+                    ${!['delivered','returned','cancelled'].includes(s.status) ? `
+                    <button class="btn btn-sm btn-success" onclick="openStatusModal(${s.id},'${s.status}')"
+                            title="Cập nhật trạng thái" style="padding:4px 8px;">
                         <i class="fas fa-arrow-right"></i>
                     </button>` : ''}
-                    ${s.status==='pending' ? `
-                    <button class="btn btn-sm btn-danger" onclick="cancelShipment(${s.id},'${s.tracking_code}')" title="Hủy đơn">
+                    ${s.status === 'pending' ? `
+                    <button class="btn btn-sm btn-danger" onclick="cancelShipment(${s.id},'${s.tracking_code}')"
+                            title="Hủy đơn" style="padding:4px 8px;">
                         <i class="fas fa-times"></i>
                     </button>` : ''}
                 </div>
@@ -418,123 +581,188 @@ function renderTable(items) {
     }).join('');
 }
 
-// ── Filter ────────────────────────────────────────────────────────────────────
+// ── Filters ───────────────────────────────────────────────────────────────
 function filterByStatus(status) {
-    currentFilter = currentFilter === status ? '' : status;
-    loadShipments();
-}
-function clearFilter() {
-    currentFilter = '';
-    document.getElementById('searchQ').value = '';
-    document.getElementById('svcFilter').value = '';
+    currentOverdue = false;
+    currentFilter  = currentFilter === status ? '' : status;
     loadShipments();
 }
 
-// ── Tra cứu nhanh ─────────────────────────────────────────────────────────────
+function filterOverdue() {
+    currentFilter  = '';
+    currentOverdue = !currentOverdue;
+    loadShipments();
+}
+
+function clearAllFilters() {
+    currentFilter  = '';
+    currentOverdue = false;
+    document.getElementById('trackInput').value = '';
+    document.getElementById('svcFilter').value  = '';
+    document.getElementById('fromDate').value   = '';
+    document.getElementById('toDate').value     = '';
+    document.querySelectorAll('.stat-card[id^="card-"]').forEach(el => {
+        el.style.borderColor = 'transparent';
+        el.style.transform   = '';
+    });
+    loadShipments();
+}
+
+function debounceSearch() {
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(loadShipments, 400);
+}
+
+// ── Tra cứu nhanh ─────────────────────────────────────────────────────────
 async function quickTrack() {
     const code = document.getElementById('trackInput').value.trim();
     if (!code) return;
     try {
-        const res = await fetch(`${B}/api/shipping/track/${encodeURIComponent(code)}`, {headers:HDR()});
+        const res = await fetch(`${B}/api/shipping/track/${encodeURIComponent(code)}`, { headers: HDR() });
         if (res.ok) {
             const data = await res.json();
             showDetailContent(data.shipment, data.history);
             document.getElementById('detailModal').style.display = 'flex';
         } else {
-            alert('Không tìm thấy mã vận đơn: ' + code);
+            const d = await res.json();
+            alert(d.detail || 'Không tìm thấy mã vận đơn: ' + code);
         }
     } catch(e) { alert('Lỗi tra cứu: ' + e.message); }
 }
 
-// ── Chi tiết ─────────────────────────────────────────────────────────────────
+// ── Chi tiết ──────────────────────────────────────────────────────────────
 async function viewDetail(id) {
+    document.getElementById('detailBody').innerHTML =
+        '<div style="text-align:center;padding:3rem;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+    document.getElementById('detailModal').style.display = 'flex';
     try {
-        const res = await fetch(`${B}/api/shipping/${id}`, {headers:HDR()});
-        if (!res.ok) return;
+        const res = await fetch(`${B}/api/shipping/${id}`, { headers: HDR() });
+        if (!res.ok) { document.getElementById('detailBody').innerHTML = '<p style="color:red;padding:16px;">Lỗi tải dữ liệu</p>'; return; }
         const data = await res.json();
         showDetailContent(data.shipment, data.history);
-        document.getElementById('detailModal').style.display = 'flex';
     } catch(e) {}
 }
 
 function showDetailContent(s, history) {
-    const c = STATUS_COLORS[s.status] || {};
+    const c         = SC[s.status] || {};
+    const isOverdue = s.is_overdue;
+    const isFinal   = ['delivered','returned','cancelled'].includes(s.status);
+
     document.getElementById('detailBody').innerHTML = `
-        <!-- Header -->
-        <div style="background:${c.bg||'#f9fafb'};border:1px solid ${c.border||'#e5e7eb'};border-radius:8px;padding:16px;margin-bottom:16px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                <div>
-                    <div style="font-size:1.2em;font-weight:700;">${s.tracking_code}</div>
-                    <div style="color:#6b7280;font-size:0.9em;">Đơn hàng: ${s.order_code} ${s.invoice_code?'· HĐ: '+s.invoice_code:''}</div>
+    <!-- Banner trạng thái -->
+    <div style="background:${c.bg||'#f9fafb'};border:1px solid ${c.border||'#e5e7eb'};
+                border-radius:10px;padding:16px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+                <div style="font-size:1.3em;font-weight:800;font-family:monospace;letter-spacing:0.5px;">
+                    ${s.tracking_code}
                 </div>
+                <div style="color:#6b7280;font-size:0.85em;margin-top:2px;">
+                    Đơn hàng: <strong>${s.order_code}</strong>
+                    ${s.invoice_code ? `· Hóa đơn: <strong>${s.invoice_code}</strong>` : ''}
+                    · Tạo bởi: ${s.created_by || '—'}
+                    · ${fmt(s.created_at)}
+                </div>
+            </div>
+            <div style="text-align:right;">
                 ${badge(s.status, s.status_label)}
+                ${isOverdue ? `<div style="color:#dc2626;font-size:0.78em;margin-top:4px;"><i class="fas fa-exclamation-triangle"></i> Quá hạn giao</div>` : ''}
             </div>
+        </div>
+    </div>
+
+    <!-- Thông tin 2 cột -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+        <!-- Người nhận -->
+        <div style="background:#f9fafb;border-radius:10px;padding:14px;border:1px solid #f3f4f6;">
+            <div style="font-weight:700;color:#374151;margin-bottom:10px;font-size:0.9em;">
+                <i class="fas fa-user-circle" style="color:#3b82f6;"></i> NGƯỜI NHẬN
+            </div>
+            <div style="font-size:1em;font-weight:600;">${s.receiver_name}</div>
+            <div style="color:#6b7280;margin-top:2px;">
+                <i class="fas fa-phone-alt" style="font-size:0.75em;"></i> ${s.receiver_phone}
+            </div>
+            <div style="color:#4b5563;font-size:0.88em;margin-top:6px;line-height:1.4;">
+                <i class="fas fa-map-marker-alt" style="color:#dc2626;font-size:0.75em;"></i>
+                ${s.receiver_address}
+            </div>
+            ${s.receiver_province ? `<div style="color:#9ca3af;font-size:0.82em;margin-top:2px;">${s.receiver_province}</div>` : ''}
         </div>
 
-        <!-- Thông tin 2 cột -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-            <div style="background:#f9fafb;border-radius:8px;padding:12px;">
-                <div style="font-weight:600;color:#374151;margin-bottom:8px;"><i class="fas fa-user"></i> Thông tin người nhận</div>
-                <div><strong>${s.receiver_name}</strong></div>
-                <div style="color:#6b7280;">${s.receiver_phone}</div>
-                <div style="color:#4b5563;font-size:0.9em;margin-top:4px;">${s.receiver_address}</div>
-                ${s.receiver_province?`<div style="color:#9ca3af;font-size:0.85em;">${s.receiver_province}</div>`:''}
+        <!-- Chi tiết đơn -->
+        <div style="background:#f9fafb;border-radius:10px;padding:14px;border:1px solid #f3f4f6;">
+            <div style="font-weight:700;color:#374151;margin-bottom:10px;font-size:0.9em;">
+                <i class="fas fa-clipboard-list" style="color:#3b82f6;"></i> CHI TIẾT ĐƠN
             </div>
-            <div style="background:#f9fafb;border-radius:8px;padding:12px;">
-                <div style="font-weight:600;color:#374151;margin-bottom:8px;"><i class="fas fa-info-circle"></i> Chi tiết đơn</div>
-                <div style="font-size:0.9em;">
-                    <div>Dịch vụ: <strong>${s.service_type}</strong></div>
-                    <div>Khối lượng: ${s.weight}g</div>
-                    <div>Phí ship: <strong>${(s.shipping_fee||0).toLocaleString()}đ</strong></div>
-                    ${s.cod_amount>0?`<div>COD: <strong style="color:#16a34a;">${s.cod_amount.toLocaleString()}đ</strong></div>`:''}
-                    ${s.shipper_name?`<div>Shipper: <strong>${s.shipper_name}</strong> ${s.shipper_phone?'('+s.shipper_phone+')':''}</div>`:''}
-                    ${s.note?`<div>Ghi chú: <em>${s.note}</em></div>`:''}
-                    <div>Dự kiến giao: <strong>${s.estimated_date?new Date(s.estimated_date).toLocaleDateString('vi-VN'):'N/A'}</strong></div>
-                    ${s.delivered_at?`<div>Đã giao lúc: <strong style="color:#16a34a;">${new Date(s.delivered_at).toLocaleString('vi-VN')}</strong></div>`:''}
-                </div>
-            </div>
+            <table style="width:100%;font-size:0.85em;border-collapse:collapse;">
+                <tr><td style="color:#6b7280;padding:2px 0;">Dịch vụ</td>
+                    <td style="font-weight:600;text-align:right;">${s.service_type}</td></tr>
+                <tr><td style="color:#6b7280;padding:2px 0;">Khối lượng</td>
+                    <td style="text-align:right;">${s.weight}g</td></tr>
+                <tr><td style="color:#6b7280;padding:2px 0;">Phí ship</td>
+                    <td style="font-weight:600;color:#2563eb;text-align:right;">${(s.shipping_fee||0).toLocaleString()}đ</td></tr>
+                ${s.cod_amount > 0 ? `<tr><td style="color:#6b7280;padding:2px 0;">COD (thu hộ)</td>
+                    <td style="font-weight:700;color:#16a34a;text-align:right;">${s.cod_amount.toLocaleString()}đ</td></tr>` : ''}
+                ${s.shipper_name ? `<tr><td style="color:#6b7280;padding:2px 0;">Shipper</td>
+                    <td style="text-align:right;">${s.shipper_name} ${s.shipper_phone ? '('+s.shipper_phone+')' : ''}</td></tr>` : ''}
+                <tr><td style="color:#6b7280;padding:2px 0;">Dự kiến giao</td>
+                    <td style="font-weight:600;${isOverdue?'color:#dc2626;':'color:#374151;'}text-align:right;">
+                        ${fmtDate(s.estimated_date)}${isOverdue?' ⚠️':''}
+                    </td></tr>
+                ${s.delivered_at ? `<tr><td style="color:#6b7280;padding:2px 0;">Đã giao lúc</td>
+                    <td style="font-weight:700;color:#16a34a;text-align:right;">${fmt(s.delivered_at)}</td></tr>` : ''}
+                ${s.note ? `<tr><td style="color:#6b7280;padding:2px 0;">Ghi chú</td>
+                    <td style="color:#4b5563;text-align:right;font-style:italic;">${s.note}</td></tr>` : ''}
+            </table>
         </div>
+    </div>
 
-        <!-- Timeline lịch sử -->
-        <div style="font-weight:600;color:#374151;margin-bottom:12px;"><i class="fas fa-history"></i> Lịch sử hành trình</div>
-        <div style="position:relative;">
-            ${(history||[]).length === 0
-                ? '<div style="color:#9ca3af;text-align:center;padding:16px;">Chưa có lịch sử cập nhật</div>'
-                : (history||[]).map((h, i) => {
-                    const c2 = STATUS_COLORS[h.status] || {};
-                    return `
-                    <div style="display:flex;gap:12px;margin-bottom:${i<history.length-1?'0':'8px'};">
-                        <div style="display:flex;flex-direction:column;align-items:center;">
-                            <div style="width:36px;height:36px;border-radius:50%;background:${c2.bg||'#f3f4f6'};border:2px solid ${c2.border||'#d1d5db'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <i class="fas fa-circle" style="font-size:8px;color:${c2.color||'#6b7280'};"></i>
-                            </div>
-                            ${i<history.length-1?`<div style="width:2px;flex:1;background:#e5e7eb;margin:4px 0;min-height:20px;"></div>`:''}
+    <!-- Progress bar trạng thái -->
+    ${renderProgressBar(s.status)}
+
+    <!-- Timeline lịch sử -->
+    <div style="font-weight:700;color:#374151;margin:16px 0 12px;font-size:0.9em;">
+        <i class="fas fa-history" style="color:#3b82f6;"></i> LỊCH SỬ HÀNH TRÌNH
+        <span style="font-size:0.8em;font-weight:400;color:#9ca3af;margin-left:8px;">${(history||[]).length} cập nhật</span>
+    </div>
+    <div>
+        ${!(history||[]).length
+            ? '<div style="color:#9ca3af;text-align:center;padding:20px;"><i class="fas fa-clock"></i> Chưa có cập nhật</div>'
+            : (history||[]).map((h, i) => {
+                const c2 = SC[h.status] || {};
+                return `
+                <div style="display:flex;gap:12px;margin-bottom:0;">
+                    <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+                        <div style="width:38px;height:38px;border-radius:50%;
+                                    background:${c2.bg||'#f3f4f6'};border:2px solid ${c2.border||'#d1d5db'};
+                                    display:flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-circle" style="font-size:8px;color:${c2.color||'#6b7280'};"></i>
                         </div>
-                        <div style="padding-bottom:${i<history.length-1?'16px':'0'};flex:1;">
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:4px;">
-                                <div>
-                                    ${badge(h.status, h.status_label)}
-                                    <span style="font-weight:500;margin-left:8px;">${h.description}</span>
-                                </div>
-                                <div style="font-size:0.8em;color:#9ca3af;white-space:nowrap;">
-                                    ${h.timestamp?new Date(h.timestamp).toLocaleString('vi-VN'):''}
-                                </div>
+                        ${i < history.length-1 ? '<div style="width:2px;flex:1;background:#e5e7eb;margin:4px 0;min-height:24px;"></div>' : ''}
+                    </div>
+                    <div style="padding-bottom:${i < history.length-1 ? '16px' : '0'};flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:4px;flex-wrap:wrap;">
+                            <div>
+                                ${badge(h.status, h.status_label)}
+                                <span style="font-weight:500;margin-left:6px;font-size:0.9em;">${h.description}</span>
                             </div>
-                            ${h.location?`<div style="font-size:0.85em;color:#6b7280;margin-top:2px;"><i class="fas fa-map-marker-alt"></i> ${h.location}</div>`:''}
-                            ${h.updated_by?`<div style="font-size:0.8em;color:#9ca3af;">bởi ${h.updated_by}</div>`:''}
+                            <div style="font-size:0.78em;color:#9ca3af;white-space:nowrap;">${fmt(h.timestamp)}</div>
                         </div>
-                    </div>`;
-                }).join('')
-            }
-        </div>
+                        ${h.location ? `<div style="font-size:0.82em;color:#6b7280;margin-top:3px;">
+                            <i class="fas fa-map-marker-alt" style="color:#dc2626;font-size:0.75em;"></i> ${h.location}</div>` : ''}
+                        ${h.updated_by ? `<div style="font-size:0.75em;color:#9ca3af;">bởi ${h.updated_by}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('')
+        }
+    </div>
     `;
-    // Nút footer: luôn hiện nút cập nhật (admin/có quyền có thể đổi bất kỳ trạng thái)
-    const noMoreStatus = ['delivered','returned','cancelled'].includes(s.status);
+
     document.getElementById('detailFooter').innerHTML =
         `<button class="btn btn-secondary" onclick="closeDetail()">
             <i class="fas fa-times"></i> Đóng
          </button>
-         ${!noMoreStatus ? `
+         ${!isFinal ? `
          <button class="btn btn-primary" onclick="closeDetail();openStatusModal(${s.id},'${s.status}')">
             <i class="fas fa-exchange-alt"></i> Cập nhật trạng thái
          </button>` : `
@@ -543,151 +771,255 @@ function showDetailContent(s, history) {
          </span>`}`;
 }
 
-function closeDetail() { document.getElementById('detailModal').style.display='none'; }
+// Progress bar hiển thị tiến trình giao hàng
+function renderProgressBar(currentStatus) {
+    const steps = [
+        { key: 'pending',    label: 'Chờ lấy', icon: 'fa-clock' },
+        { key: 'picked',     label: 'Đã lấy',  icon: 'fa-box-open' },
+        { key: 'in_transit', label: 'Đang giao',icon: 'fa-truck' },
+        { key: 'delivering', label: 'Shipper',  icon: 'fa-motorcycle' },
+        { key: 'delivered',  label: 'Thành công',icon:'fa-check-circle' },
+    ];
+    if (['cancelled','returned','failed'].includes(currentStatus)) return '';
 
-// ── Cập nhật trạng thái ───────────────────────────────────────────────────────
+    const currentIdx = steps.findIndex(s => s.key === currentStatus);
+
+    return `<div style="background:#f9fafb;border-radius:10px;padding:14px;margin-bottom:16px;border:1px solid #f3f4f6;">
+        <div style="font-weight:700;color:#374151;margin-bottom:12px;font-size:0.85em;">
+            <i class="fas fa-route" style="color:#3b82f6;"></i> TIẾN TRÌNH GIAO HÀNG
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+            <div style="position:absolute;top:18px;left:5%;right:5%;height:3px;background:#e5e7eb;z-index:0;border-radius:2px;">
+                <div style="height:100%;background:linear-gradient(90deg,#3b82f6,#16a34a);
+                            width:${currentIdx >= steps.length-1 ? 100 : (currentIdx/(steps.length-1))*100}%;
+                            border-radius:2px;transition:width 0.5s;"></div>
+            </div>
+            ${steps.map((s, i) => {
+                const done   = i < currentIdx;
+                const active = i === currentIdx;
+                const color  = done || active ? (active ? '#3b82f6' : '#16a34a') : '#d1d5db';
+                const bg     = done || active ? (active ? '#eff6ff' : '#f0fdf4') : '#f9fafb';
+                return `<div style="display:flex;flex-direction:column;align-items:center;z-index:1;flex:1;min-width:0;">
+                    <div style="width:36px;height:36px;border-radius:50%;
+                                background:${bg};border:2px solid ${color};
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:13px;color:${color};">
+                        <i class="fas ${active ? 'fa-dot-circle' : done ? 'fa-check' : s.icon}"></i>
+                    </div>
+                    <div style="font-size:0.7em;color:${active ? '#3b82f6' : done ? '#16a34a' : '#9ca3af'};
+                                margin-top:4px;text-align:center;font-weight:${active ? '700' : '400'};">
+                        ${s.label}
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>
+    </div>`;
+}
+
+function closeDetail() { document.getElementById('detailModal').style.display = 'none'; }
+
+// ── Cập nhật trạng thái ───────────────────────────────────────────────────
 function openStatusModal(id, currentStatus) {
-    currentStatusId = id;
-    const nexts = (statusFlow[currentStatus]||{}).next || [];
-    const sel   = document.getElementById('newStatusSelect');
+    currentStatusId  = id;
+    currentStatusVal = currentStatus;
 
-    // Tất cả trạng thái có thể có — theo đúng thứ tự luồng
-    const ALL_STATUSES = [
-        { key: 'pending',    label: 'Chờ lấy hàng'      },
-        { key: 'picked',     label: 'Đã lấy hàng'        },
-        { key: 'in_transit', label: 'Đang vận chuyển'    },
-        { key: 'delivering', label: 'Đang giao'           },
-        { key: 'delivered',  label: 'Đã giao thành công' },
-        { key: 'failed',     label: 'Giao thất bại'       },
-        { key: 'returned',   label: 'Đã hoàn hàng'        },
-        { key: 'cancelled',  label: 'Đã hủy'              },
+    // Hiện badge trạng thái hiện tại
+    const flow = statusFlow[currentStatus] || {};
+    const badge_html = badge(currentStatus, flow.label || currentStatus);
+    document.getElementById('statusCurrentBadge').innerHTML =
+        `Trạng thái hiện tại: ${badge_html}`;
+
+    const nexts = (statusFlow[currentStatus] || {}).next || [];
+    // Thứ tự theo stat cards (trái→phải = trên→dưới)
+    const ALL = [
+        { key: 'pending',    label: 'Chờ lấy hàng'      },  // index 0
+        { key: 'picked',     label: 'Đã lấy hàng'        },  // index 1
+        { key: 'in_transit', label: 'Đang vận chuyển'    },  // index 2
+        { key: 'delivering', label: 'Đang giao'           },  // index 3
+        { key: 'delivered',  label: 'Đã giao thành công' },  // index 4
+        { key: 'failed',     label: 'Giao thất bại'       },  // index 5
+        { key: 'returned',   label: 'Đã hoàn hàng'        },  // index 6
+        { key: 'cancelled',  label: 'Đã hủy'              },  // index 7
     ];
 
-    // Lấy label từ API nếu có, fallback về mảng trên
-    const allOpts = ALL_STATUSES
-        .filter(s => s.key !== currentStatus) // bỏ trạng thái hiện tại
-        .map(s => {
-            const apiLabel = (statusFlow[s.key]||{}).label || s.label;
-            const isNext   = nexts.includes(s.key);  // nằm trong luồng hợp lệ
-            // Nhóm: hợp lệ theo flow hiển thị trước, có dấu ✓
-            return {
-                key:     s.key,
-                label:   apiLabel,
-                isNext:  isNext,
-            };
-        });
+    const validKeys  = new Set(nexts);
+    const currentIdx = ALL.findIndex(s => s.key === currentStatus);
 
-    // Sắp xếp: hợp lệ theo flow lên trên, còn lại xuống dưới
-    const validOpts   = allOpts.filter(s => s.isNext);
-    const invalidOpts = allOpts.filter(s => !s.isNext);
+    // Nhóm 1: ✅ Hợp lệ theo luồng (next statuses)
+    const group1 = ALL.filter(s => validKeys.has(s.key) && s.key !== currentStatus);
+    // Nhóm 2: Tương lai (index > current, không phải next)
+    const group2 = ALL.filter(s => !validKeys.has(s.key) && s.key !== currentStatus
+                                   && ALL.findIndex(x => x.key === s.key) > currentIdx);
+    // Nhóm 3: Đã qua (index < current) — nằm dưới cùng
+    const group3 = ALL.filter(s => !validKeys.has(s.key) && s.key !== currentStatus
+                                   && ALL.findIndex(x => x.key === s.key) < currentIdx);
 
-    // Hiển thị tất cả trạng thái theo thứ tự — trạng thái hợp lệ có dấu ✅
-    const opts = allOpts.map(s => {
-        const prefix = s.isNext ? '✅ ' : '';
-        return `<option value="${s.key}">${prefix}${s.label}</option>`;
+    const makeOpts = (arr, prefix) => arr.map(s => {
+        const lbl = (statusFlow[s.key] || {}).label || s.label;
+        return `<option value="${s.key}">${prefix}${lbl}</option>`;
     }).join('');
 
-    sel.innerHTML = opts || '<option value="" disabled>Không có trạng thái nào khác</option>';
-    document.getElementById('newLocation').value = '';
-    document.getElementById('newDesc').value = '';
+    let opts = '';
+    if (group1.length) opts += `<optgroup label="✅ Tiếp theo (hợp lệ)">${makeOpts(group1, '✅ ')}</optgroup>`;
+    if (group2.length) opts += `<optgroup label="📦 Trạng thái tương lai">${makeOpts(group2, '')}</optgroup>`;
+    if (group3.length) opts += `<optgroup label="🔼 Trạng thái đã qua">${makeOpts(group3, '')}</optgroup>`;
+    if (!opts)         opts  = '<option value="" disabled>Không có trạng thái khác</option>';
+
+    document.getElementById('newStatusSelect').innerHTML = opts ||
+        '<option value="" disabled>Không có trạng thái khác</option>';
+    document.getElementById('newLocation').value     = '';
+    document.getElementById('newDesc').value         = '';
+    document.getElementById('newShipperName').value  = '';
+    document.getElementById('newShipperPhone').value = '';
+
+    // Hiện field shipper khi chọn trạng thái cần shipper
+    document.getElementById('newStatusSelect').onchange = function() {
+        const needShipper = ['picked','delivering'].includes(this.value);
+        document.getElementById('shipperFields').style.display = needShipper ? '' : 'none';
+    };
+
     document.getElementById('statusModal').style.display = 'flex';
 }
-function closeStatusModal() { document.getElementById('statusModal').style.display='none'; }
+
+function closeStatusModal() {
+    document.getElementById('statusModal').style.display = 'none';
+}
 
 async function submitStatus() {
     const status   = document.getElementById('newStatusSelect').value;
-    const location = document.getElementById('newLocation').value;
-    const desc     = document.getElementById('newDesc').value;
+    const location = document.getElementById('newLocation').value.trim();
+    const desc     = document.getElementById('newDesc').value.trim();
+    const shipperN = document.getElementById('newShipperName').value.trim();
+    const shipperP = document.getElementById('newShipperPhone').value.trim();
+
+    if (!status) { alert('Vui lòng chọn trạng thái'); return; }
+
+    const btn = document.getElementById('submitStatusBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang cập nhật...';
+    btn.disabled  = true;
+
     try {
         const res = await fetch(`${B}/api/shipping/${currentStatusId}/status`, {
-            method:'PUT', headers:HDR(),
-            body: JSON.stringify({status, location, description: desc})
+            method: 'PUT', headers: HDR(),
+            body: JSON.stringify({
+                status, location, description: desc, force: true,
+                shipper_name:  shipperN || undefined,
+                shipper_phone: shipperP || undefined,
+            }),
         });
         const d = await res.json();
         if (res.ok && d.success) {
             closeStatusModal();
-            if (typeof showSuccessMessage==='function') showSuccessMessage('Đã cập nhật trạng thái!');
+            if (typeof showSuccessMessage === 'function')
+                showSuccessMessage(`Đã cập nhật: ${d.tracking_code} → ${status}`);
             await loadShipments();
+            await loadSummary();
         } else {
-            alert('Lỗi: ' + (d.detail||'Không thể cập nhật'));
+            alert('Lỗi: ' + (d.detail || 'Không thể cập nhật'));
         }
-    } catch(e) { alert('Lỗi: '+e.message); }
+    } catch(e) {
+        alert('Lỗi kết nối: ' + e.message);
+    } finally {
+        btn.innerHTML = '<i class="fas fa-check"></i> Xác nhận';
+        btn.disabled  = false;
+    }
 }
 
-// ── Tạo đơn ──────────────────────────────────────────────────────────────────
-function openCreate()  { document.getElementById('createModal').style.display='flex'; }
-function closeCreate() { document.getElementById('createModal').style.display='none'; }
+// ── Tạo đơn ──────────────────────────────────────────────────────────────
+function openCreate()  { document.getElementById('createModal').style.display = 'flex'; }
+function closeCreate() {
+    document.getElementById('createModal').style.display = 'none';
+    document.getElementById('createForm').reset();
+    document.getElementById('shippingFee').value = 15000;
+}
 
 function updateFee(sel) {
-    const fees = { 'Giao hàng thường':15000,'Giao hàng nhanh':25000,
-                   'Giao hàng hỏa tốc':45000,'Giao nội thành':20000,'Giao liên tỉnh':35000 };
+    const fees = {
+        'Giao hàng thường':15000, 'Giao hàng nhanh':25000,
+        'Giao hàng hỏa tốc':45000,'Giao nội thành':20000,'Giao liên tỉnh':35000
+    };
     document.getElementById('shippingFee').value = fees[sel.value] || 15000;
 }
 
 async function submitCreate() {
     const form = document.getElementById('createForm');
     const data = Object.fromEntries(new FormData(form));
-    if (!data.order_code||!data.receiver_name||!data.receiver_phone||!data.receiver_address) {
-        alert('Vui lòng điền đầy đủ thông tin bắt buộc (*)'); return;
+    if (!data.order_code || !data.receiver_name || !data.receiver_phone || !data.receiver_address) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc (*)');
+        return;
     }
-    const btn = document.querySelector('#createModal .btn-success');
-    btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Đang tạo...'; btn.disabled=true;
+    const btn = document.getElementById('createBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tạo...';
+    btn.disabled  = true;
     try {
-        const res = await fetch(B+'/api/shipping/', {
-            method:'POST', headers:HDR(),
+        const res = await fetch(B + '/api/shipping/', {
+            method: 'POST', headers: HDR(),
             body: JSON.stringify({
-                order_code:data.order_code, invoice_code:data.invoice_code||null,
-                receiver_name:data.receiver_name, receiver_phone:data.receiver_phone,
-                receiver_address:data.receiver_address, receiver_province:data.receiver_province||null,
-                service_type:data.service_type, weight:parseInt(data.weight)||500,
-                cod_amount:parseFloat(data.cod_amount)||0,
-                shipping_fee:parseFloat(data.shipping_fee)||15000,
-                note:data.note||'', sender_address:data.sender_address||'Kho hàng',
-                shipper_name:data.shipper_name||null, shipper_phone:data.shipper_phone||null,
-            })
+                order_code:        data.order_code,
+                invoice_code:      data.invoice_code || null,
+                receiver_name:     data.receiver_name,
+                receiver_phone:    data.receiver_phone,
+                receiver_address:  data.receiver_address,
+                receiver_province: data.receiver_province || null,
+                service_type:      data.service_type,
+                weight:            parseInt(data.weight) || 500,
+                cod_amount:        parseFloat(data.cod_amount) || 0,
+                shipping_fee:      parseFloat(data.shipping_fee) || 15000,
+                note:              data.note || '',
+                sender_address:    data.sender_address || 'Kho hàng',
+                shipper_name:      data.shipper_name || null,
+                shipper_phone:     data.shipper_phone || null,
+            }),
         });
         const d = await res.json();
         if (res.ok && d.success) {
-            closeCreate(); form.reset();
-            if (typeof showSuccessMessage==='function')
+            closeCreate();
+            if (typeof showSuccessMessage === 'function')
                 showSuccessMessage(`Tạo thành công! Mã vận đơn: ${d.tracking_code}`);
             await loadShipments();
-        } else { alert('Lỗi: '+(d.detail||'Không thể tạo đơn')); }
+            await loadSummary();
+        } else {
+            alert('Lỗi: ' + (d.detail || 'Không thể tạo đơn'));
+        }
     } finally {
-        btn.innerHTML='<i class="fas fa-truck"></i> Tạo đơn vận chuyển'; btn.disabled=false;
+        btn.innerHTML = '<i class="fas fa-truck"></i> Tạo đơn vận chuyển';
+        btn.disabled  = false;
     }
 }
 
-// ── Hủy đơn ──────────────────────────────────────────────────────────────────
-let _cancelId = null;
-
+// ── Hủy đơn ──────────────────────────────────────────────────────────────
 function cancelShipment(id, trackingCode) {
     _cancelId = id;
     const el = document.getElementById('cancelTrackingCode');
     if (el) el.textContent = trackingCode || ('ID #' + id);
-    const modal = document.getElementById('cancelConfirmModal');
-    if (modal) modal.style.display = 'flex';
+    document.getElementById('cancelConfirmModal').style.display = 'flex';
 }
+
 function closeCancelModal() {
-    const modal = document.getElementById('cancelConfirmModal');
-    if (modal) modal.style.display = 'none';
+    document.getElementById('cancelConfirmModal').style.display = 'none';
     _cancelId = null;
 }
+
 async function confirmCancelShipment() {
     if (!_cancelId) return;
     const btn = document.getElementById('confirmCancelBtn');
-    if (btn) { btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Đang hủy...'; btn.disabled=true; }
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang hủy...';
+    btn.disabled  = true;
     try {
-        const res = await fetch(`${B}/api/shipping/${_cancelId}`, {method:'DELETE',headers:HDR()});
+        const res = await fetch(`${B}/api/shipping/${_cancelId}`, { method:'DELETE', headers:HDR() });
         const d   = await res.json();
         if (res.ok && d.success) {
             closeCancelModal();
-            if (typeof showSuccessMessage==='function') showSuccessMessage('Đã hủy đơn vận chuyển');
+            if (typeof showSuccessMessage === 'function') showSuccessMessage('Đã hủy đơn vận chuyển');
             await loadShipments();
-        } else { alert('Lỗi: '+(d.detail||'Không thể hủy')); }
-    } catch(e) { alert('Lỗi kết nối: '+e.message); }
+            await loadSummary();
+        } else {
+            alert('Lỗi: ' + (d.detail || 'Không thể hủy'));
+        }
+    } catch(e) { alert('Lỗi kết nối: ' + e.message); }
     finally {
-        if (btn) { btn.innerHTML='<i class="fas fa-times-circle"></i> Xác nhận hủy'; btn.disabled=false; }
+        btn.innerHTML = '<i class="fas fa-times-circle"></i> Xác nhận hủy';
+        btn.disabled  = false;
     }
 }
 

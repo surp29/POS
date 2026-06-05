@@ -1,7 +1,7 @@
 # PosPos — Point of Sale System
 
 > Hệ thống quản lý bán hàng nội bộ, xây dựng với kiến trúc tách biệt FastAPI backend + Flask frontend.  
-> Dự án thực tập tại **Công ty TNHH MTV TM-DV Tin học Phan Huyện** tiếp tục phát triển thành dự án cá nhân (07/2025 – nay).
+> Dự án thực tập tại **Công ty TNHH MTV TM-DV Tin học Phan Huyện** tiếp tục phát triển thành dự án cá nhân (07/2025 – 06/2026).
 
 ---
 
@@ -10,6 +10,7 @@
 - [Tổng quan](#tổng-quan)
 - [Kiến trúc](#kiến-trúc)
 - [Chức năng](#chức-năng)
+- [Giao diện](#giao-diện)
 - [Công nghệ](#công-nghệ)
 - [Cài đặt & Chạy](#cài-đặt--chạy)
 - [Cấu trúc thư mục](#cấu-trúc-thư-mục)
@@ -96,6 +97,27 @@ Browser
 - **Chatbot AI** — Hỗ trợ tra cứu tồn kho, phân tích bán hàng
 - **WebSocket** — Cập nhật real-time khi có đơn hàng mới
 - **Session management** — Auto-refresh token, idle logout sau 60 phút
+
+---
+
+## Giao diện
+
+Toàn bộ giao diện được thiết kế nhất quán theo design system chung:
+
+- **Login** — Split-screen: panel trái brand (gradient xanh, logo, feature list), panel phải form đăng nhập clean
+- **POS** — Panel trái lưới sản phẩm (hover border animation), panel phải giỏ hàng 320px cố định, modal thanh toán đầy đủ (tiền mặt / QR), xác nhận tiền thừa
+- **Báo cáo** — Stat card màu riêng biệt, tab icon, sidebar thay readonly input bằng stat-row có màu highlight
+- **Tất cả modal nhập/sửa** — Cấu trúc `form-section` (icon + label phân nhóm), trường `required` đánh dấu `*`, emoji trong select options, icon footer buttons
+
+### Palette chính
+
+| Biến CSS | Giá trị | Dùng cho |
+|----------|---------|---------|
+| `--primary-color` | `#2563eb` | Buttons, links, focus ring |
+| `--gray-50` | `#f9fafb` | Table row, card background |
+| `--success` | `#16a34a` | Trạng thái hoàn thành |
+| `--danger` | `#ef4444` | Xóa, hủy, lỗi |
+| `--warning` | `#f59e0b` | Cảnh báo, chờ xử lý |
 
 ---
 
@@ -408,6 +430,14 @@ PORT=5000
 ---
 
 ## Database
+
+### Thiết kế schema
+
+- **Primary Key**: `id INTEGER` tự tăng trên tất cả 19 bảng
+- **Foreign Key + cascade**: CASCADE cho dữ liệu con (items, history, permissions), SET NULL cho tham chiếu mềm (shipment → order/invoice), RESTRICT cho tham chiếu sản phẩm
+- **Bi-directional relationship**: Tất cả quan hệ đều có `back_populates` 2 chiều
+- **Index**: Tất cả cột thường query được index; composite index trên `schedules(employee_id, work_date)` và `audit_logs(username, timestamp)`
+- **Snapshot fields**: `InvoiceItem` lưu `product_code`, `product_name` tại thời điểm bán — không bị ảnh hưởng khi sản phẩm đổi tên sau này
 
 ### 19 bảng trong hệ thống
 

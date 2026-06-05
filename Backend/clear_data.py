@@ -101,15 +101,15 @@ def clear_data(keep_admin: bool = True):
         ]
 
         for Model, label in steps:
-            n = db.query(Model).delete()
+            n = db.query(Model).delete(synchronize_session=False)
             print(f"   ✓ {label:<20} {n} bản ghi")
 
         # Xóa users — giữ lại admin
         if keep_admin:
-            n_other = db.query(User).filter(User.username != 'admin').delete()
+            n_other = db.query(User).filter(User.username != 'admin').delete(synchronize_session=False)
             print(f"   ✓ User (non-admin)   {n_other} bản ghi (admin giữ lại)")
         else:
-            n_all = db.query(User).delete()
+            n_all = db.query(User).delete(synchronize_session=False)
             print(f"   ✓ User (tất cả)      {n_all} bản ghi")
 
         db.commit()

@@ -178,63 +178,61 @@ Quản lý và theo dõi các giao dịch tài chính, nhập liệu thông tin 
 </div>
 
 <!-- Edit Entry Modal -->
-<div class="modal-overlay" id="editEntryModal" style="display: none;">
+<div class="modal-overlay" id="editEntryModal" style="display:none;">
     <div class="modal modal-horizontal">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Chỉnh sửa phát sinh</h3>
-            <button class="modal-close" onclick="closeEditEntryModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="modal-close" onclick="closeEditEntryModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <form id="editEntryForm">
                 <input type="hidden" name="id">
-                
-                <!-- Row 1: Ngày nhập | Mã kí hiệu -->
+
+                <div class="form-section"><i class="fas fa-calendar"></i> Thông tin phát sinh</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Ngày nhập *</label>
+                        <label class="form-label required">Ngày nhập</label>
                         <input type="date" class="form-input" name="ngay_nhap" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Mã kí hiệu *</label>
+                        <label class="form-label required">Mã kí hiệu</label>
                         <input type="text" class="form-input" name="so_hieu" required placeholder="Nhập mã kí hiệu">
                     </div>
                 </div>
-                
-                <!-- Row 2: Số lượng nhập | Số lượng xuất -->
+
+                <div class="form-section"><i class="fas fa-exchange-alt"></i> Số lượng</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Số lượng nhập</label>
-                        <input type="number" class="form-input" name="so_luong_nhap" min="0" oninput="validatePositiveInteger(this)">
+                        <input type="number" class="form-input" name="so_luong_nhap" min="0" placeholder="0" oninput="validatePositiveInteger(this)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Số lượng xuất</label>
-                        <input type="number" class="form-input" name="so_luong_xuat" min="0" oninput="validatePositiveInteger(this)">
+                        <input type="number" class="form-input" name="so_luong_xuat" min="0" placeholder="0" oninput="validatePositiveInteger(this)">
                     </div>
-                </div>
-                
-                <!-- Row 3: Tổng tiền | Ghi chú -->
-                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Tổng tiền</label>
                         <div class="money-input-container">
-                            <input type="text" id="edit_so_tien_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_so_tien'))">
+                            <input type="text" id="edit_so_tien_display" class="form-input" placeholder="0"
+                                   oninput="formatMoneyTyping(this, document.getElementById('edit_so_tien'))">
                             <input type="hidden" name="so_tien" id="edit_so_tien">
                             <span class="currency-unit">VNĐ</span>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Ghi chú</label>
-                        <textarea class="form-textarea" name="dien_giai" rows="3" placeholder="Nhập ghi chú..."></textarea>
-                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea class="form-textarea" name="dien_giai" rows="2" placeholder="Nhập ghi chú..."></textarea>
                 </div>
             </form>
-    </div>
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditEntryModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updateEntry()">Cập nhật</button>
-      </div>
+            <button type="button" class="btn btn-primary" onclick="updateEntry()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
+        </div>
     </div>
 </div>
 

@@ -593,65 +593,56 @@
             document.getElementById('globalNotificationModal').style.display = 'none';
         }
 
-        function showSuccessModal(title, message, autoClose = true) {
-            const modal = document.getElementById('globalNotification');
-            const icon = document.getElementById('globalNotificationIcon');
-            const titleEl = document.getElementById('globalNotificationTitle');
-            const messageEl = document.getElementById('globalNotificationMessage');
-            const footer = document.getElementById('globalNotificationFooter');
-            
-            modal.className = 'global-notification success';
-            icon.innerHTML = '<i class="fas fa-check-circle"></i>';
-            titleEl.textContent = title || 'Thành công';
-            messageEl.textContent = message;
-            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
-            
-            openPopup();
-            
-            if (autoClose) {
-                setTimeout(closePopup, 3000);
+        // ── Toast Notification System ──────────────────────────
+        (function() {
+            function getToastContainer() {
+                var c = document.getElementById('toastContainer');
+                if (!c) {
+                    c = document.createElement('div');
+                    c.id = 'toastContainer';
+                    c.className = 'toast-container';
+                    document.body.appendChild(c);
+                }
+                return c;
             }
-        }
 
-        function showErrorModal(title, message, autoClose = true) {
-            const modal = document.getElementById('globalNotification');
-            const icon = document.getElementById('globalNotificationIcon');
-            const titleEl = document.getElementById('globalNotificationTitle');
-            const messageEl = document.getElementById('globalNotificationMessage');
-            const footer = document.getElementById('globalNotificationFooter');
-            
-            modal.className = 'global-notification error';
-            icon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
-            titleEl.textContent = title || 'Lỗi';
-            messageEl.textContent = message;
-            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
-            
-            openPopup();
-            
-            if (autoClose) {
-                setTimeout(closePopup, 3000);
-            }
-        }
+            var ICONS = {
+                success: 'fas fa-check-circle',
+                error:   'fas fa-times-circle',
+                warning: 'fas fa-exclamation-triangle',
+                info:    'fas fa-info-circle'
+            };
 
-        function showInfoModal(title, message, autoClose = true) {
-            const modal = document.getElementById('globalNotification');
-            const icon = document.getElementById('globalNotificationIcon');
-            const titleEl = document.getElementById('globalNotificationTitle');
-            const messageEl = document.getElementById('globalNotificationMessage');
-            const footer = document.getElementById('globalNotificationFooter');
-            
-            modal.className = 'global-notification info';
-            icon.innerHTML = '<i class="fas fa-info-circle"></i>';
-            titleEl.textContent = title || 'Thông tin';
-            messageEl.textContent = message;
-            footer.innerHTML = '<button type="button" class="global-notification-btn primary" onclick="closePopup()">Đóng</button>';
-            
-            openPopup();
-            
-            if (autoClose) {
-                setTimeout(closePopup, 3000);
+            function showToast(type, title, message, duration) {
+                var dur = (duration !== undefined && duration !== null) ? duration : 4000;
+                var container = getToastContainer();
+                var el = document.createElement('div');
+                el.className = 'toast toast-' + type;
+                el.style.setProperty('--toast-dur', (dur / 1000) + 's');
+                el.innerHTML =
+                    '<div class="toast-icon"><i class="' + (ICONS[type] || ICONS.info) + '"></i></div>' +
+                    '<div class="toast-content">' +
+                        '<div class="toast-title">' + (title || '') + '</div>' +
+                        (message ? '<div class="toast-message">' + message + '</div>' : '') +
+                    '</div>' +
+                    '<button class="toast-close" aria-label="Đóng"><i class="fas fa-times"></i></button>' +
+                    '<div class="toast-progress"></div>';
+
+                function dismiss() {
+                    clearTimeout(el._timer);
+                    el.style.animation = 'toastSlideOut 0.32s ease forwards';
+                    setTimeout(function() { if (el.parentNode) el.remove(); }, 310);
+                }
+
+                el.querySelector('.toast-close').addEventListener('click', dismiss);
+                container.appendChild(el);
+                el._timer = setTimeout(dismiss, dur);
             }
-        }
+
+            window.showSuccessModal = function(title, message) { showToast('success', title || 'Thành công', message, 4000); };
+            window.showErrorModal   = function(title, message) { showToast('error',   title || 'Lỗi',       message, 5000); };
+            window.showInfoModal    = function(title, message) { showToast('info',    title || 'Thông tin', message, 4000); };
+        })();
 
         function showConfirm(title, message, onConfirm, onCancel = null) {
             const modal = document.getElementById('globalNotification');
@@ -732,17 +723,6 @@
       document.addEventListener('DOMContentLoaded', function() {
             wrapDeleteButtons();
         });
-
-        // Patch fetch to show success messages for DELETE requests
-        const originalFetch = window.fetch;
-        window.fetch = function(...args) {
-            return originalFetch.apply(this, args).then(response => {
-                if (args[1] && args[1].method === 'DELETE' && response.ok) {
-                    showSuccessModal('Thành công', 'Xóa thành công!');
-                }
-                return response;
-            });
-        };
 
         // Modal confirmation system
         const modalStates = new Map(); // Store original states of modals
@@ -897,423 +877,361 @@
     <!-- Chatbot Script -->
     <script>
         const BACKEND_URL = window.BACKEND_URL;
-        
-        // Chatbot functionality
-        function toggleChatbot() {
-            const chatbotWindow = document.getElementById('chatbotWindow');
-            const sidebar = document.querySelector('.sidebar');
-            const isVisible = chatbotWindow.style.display !== 'none';
-            chatbotWindow.style.display = isVisible ? 'none' : 'flex';
-            
-            // Adjust position based on sidebar state
-            if (!isVisible) {
-                updateChatbotPosition();
-                loadChatHistory();
-                // Focus input when opening
-                setTimeout(() => {
-                    document.getElementById('chatbotInput').focus();
-                }, 100);
-            }
+
+        // ── Chatbot AI Assistant ──────────────────────────────────────────────
+
+        function _chatTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
         }
-        
-        // Load chat history from sessionStorage
-        function loadChatHistory() {
-            const messagesContainer = document.getElementById('chatbotMessages');
-            const chatHistory = sessionStorage.getItem('chatbot_history');
-            
-            // Only load if chatbot window is visible and we have history
-            if (chatHistory && messagesContainer) {
-                try {
-                    const history = JSON.parse(chatHistory);
-                    // Clear default welcome message if we have history
-                    if (history.length > 0) {
-                        // Check if we already loaded history (avoid duplicate loading)
-                        const existingMessages = messagesContainer.querySelectorAll('.chatbot-message');
-                        if (existingMessages.length <= 1) { // Only welcome message exists
-                            messagesContainer.innerHTML = '';
-                            history.forEach(msg => {
-                                addMessageToDOM(msg.type, msg.content, false, false);
-                            });
-                            // Scroll to bottom after loading
-                            setTimeout(() => {
-                                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                            }, 100);
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error loading chat history:', e);
-                }
-            }
-        }
-        
-        // Save chat history to sessionStorage
-        function saveChatHistory() {
-            const messagesContainer = document.getElementById('chatbotMessages');
-            const messages = messagesContainer.querySelectorAll('.chatbot-message');
-            const history = [];
-            
-            messages.forEach(msg => {
-                // Skip loading messages
-                const isLoading = msg.getAttribute('data-loading') === 'true';
-                if (isLoading) return;
-                
-                const type = msg.classList.contains('user') ? 'user' : 'bot';
-                
-                // Check if this message has suggestions
-                const suggestionCard = msg.querySelector('.suggestion-card');
-                if (suggestionCard) {
-                    // For messages with suggestions, save the text content
-                    const contentEl = msg.querySelector('.message-content p');
-                    if (contentEl) {
-                        const content = contentEl.textContent || contentEl.innerText;
-                        if (content && !content.includes('Đang phân tích...')) {
-                            history.push({ type, content, hasSuggestions: true });
-                        }
-                    }
+
+        function _renderMarkdown(text) {
+            // Bold: **text**
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // Lines starting with • or - become list items
+            const lines = text.split('\n');
+            let html = '', inList = false;
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (/^[•\-]\s/.test(trimmed)) {
+                    if (!inList) { html += '<ul>'; inList = true; }
+                    html += '<li>' + trimmed.replace(/^[•\-]\s/, '') + '</li>';
                 } else {
-                    // Regular message
-                    const contentEl = msg.querySelector('.message-content p');
-                    if (contentEl) {
-                        const content = contentEl.textContent || contentEl.innerText;
-                        if (content && !content.includes('Đang phân tích...') && !content.includes('fa-spinner')) {
-                            history.push({ type, content });
-                        }
-                    }
+                    if (inList) { html += '</ul>'; inList = false; }
+                    if (trimmed) html += '<p>' + trimmed + '</p>';
                 }
-            });
-            
-            sessionStorage.setItem('chatbot_history', JSON.stringify(history));
-        }
-        
-        // Reset chat history
-        function resetChatHistory() {
-            sessionStorage.removeItem('chatbot_history');
-            const messagesContainer = document.getElementById('chatbotMessages');
-            // Reset to default welcome message
-            messagesContainer.innerHTML = `
-                <div class="chatbot-message bot">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        <p>Xin chào! Tôi là Thư ký ảo AI của bạn. Tôi có thể giúp bạn:</p>
-                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
-                            <li>Phân tích và thống kê tồn kho</li>
-                            <li>Đề xuất đặt hàng tự động</li>
-                            <li>Kiểm tra sản phẩm bán chạy, sắp hết hàng</li>
-                            <li>Báo cáo và phân tích doanh thu</li>
-                        </ul>
-                        <p style="margin-top: 0.5rem;">Hãy thử: "Đề xuất đặt hàng", "Sản phẩm sắp hết", "Phân tích tồn kho"</p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // updateChatbotPosition removed — chatbot dùng right:20px fixed, không phụ thuộc sidebar
-        
-        function handleChatbotKeypress(event) {
-            if (event.key === 'Enter') {
-                sendChatbotMessage();
             }
+            if (inList) html += '</ul>';
+            return html;
         }
-        
-        async function sendChatbotMessage(message = null) {
-            const input = document.getElementById('chatbotInput');
-            const messagesContainer = document.getElementById('chatbotMessages');
-            const suggestionsContainer = document.getElementById('chatbotSuggestions');
-            
-            const userMessage = message || input.value.trim();
-            if (!userMessage) return;
-            
-            // Clear input
-            input.value = '';
-            
-            // Add user message
-            addMessage('user', userMessage);
-            saveChatHistory(); // Save after user message
-            
-            // Hide suggestions while processing
-            suggestionsContainer.style.display = 'none';
-            
-            // Show loading
-            const loadingId = addMessage('bot', 'Đang phân tích...', true);
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/chatbot/analyze`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-                    },
-                    body: JSON.stringify({ message: userMessage })
-                });
-                
-                // Remove loading message IMMEDIATELY before processing response
-                const loadingMsg = document.getElementById(loadingId);
-                if (loadingMsg) {
-                    loadingMsg.remove(); // Remove immediately without animation for cleaner UX
-                }
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Add bot response
-                    addMessage('bot', data.response);
-                    
-                    // Add suggestions if available
-                    if (data.suggestions && data.suggestions.length > 0) {
-                        addSuggestions(data.suggestions);
-                    }
-                    
-                    // Save history after bot response
-                    saveChatHistory();
-                } else {
-                    addMessage('bot', 'Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu của bạn.');
-                    saveChatHistory();
-                }
-            } catch (error) {
-                // Remove loading message IMMEDIATELY
-                const loadingMsg = document.getElementById(loadingId);
-                if (loadingMsg) {
-                    loadingMsg.remove();
-                }
-                
-                console.error('Chatbot error:', error);
-                addMessage('bot', 'Xin lỗi, không thể kết nối đến server. Vui lòng thử lại sau.');
-                saveChatHistory();
-            }
-            
-            // Show suggestions again
-            suggestionsContainer.style.display = 'flex';
-            
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-        
-        function addMessage(type, content, isLoading = false) {
-            return addMessageToDOM(type, content, isLoading, true);
-        }
-        
-        function addMessageToDOM(type, content, isLoading = false, scroll = true) {
-            const messagesContainer = document.getElementById('chatbotMessages');
-            const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chatbot-message ${type}`;
-            messageDiv.id = messageId;
-            messageDiv.setAttribute('data-loading', isLoading ? 'true' : 'false');
-            
+
+        function _addMsg(type, htmlOrText, isRaw = false, scroll = true) {
+            const box = document.getElementById('chatbotMessages');
+            const id  = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+            const isUser = type === 'user';
+            const avatarIcon = isUser ? 'fas fa-user' : 'fas fa-robot';
+
+            const wrap = document.createElement('div');
+            wrap.className = 'chatbot-message ' + type;
+            wrap.id = id;
+
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.innerHTML = type === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
-            
-            const messageContent = document.createElement('div');
-            messageContent.className = 'message-content';
-            
-            if (isLoading) {
-                messageContent.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> ' + content + '</p>';
-            } else {
-                // Convert line breaks to <br>
-                const formattedContent = content.replace(/\n/g, '<br>');
-                messageContent.innerHTML = '<p>' + formattedContent + '</p>';
-            }
-            
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(messageContent);
-            messagesContainer.appendChild(messageDiv);
-            
-            // Scroll to bottom
-            if (scroll) {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-            
-            return messageId;
+            avatar.innerHTML = '<i class="' + avatarIcon + '"></i>';
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.innerHTML = isRaw ? htmlOrText : _renderMarkdown(htmlOrText);
+
+            const time = document.createElement('span');
+            time.className = 'message-time';
+            time.textContent = _chatTime();
+
+            bubble.appendChild(content);
+            bubble.appendChild(time);
+            wrap.appendChild(avatar);
+            wrap.appendChild(bubble);
+            box.appendChild(wrap);
+
+            if (scroll) box.scrollTop = box.scrollHeight;
+            return id;
         }
-        
-        function addSuggestions(suggestions) {
-            const messagesContainer = document.getElementById('chatbotMessages');
-            
-            const suggestionCard = document.createElement('div');
-            suggestionCard.className = 'suggestion-card';
-            
-            const title = document.createElement('h5');
-            title.textContent = '💡 Đề xuất đặt hàng:';
-            suggestionCard.appendChild(title);
-            
-            suggestions.forEach(suggestion => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                
-                const info = document.createElement('div');
-                info.className = 'suggestion-item-info';
-                
-                const name = document.createElement('div');
-                name.className = 'suggestion-item-name';
-                name.textContent = suggestion.product_name || suggestion.ma_sp;
-                
-                const details = document.createElement('div');
-                details.className = 'suggestion-item-details';
-                let detailsText = `Mã: ${suggestion.ma_sp} | Tồn kho: ${(suggestion.current_stock || 0).toLocaleString()}`;
-                if (suggestion.days_until_out && suggestion.days_until_out !== 'N/A') {
-                    detailsText += ` | Dự kiến hết trong: ${suggestion.days_until_out} ngày`;
-                }
-                if (suggestion.sales_rate) {
-                    detailsText += ` | Tốc độ bán: ${suggestion.sales_rate}/ngày`;
-                }
-                details.textContent = detailsText;
-                
-                info.appendChild(name);
-                info.appendChild(details);
-                
-                const action = document.createElement('div');
-                action.className = 'suggestion-item-action';
-                
-                const orderBtn = document.createElement('button');
-                orderBtn.className = 'order-btn';
-                orderBtn.textContent = `Đặt ${(suggestion.recommended_quantity || 0).toLocaleString()}`;
-                orderBtn.onclick = () => createOrderFromSuggestion(suggestion);
-                
-                action.appendChild(orderBtn);
-                
-                item.appendChild(info);
-                item.appendChild(action);
-                suggestionCard.appendChild(item);
-            });
-            
-            const botMessage = document.createElement('div');
-            botMessage.className = 'chatbot-message bot';
-            botMessage.setAttribute('data-loading', 'false');
-            
+
+        function _addTyping() {
+            const box = document.getElementById('chatbotMessages');
+            const id  = 'typing-' + Date.now();
+            const wrap = document.createElement('div');
+            wrap.className = 'chatbot-message bot';
+            wrap.id = id;
+            wrap.innerHTML =
+                '<div class="message-avatar"><i class="fas fa-robot"></i></div>' +
+                '<div class="message-bubble">' +
+                  '<div class="typing-indicator">' +
+                    '<div class="typing-dot"></div>' +
+                    '<div class="typing-dot"></div>' +
+                    '<div class="typing-dot"></div>' +
+                  '</div>' +
+                '</div>';
+            box.appendChild(wrap);
+            box.scrollTop = box.scrollHeight;
+            return id;
+        }
+
+        function _removeById(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function _addSuggestionCard(suggestions) {
+            const box = document.getElementById('chatbotMessages');
+            const wrap = document.createElement('div');
+            wrap.className = 'chatbot-message bot';
+
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
             avatar.innerHTML = '<i class="fas fa-robot"></i>';
-            
-            botMessage.appendChild(avatar);
-            botMessage.appendChild(suggestionCard);
-            
-            messagesContainer.appendChild(botMessage);
-            
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            const card = document.createElement('div');
+            card.className = 'chatbot-card';
+
+            const title = document.createElement('div');
+            title.className = 'chatbot-card-title';
+            title.textContent = 'Danh sách đề xuất (' + suggestions.length + ')';
+            card.appendChild(title);
+
+            suggestions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'chatbot-card-item';
+
+                const dot = document.createElement('div');
+                dot.className = 'chatbot-priority-dot ' + (s.priority === 'high' ? 'high' : 'normal');
+
+                const info = document.createElement('div');
+                info.className = 'chatbot-card-info';
+
+                const name = document.createElement('div');
+                name.className = 'chatbot-card-name';
+                name.textContent = s.product_name || s.ma_sp;
+
+                const meta = document.createElement('div');
+                meta.className = 'chatbot-card-meta';
+                let metaText = 'Tồn: ' + (s.current_stock || 0).toLocaleString();
+                if (s.sales_rate > 0) metaText += ' · Tốc độ: ' + s.sales_rate + '/ngày';
+                if (s.days_until_out !== 'N/A' && typeof s.days_until_out === 'number')
+                    metaText += ' · Hết trong: ' + s.days_until_out + ' ngày';
+                meta.textContent = metaText;
+
+                info.appendChild(name);
+                info.appendChild(meta);
+
+                const btn = document.createElement('button');
+                btn.className = 'chatbot-order-btn' + (s.priority === 'high' ? ' urgent' : '');
+                btn.textContent = 'Đặt ' + (s.recommended_quantity || 0).toLocaleString();
+                btn.onclick = () => _createOrder(s);
+
+                item.appendChild(dot);
+                item.appendChild(info);
+                item.appendChild(btn);
+                card.appendChild(item);
+            });
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.appendChild(card);
+
+            wrap.appendChild(avatar);
+            wrap.appendChild(bubble);
+            box.appendChild(wrap);
+            box.scrollTop = box.scrollHeight;
         }
-        
-        async function createOrderFromSuggestion(suggestion) {
-            if (!confirm(`Bạn có chắc muốn tạo đơn đặt hàng cho ${suggestion.product_name} với số lượng ${(suggestion.recommended_quantity || 0).toLocaleString()}?`)) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/chatbot/create-order`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
-                    },
-                    body: JSON.stringify({
-                        product_code: suggestion.ma_sp,
-                        quantity: suggestion.recommended_quantity
-                    })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    addMessage('bot', `✅ ${data.message}`);
-                    
-                    // Show success notification
-                    if (typeof showSuccessModal === 'function') {
-                        showSuccessModal('Thành công', data.message);
-                    }
-                    
-                    // Optionally redirect to orders page
-                    setTimeout(() => {
-                        if (confirm('Bạn có muốn xem đơn hàng vừa tạo không?')) {
-                            window.location.href = '/orders';
+
+        async function _createOrder(s) {
+            showConfirm(
+                'Xác nhận đặt hàng',
+                'Tạo đơn đặt ' + (s.recommended_quantity || 0).toLocaleString() + ' sản phẩm "' + (s.product_name || s.ma_sp) + '"?',
+                async function() {
+                    try {
+                        const res = await fetch(BACKEND_URL + '/api/chatbot/create-order', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                            },
+                            body: JSON.stringify({ product_code: s.ma_sp, quantity: s.recommended_quantity })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            _addMsg('bot', '✅ ' + data.message);
+                            showSuccessModal('Đặt hàng thành công', data.message);
+                            showConfirm('Xem đơn hàng', 'Bạn có muốn xem đơn hàng vừa tạo không?',
+                                function() { window.location.href = '/orders'; });
+                        } else {
+                            _addMsg('bot', '❌ ' + (data.detail || 'Không thể tạo đơn hàng.'));
                         }
-                    }, 1000);
-                } else {
-                    const error = await response.json();
-                    addMessage('bot', `❌ Lỗi: ${error.detail || 'Không thể tạo đơn hàng'}`);
+                    } catch (e) {
+                        _addMsg('bot', '❌ Lỗi kết nối khi tạo đơn hàng.');
+                    }
+                    _saveChatHistory();
                 }
-            } catch (error) {
-                console.error('Error creating order:', error);
-                addMessage('bot', '❌ Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại.');
-            }
+            );
         }
-        
-        // Check for low stock products on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            checkLowStockProducts();
-        });
-        
-        async function checkLowStockProducts() {
+
+        function _saveChatHistory() {
+            const box = document.getElementById('chatbotMessages');
+            if (!box) return;
+            const history = [];
+            box.querySelectorAll('.chatbot-message').forEach(msg => {
+                if (msg.querySelector('.typing-indicator')) return;
+                const type = msg.classList.contains('user') ? 'user' : 'bot';
+                const contentEl = msg.querySelector('.message-content');
+                if (contentEl) history.push({ type, html: contentEl.innerHTML });
+            });
+            try { sessionStorage.setItem('chatbot_history', JSON.stringify(history)); } catch(e) {}
+        }
+
+        function loadChatHistory() {
+            const box = document.getElementById('chatbotMessages');
+            if (!box) return;
             try {
-                const response = await fetch(`${BACKEND_URL}/api/chatbot/analyze`, {
+                const raw = sessionStorage.getItem('chatbot_history');
+                if (!raw) return;
+                const history = JSON.parse(raw);
+                if (!history.length) return;
+                if (box.querySelectorAll('.chatbot-message').length > 1) return;
+                box.innerHTML = '';
+                history.forEach(m => _addMsg(m.type, m.html, true, false));
+                setTimeout(() => { box.scrollTop = box.scrollHeight; }, 80);
+            } catch(e) {}
+        }
+
+        function resetChatHistory() {
+            sessionStorage.removeItem('chatbot_history');
+            const box = document.getElementById('chatbotMessages');
+            if (!box) return;
+            box.innerHTML =
+                '<div class="chatbot-message bot">' +
+                  '<div class="message-avatar"><i class="fas fa-robot"></i></div>' +
+                  '<div class="message-bubble">' +
+                    '<div class="message-content">' +
+                      '<p>Xin chào! Tôi là <strong>Thư ký ảo AI</strong>.</p>' +
+                      '<p>Bấm các gợi ý bên dưới hoặc nhập câu hỏi để bắt đầu.</p>' +
+                    '</div>' +
+                    '<span class="message-time">' + _chatTime() + '</span>' +
+                  '</div>' +
+                '</div>';
+        }
+
+        async function sendChatbotMessage(preset) {
+            const input   = document.getElementById('chatbotInput');
+            const chips   = document.getElementById('chatbotSuggestions');
+            const sendBtn = document.getElementById('chatbotSendBtn');
+            const msg = preset || (input ? input.value.trim() : '');
+            if (!msg) return;
+
+            if (input) input.value = '';
+            if (sendBtn) sendBtn.disabled = true;
+            if (chips)   chips.style.display = 'none';
+
+            _addMsg('user', msg);
+            const typingId = _addTyping();
+
+            try {
+                const res = await fetch(BACKEND_URL + '/api/chatbot/analyze', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                        'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
                     },
-                    body: JSON.stringify({ message: 'sản phẩm sắp hết' })
+                    body: JSON.stringify({ message: msg })
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
+                _removeById(typingId);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    _addMsg('bot', data.response || 'Không có phản hồi.');
                     if (data.suggestions && data.suggestions.length > 0) {
-                        // Show badge if there are products needing reorder
-                        const badge = document.getElementById('chatbotBadge');
-                        if (badge) {
-                            badge.textContent = data.suggestions.length;
-                            badge.style.display = 'flex';
-                        }
+                        _addSuggestionCard(data.suggestions);
                     }
+                } else {
+                    _addMsg('bot', 'Xin lỗi, đã xảy ra lỗi khi xử lý yêu cầu.');
                 }
-            } catch (error) {
-                console.error('Error checking low stock:', error);
+            } catch (e) {
+                _removeById(typingId);
+                _addMsg('bot', 'Không thể kết nối đến server. Vui lòng thử lại sau.');
             }
+
+            if (sendBtn) sendBtn.disabled = false;
+            if (chips)   chips.style.display = 'flex';
+            _saveChatHistory();
         }
-        
-        // Close chatbot when clicking outside
-        // (click-outside handled by floating chatbot)
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Badge: check low-stock count silently
+            fetch(BACKEND_URL + '/api/chatbot/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + sessionStorage.getItem('access_token')
+                },
+                body: JSON.stringify({ message: 'sản phẩm sắp hết' })
+            }).then(r => r.ok ? r.json() : null).then(data => {
+                if (data && data.suggestions && data.suggestions.length > 0) {
+                    const badge = document.getElementById('chatbotBadge');
+                    if (badge) { badge.textContent = data.suggestions.length; badge.style.display = 'flex'; }
+                }
+            }).catch(() => {});
+        });
+
+        // ESC to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const win = document.getElementById('chatbotWindow');
+                if (win && win.style.display === 'flex') toggleChatbot();
+            }
+        });
     </script>
-    
+
     {% block extra_js %}{% endblock %}
 
     <!-- ═══ FLOATING CHATBOT ═══ -->
     <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()" title="Thư ký ảo AI">
         <i class="fas fa-robot" id="chatbotFabIcon"></i>
+        <span class="chatbot-fab-badge" id="chatbotBadge"></span>
     </button>
+
     <div class="chatbot-window-floating" id="chatbotWindow" style="display:none;">
         <div class="chatbot-header">
             <div class="chatbot-header-info">
-                <i class="fas fa-robot"></i>
-                <div><h4>Thư ký ảo AI</h4><span class="chatbot-status">Đang hoạt động</span></div>
+                <div class="chatbot-header-avatar"><i class="fas fa-robot"></i></div>
+                <div class="chatbot-header-text">
+                    <h4>Thư ký ảo AI</h4>
+                    <span class="chatbot-status">Đang hoạt động</span>
+                </div>
             </div>
-            <button class="chatbot-close" onclick="toggleChatbot()"><i class="fas fa-times"></i></button>
+            <div class="chatbot-header-actions">
+                <button class="chatbot-header-btn" onclick="resetChatHistory()" title="Xóa lịch sử trò chuyện">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button class="chatbot-header-btn" onclick="toggleChatbot()" title="Đóng">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
+
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="chatbot-message bot">
                 <div class="message-avatar"><i class="fas fa-robot"></i></div>
-                <div class="message-content">
-                    <p>Xin chào! Tôi là <strong>Thư ký ảo AI</strong>. Bấm gợi ý bên dưới để bắt đầu!</p>
+                <div class="message-bubble">
+                    <div class="message-content">
+                        <p>Xin chào! Tôi là <strong>Thư ký ảo AI</strong>.</p>
+                        <p>Tôi có thể giúp bạn phân tích tồn kho, đề xuất đặt hàng và báo cáo doanh thu.</p>
+                    </div>
+                    <span class="message-time" id="chatWelcomeTime"></span>
                 </div>
             </div>
         </div>
-        <div class="chatbot-suggestions" id="chatbotSuggestions">
-            <button class="suggestion-btn" onclick="sendChatbotMessage('Đề xuất đặt hàng')"><i class="fas fa-shopping-cart"></i> Đề xuất đặt hàng</button>
-            <button class="suggestion-btn" onclick="sendChatbotMessage('Sản phẩm sắp hết')"><i class="fas fa-exclamation-triangle"></i> Sản phẩm sắp hết</button>
-            <button class="suggestion-btn" onclick="sendChatbotMessage('Phân tích tồn kho')"><i class="fas fa-chart-bar"></i> Phân tích kho</button>
-            <button class="suggestion-btn" onclick="sendChatbotMessage('Sản phẩm bán chạy')"><i class="fas fa-fire"></i> Bán chạy</button>
-            <button class="suggestion-btn" onclick="sendChatbotMessage('Báo cáo doanh thu')"><i class="fas fa-coins"></i> Doanh thu</button>
+
+        <div class="chatbot-quick-replies" id="chatbotSuggestions">
+            <button class="chatbot-chip" onclick="sendChatbotMessage('Đề xuất đặt hàng')"><i class="fas fa-shopping-cart"></i> Đề xuất đặt hàng</button>
+            <button class="chatbot-chip" onclick="sendChatbotMessage('Sản phẩm sắp hết')"><i class="fas fa-exclamation-triangle"></i> Sắp hết</button>
+            <button class="chatbot-chip" onclick="sendChatbotMessage('Phân tích tồn kho')"><i class="fas fa-chart-bar"></i> Phân tích kho</button>
+            <button class="chatbot-chip" onclick="sendChatbotMessage('Sản phẩm bán chạy')"><i class="fas fa-fire"></i> Bán chạy</button>
+            <button class="chatbot-chip" onclick="sendChatbotMessage('Báo cáo doanh thu')"><i class="fas fa-coins"></i> Doanh thu</button>
         </div>
-        <div class="chatbot-input-container">
+
+        <div class="chatbot-input-area">
             <input type="text" class="chatbot-input" id="chatbotInput"
-                   placeholder="Nhập câu hỏi của bạn..."
-                   onkeypress="handleChatbotKeypress(event)">
-            <button class="chatbot-send-btn" onclick="sendChatbotMessage()">
+                   placeholder="Nhập câu hỏi..."
+                   onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatbotMessage();}">
+            <button class="chatbot-send-btn" id="chatbotSendBtn" onclick="sendChatbotMessage()" title="Gửi">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
     </div>
+
     <script>
     function toggleChatbot() {
         var win  = document.getElementById('chatbotWindow');
@@ -1325,10 +1243,14 @@
         if (fab)  fab.classList.toggle('active', opening);
         if (icon) icon.className = opening ? 'fas fa-times' : 'fas fa-robot';
         if (opening) {
+            // Set welcome timestamp
+            var wt = document.getElementById('chatWelcomeTime');
+            if (wt && !wt.textContent) wt.textContent = _chatTime();
             if (typeof loadChatHistory === 'function') loadChatHistory();
-            setTimeout(function(){ var i=document.getElementById('chatbotInput'); if(i)i.focus(); }, 120);
+            setTimeout(function() { var i = document.getElementById('chatbotInput'); if (i) i.focus(); }, 120);
         }
     }
+    // Close on outside click
     document.addEventListener('click', function(e) {
         var win = document.getElementById('chatbotWindow');
         var fab = document.getElementById('chatbotFab');

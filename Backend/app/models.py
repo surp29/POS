@@ -217,6 +217,8 @@ class Order(Base):
         'OrderItem', back_populates='order',
         cascade='all, delete-orphan',
     )
+    shipments = relationship('Shipment', back_populates='order',
+                             foreign_keys='Shipment.order_id')
 
     def __repr__(self):
         return f"<Order(ma_don_hang='{self.ma_don_hang}', trang_thai='{self.trang_thai}')>"
@@ -260,6 +262,8 @@ class Invoice(Base):
         'InvoiceItem', back_populates='invoice',
         cascade='all, delete-orphan',
     )
+    shipments = relationship('Shipment', back_populates='invoice',
+                             foreign_keys='Shipment.invoice_id')
 
     def __repr__(self):
         return f"<Invoice(so_hd='{self.so_hd}', trang_thai='{self.trang_thai}')>"
@@ -489,8 +493,8 @@ class Shipment(Base):
     delivered_at      = Column(DateTime)
 
     # Relationships
-    order    = relationship('Order',   foreign_keys=[order_id])
-    invoice  = relationship('Invoice', foreign_keys=[invoice_id])
+    order    = relationship('Order',   back_populates='shipments', foreign_keys=[order_id])
+    invoice  = relationship('Invoice', back_populates='shipments', foreign_keys=[invoice_id])
     history  = relationship(
         'ShipmentHistory', back_populates='shipment',
         cascade='all, delete-orphan',

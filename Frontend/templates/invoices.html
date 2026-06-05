@@ -129,177 +129,167 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
 </div>
 
 <!-- Add Invoice Modal -->
-<div class="modal-overlay" id="addInvoiceModal" style="display: none;">
+<div class="modal-overlay" id="addInvoiceModal" style="display:none;">
     <div class="modal modal-horizontal">
-    <div class="modal-header">
-            <h3><i class="fas fa-plus"></i> Thêm hóa đơn mới</h3>
-            <button class="modal-close" onclick="closeAddInvoiceModal()">
-                <i class="fas fa-times"></i>
-            </button>
-    </div>
+        <div class="modal-header">
+            <h3><i class="fas fa-file-invoice"></i> Thêm hóa đơn mới</h3>
+            <button class="modal-close" onclick="closeAddInvoiceModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="addInvoiceForm">
-                <!-- Row 1: Số hóa đơn | Ngày tạo -->
-       <div class="form-row">
-         <div class="form-group">
-                        <label class="form-label">Số hóa đơn *</label>
-                        <input type="text" class="form-input" name="so_hoa_don" required placeholder="Nhập số hóa đơn">
-         </div>
-         <div class="form-group">
-                        <label class="form-label">Ngày tạo *</label>
-                        <input type="date" class="form-input" name="ngay_tao" required>
-         </div>
-       </div>
-      
-                <!-- Row 2: Tên khách hàng | Mã đơn hàng -->
+                <div class="form-section"><i class="fas fa-file-alt"></i> Thông tin hóa đơn</div>
                 <div class="form-row">
-         <div class="form-group">
-                    <label class="form-label">Tên khách hàng *</label>
-                    <div class="customer-search-container">
-                        <div class="search-input">
-                            <i class="fas fa-search"></i>
-                                <input type="text" class="form-input" name="ten_khach_hang" id="addCustomerName" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)" onchange="handleCustomerChange()">
-                        </div>
-                        <!-- Custom dropdown list -->
-                        <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display: none;">
-                            <!-- Options will be populated dynamically -->
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label required">Số hóa đơn</label>
+                        <input type="text" class="form-input" name="so_hoa_don" required placeholder="VD: HD-2024-001">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label required">Ngày tạo</label>
+                        <input type="date" class="form-input" name="ngay_tao" required>
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-user"></i> Khách hàng & Đơn hàng</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Tên khách hàng</label>
+                        <div class="customer-search-container">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" class="form-input" name="ten_khach_hang" id="addCustomerName" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)" onchange="handleCustomerChange()">
+                            </div>
+                            <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display:none;"></div>
+                        </div>
                         <input type="hidden" id="selectedCustomerId" name="customer_id">
-       </div>
-         <div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Mã đơn hàng</label>
                         <div class="order-search-container">
                             <div class="search-input">
                                 <i class="fas fa-search"></i>
                                 <input type="text" class="form-input" id="addOrderCode" placeholder="Tìm kiếm mã đơn hàng" autocomplete="off" readonly onclick="showOrderDropdown()">
                             </div>
-                            <!-- Custom dropdown list for orders -->
-                            <div class="order-dropdown-list" id="addOrderDropdownList" style="display: none;">
-                                <!-- Options will be populated dynamically -->
-                            </div>
+                            <div class="order-dropdown-list" id="addOrderDropdownList" style="display:none;"></div>
                         </div>
                         <input type="hidden" id="selectedOrderId" name="order_id">
-         </div>
-       </div>
-      
-                <!-- Row 3: Tổng tiền | Hình thức thanh toán -->
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-credit-card"></i> Thanh toán</div>
                 <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Tổng tiền *</label>
-                    <div class="money-input-container">
-                        <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
-                        <input type="hidden" name="tong_tien" id="add_tong_tien">
-                        <span class="currency-unit">VNĐ</span>
+                    <div class="form-group">
+                        <label class="form-label required">Tổng tiền</label>
+                        <div class="money-input-container">
+                            <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
+                            <input type="hidden" name="tong_tien" id="add_tong_tien">
+                            <span class="currency-unit">VNĐ</span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Hình thức thanh toán *</label>
+                        <label class="form-label required">Hình thức thanh toán</label>
                         <select class="form-select" name="hinh_thuc_tt" id="addHinhThucTT" required>
-                            <option value="">Chọn hình thức thanh toán</option>
-                            <option value="Tiền mặt">Tiền mặt</option>
-                            <option value="MoMo">MoMo</option>
-                            <option value="Banking">Banking</option>
+                            <option value="">-- Chọn hình thức --</option>
+                            <option value="Tiền mặt">💵 Tiền mặt</option>
+                            <option value="MoMo">📱 MoMo</option>
+                            <option value="Banking">🏦 Banking</option>
                         </select>
                     </div>
                 </div>
-                
-                <!-- Row 4: Trạng thái | Ghi chú -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Trạng thái *</label>
+                        <label class="form-label required">Trạng thái</label>
                         <select class="form-select" name="trang_thai" required>
-                            <option value="">Chọn trạng thái</option>
-                            <option value="Đã thanh toán">Đã thanh toán</option>
-                            <option value="Chưa thanh toán">Chưa thanh toán</option>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="Đã thanh toán">✅ Đã thanh toán</option>
+                            <option value="Chưa thanh toán">⏳ Chưa thanh toán</option>
                         </select>
                     </div>
-                <div class="form-group">
-                    <label class="form-label">Ghi chú</label>
-                    <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Ghi chú thêm..."></textarea>
                     </div>
-      </div>
-    </form>
+                </div>
+            </form>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAddInvoiceModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="createInvoice()">Tạo hóa đơn</button>
+            <button type="button" class="btn btn-primary" onclick="createInvoice()">
+                <i class="fas fa-plus"></i> Tạo hóa đơn
+            </button>
         </div>
-  </div>
+    </div>
 </div>
 
 <!-- Edit Invoice Modal -->
-<div class="modal-overlay" id="editInvoiceModal" style="display: none;">
+<div class="modal-overlay" id="editInvoiceModal" style="display:none;">
     <div class="modal modal-horizontal">
-    <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Chỉnh sửa hóa đơn</h3>
-            <button class="modal-close" onclick="closeEditInvoiceModal()">
-                <i class="fas fa-times"></i>
-            </button>
-    </div>
+        <div class="modal-header">
+            <h3><i class="fas fa-file-invoice"></i> Chỉnh sửa hóa đơn</h3>
+            <button class="modal-close" onclick="closeEditInvoiceModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="editInvoiceForm">
                 <input type="hidden" name="id">
-      
-      <div class="form-row">
-        <div class="form-group">
+
+                <div class="form-section"><i class="fas fa-file-alt"></i> Thông tin hóa đơn</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Số hóa đơn</label>
                         <input type="text" class="form-input" name="so_hoa_don" readonly>
-        </div>
-        <div class="form-group">
-                        <label class="form-label">Ngày tạo *</label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Ngày tạo</label>
                         <input type="date" class="form-input" name="ngay_tao" required>
-        </div>
-      </div>
-      
-        <div class="form-group">
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Tên khách hàng</label>
                     <input type="text" class="form-input" name="ten_khach_hang" readonly>
-      </div>
-      
-      <!-- Row 3: Tổng tiền | Hình thức thanh toán -->
-      <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Tổng tiền</label>
-                    <div class="money-input-container">
-                <input type="text" id="edit_tong_tien_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_tong_tien'))">
-                        <input type="hidden" name="tong_tien" id="edit_tong_tien">
-                        <span class="currency-unit">VNĐ</span>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="form-label">Hình thức thanh toán *</label>
-            <select class="form-select" name="hinh_thuc_tt" id="editHinhThucTT" required>
-                <option value="">Chọn hình thức thanh toán</option>
-                <option value="Tiền mặt">Tiền mặt</option>
-                <option value="MoMo">MoMo</option>
-                <option value="Banking">Banking</option>
-            </select>
-  </div>
-</div>
+                </div>
 
-      <!-- Row 4: Trạng thái | Ghi chú -->
-      <div class="form-row">
-        <div class="form-group">
-            <label class="form-label">Trạng thái *</label>
-            <select class="form-select" name="trang_thai" required>
-                <option value="">Chọn trạng thái</option>
-                <option value="Đã thanh toán">Đã thanh toán</option>
-                <option value="Chưa thanh toán">Chưa thanh toán</option>
-            </select>
-        </div>
-                <div class="form-group">
-                    <label class="form-label">Ghi chú</label>
-            <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
-        </div>
-    </div>
+                <div class="form-section"><i class="fas fa-credit-card"></i> Thanh toán</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Tổng tiền</label>
+                        <div class="money-input-container">
+                            <input type="text" id="edit_tong_tien_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_tong_tien'))">
+                            <input type="hidden" name="tong_tien" id="edit_tong_tien">
+                            <span class="currency-unit">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Hình thức thanh toán</label>
+                        <select class="form-select" name="hinh_thuc_tt" id="editHinhThucTT" required>
+                            <option value="">-- Chọn hình thức --</option>
+                            <option value="Tiền mặt">💵 Tiền mặt</option>
+                            <option value="MoMo">📱 MoMo</option>
+                            <option value="Banking">🏦 Banking</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Trạng thái</label>
+                        <select class="form-select" name="trang_thai" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="Đã thanh toán">✅ Đã thanh toán</option>
+                            <option value="Chưa thanh toán">⏳ Chưa thanh toán</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                    </div>
+                </div>
             </form>
-    </div>
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditInvoiceModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updateInvoice()">Cập nhật</button>
+            <button type="button" class="btn btn-primary" onclick="updateInvoice()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Delete Confirmation Modal -->

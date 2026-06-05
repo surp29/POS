@@ -120,37 +120,36 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
 </div>
 
 <!-- Add Warehouse Modal -->
-<div class="modal-overlay" id="addWarehouseModal" style="display: none;">
+<div class="modal-overlay" id="addWarehouseModal" style="display:none;">
     <div class="modal modal-horizontal">
         <div class="modal-header">
-            <h3><i class="fas fa-plus-circle"></i> Nhập kho mới</h3>
-            <button class="modal-close" onclick="closeAddWarehouseModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <h3><i class="fas fa-warehouse"></i> Nhập kho mới</h3>
+            <button class="modal-close" onclick="closeAddWarehouseModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <form id="createWarehouseForm">
+                <div class="form-section"><i class="fas fa-warehouse"></i> Thông tin kho</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Mã kho *</label>
-                        <input type="text" class="form-input" name="ma_kho" required placeholder="Nhập mã kho">
+                        <label class="form-label required">Mã kho</label>
+                        <input type="text" class="form-input" name="ma_kho" required placeholder="VD: KHO01">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Tên kho *</label>
+                        <label class="form-label required">Tên kho</label>
                         <input type="text" class="form-input" name="ten_kho" required placeholder="Nhập tên kho">
                     </div>
                 </div>
+
+                <div class="form-section"><i class="fas fa-box"></i> Sản phẩm & Số lượng</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Mã sản phẩm</label>
                         <input type="text" class="form-input" name="ma_sp" placeholder="Nhập mã sản phẩm">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Số lượng *</label>
+                        <label class="form-label required">Số lượng</label>
                         <input type="number" class="form-input" name="so_luong" min="0" required placeholder="0">
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Giá nhập</label>
                         <div class="money-input-container">
@@ -160,18 +159,22 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
                             <span class="currency-unit">VNĐ</span>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-map-marker-alt"></i> Liên hệ & Địa chỉ</div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Số điện thoại</label>
                         <input type="tel" class="form-input" data-phone name="dien_thoai" placeholder="Nhập số điện thoại">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Địa chỉ</label>
-                    <input type="text" class="form-input" name="dia_chi" placeholder="Nhập địa chỉ kho">
+                    <div class="form-group">
+                        <label class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-input" name="dia_chi" placeholder="Nhập địa chỉ kho">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Ghi chú</label>
-                    <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Ghi chú"></textarea>
+                    <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Ghi chú thêm..."></textarea>
                 </div>
             </form>
         </div>
@@ -185,73 +188,68 @@ Tạo và quản lý các kho hàng, theo dõi thông tin chi tiết từng kho
 </div>
 
 <!-- Edit Warehouse Modal -->
-<div class="modal-overlay" id="editWarehouseModal" style="display: none;">
-<div class="modal modal-horizontal">
+<div class="modal-overlay" id="editWarehouseModal" style="display:none;">
+    <div class="modal modal-horizontal">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Chỉnh sửa kho hàng</h3>
-            <button class="modal-close" onclick="closeEditWarehouseModal()">
-                <i class="fas fa-times"></i>
-            </button>
-</div>
+            <button class="modal-close" onclick="closeEditWarehouseModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="editWarehouseForm">
                 <input type="hidden" name="id">
-                
-      <div class="form-row">
-        <div class="form-group">
+
+                <div class="form-section"><i class="fas fa-warehouse"></i> Thông tin kho (chỉ đọc)</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Mã kho</label>
                         <input type="text" class="form-input" name="ma_kho" readonly>
-        </div>
-        <div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Tên kho</label>
                         <input type="text" class="form-input" name="ten_kho" readonly>
-        </div>
-      </div>
-                
-      <div class="form-row">
-        <div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Mã sản phẩm</label>
                         <input type="text" class="form-input" name="ma_sp" readonly>
-        </div>
-      </div>
-                
-      <div class="form-row">
-        <div class="form-group">
-                        <label class="form-label">Số lượng *</label>
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-pencil-alt"></i> Thông tin chỉnh sửa</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Số lượng</label>
                         <input type="number" class="form-input" name="so_luong" id="edit_so_luong" min="0" required oninput="updateStatusFromQuantity()">
-        </div>
-        <div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Trạng thái</label>
                         <select class="form-select" name="trang_thai" id="edit_trang_thai">
                             <option value="Còn hàng">Còn hàng</option>
                             <option value="Hết hàng">Hết hàng</option>
                         </select>
-        </div>
-      </div>
-                
-      <div class="form-row">
-        <div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Giá nhập</label>
                         <div class="money-input-container">
-                            <input type="text" id="edit_gia_nhap_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_gia_nhap'))">
+                            <input type="text" id="edit_gia_nhap_display" class="form-input" placeholder="0"
+                                   oninput="formatMoneyTyping(this, document.getElementById('edit_gia_nhap'))">
                             <input type="hidden" name="gia_nhap" id="edit_gia_nhap">
                             <span class="currency-unit">VNĐ</span>
-        </div>
-      </div>
-      
-</div>
-
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="form-label">Ghi chú</label>
-                    <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
-    </div>
+                    <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Nhập ghi chú..."></textarea>
+                </div>
             </form>
-    </div>
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditWarehouseModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updateWarehouse()">Cập nhật</button>
+            <button type="button" class="btn btn-primary" onclick="updateWarehouse()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -484,37 +482,43 @@ function resetForm() {
 // Update filter options
 function updateFilterOptions() {
     // Warehouse codes
-    const warehouseCodes = [...new Set(warehouseData.map(w => w.ma_kho))];
     const codeSelect = document.getElementById('warehouseCodeFilter');
-    codeSelect.innerHTML = '<option value="">Tất cả mã kho</option>';
-    warehouseCodes.forEach(code => {
-        const option = document.createElement('option');
-        option.value = code;
-        option.textContent = code;
-        codeSelect.appendChild(option);
-    });
-    
+    if (codeSelect) {
+        const warehouseCodes = [...new Set(warehouseData.map(w => w.ma_kho))];
+        codeSelect.innerHTML = '<option value="">Tất cả mã kho</option>';
+        warehouseCodes.forEach(code => {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = code;
+            codeSelect.appendChild(option);
+        });
+    }
+
     // Warehouse names
-    const warehouseNames = [...new Set(warehouseData.map(w => w.ten_kho))];
     const nameSelect = document.getElementById('warehouseNameFilter');
-    nameSelect.innerHTML = '<option value="">Tất cả tên kho</option>';
-    warehouseNames.forEach(name => {
-        const option = document.createElement('option');
-        option.value = name;
-        option.textContent = name;
-        nameSelect.appendChild(option);
-    });
-    
+    if (nameSelect) {
+        const warehouseNames = [...new Set(warehouseData.map(w => w.ten_kho))];
+        nameSelect.innerHTML = '<option value="">Tất cả tên kho</option>';
+        warehouseNames.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            nameSelect.appendChild(option);
+        });
+    }
+
     // Product groups
-    const groups = [...new Set(warehouseData.map(w => w.nhom_san_pham).filter(Boolean))];
     const groupSelect = document.getElementById('groupFilter');
-    groupSelect.innerHTML = '<option value="">Tất cả nhóm</option>';
-    groups.forEach(group => {
-        const option = document.createElement('option');
-        option.value = group;
-        option.textContent = group;
-        groupSelect.appendChild(option);
-    });
+    if (groupSelect) {
+        const groups = [...new Set(warehouseData.map(w => w.nhom_san_pham).filter(Boolean))];
+        groupSelect.innerHTML = '<option value="">Tất cả nhóm</option>';
+        groups.forEach(group => {
+            const option = document.createElement('option');
+            option.value = group;
+            option.textContent = group;
+            groupSelect.appendChild(option);
+        });
+    }
 }
 
 // Populate warehouse dropdown for selection

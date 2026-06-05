@@ -298,8 +298,44 @@ async function checkPermissionOrAlert(permission) {
 // ── Force logout ──────────────────────────────────────────────────────────────
 function handleForceLogout(message) {
     sessionStorage.clear();
-    alert('⚠️ ' + message + '\n\nBạn sẽ được chuyển về trang đăng nhập.');
-    window.location.href = '/login';
+    // Nếu đang ở trang login thì không cần hiện overlay
+    if (window.location.pathname === '/login') return;
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+        'position:fixed','inset:0','z-index:999999',
+        'background:rgba(15,23,42,0.92)',
+        'display:flex','align-items:center','justify-content:center',
+        'font-family:var(--font-family,sans-serif)'
+    ].join(';');
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:400px;
+                    width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,0.5);">
+            <div style="width:72px;height:72px;background:#fef2f2;border-radius:50%;
+                        display:flex;align-items:center;justify-content:center;
+                        margin:0 auto 20px;font-size:32px;">🔒</div>
+            <h3 style="margin:0 0 10px;color:#1e293b;font-size:1.15em;">Phiên đăng nhập kết thúc</h3>
+            <p style="color:#64748b;margin:0 0 24px;font-size:0.92em;line-height:1.6;">${message}</p>
+            <div style="width:100%;height:4px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin-bottom:16px;">
+                <div id="_fl_bar" style="height:100%;background:#ef4444;border-radius:4px;
+                                         width:100%;transition:width 3s linear;"></div>
+            </div>
+            <p style="color:#94a3b8;font-size:0.82em;margin:0 0 20px;">
+                Tự động chuyển về trang đăng nhập...
+            </p>
+            <button onclick="window.location.href='/login'"
+                    style="background:#3b82f6;color:#fff;border:none;padding:11px 28px;
+                           border-radius:8px;cursor:pointer;font-size:0.95em;font-weight:600;">
+                Đăng nhập lại ngay
+            </button>
+        </div>`;
+    document.body.appendChild(overlay);
+    // Kích hoạt animation thanh đếm ngược
+    requestAnimationFrame(() => {
+        const bar = document.getElementById('_fl_bar');
+        if (bar) bar.style.width = '0%';
+    });
+    setTimeout(() => { window.location.href = '/login'; }, 3000);
 }
 
 // ── Toast permission denied ───────────────────────────────────────────────────

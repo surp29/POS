@@ -102,96 +102,96 @@ Quản lý và theo dõi giá sản phẩm, cập nhật giá vốn và giá bá
 </div>
 
 <!-- Add Price Modal -->
-<div class="modal-overlay" id="addPriceModal" style="display: none;">
-    <div class="modal modal-horizontal">
-      <div class="modal-header">
-            <h3><i class="fas fa-plus"></i> Thêm bảng giá mới</h3>
-            <button class="modal-close" onclick="closeAddPriceModal()">
-                <i class="fas fa-times"></i>
-            </button>
-      </div>
+<div class="modal-overlay" id="addPriceModal" style="display:none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
+            <h3><i class="fas fa-tag"></i> Thêm bảng giá mới</h3>
+            <button class="modal-close" onclick="closeAddPriceModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="addPriceForm">
-        <div class="form-row">
-          <div class="form-group">
-                        <label class="form-label">Mã sản phẩm *</label>
-                        <input type="text" class="form-input" name="ma_sp" required placeholder="Nhập mã sản phẩm">
-          </div>
-          <div class="form-group">
-                        <label class="form-label">Tên sản phẩm *</label>
-                        <input type="text" class="form-input" name="ten_sp" required placeholder="Nhập tên sản phẩm">
-          </div>
-        </div>
-                
-        <div class="form-row">
-          <div class="form-group">
-                        <label class="form-label">Giá chung *</label>
-                        <div class="money-input-container">
-                            <input type="text" id="add_gia_chung_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_gia_chung'))">
-                            <input type="hidden" name="gia_chung" id="add_gia_chung">
-                            <span class="currency-unit">VNĐ</span>
-            </div>
-          </div>
-          <div class="form-group">
+                <div class="form-section"><i class="fas fa-box"></i> Sản phẩm</div>
+                <div class="form-group">
+                    <label class="form-label required">Mã sản phẩm</label>
+                    <input type="text" class="form-input" name="ma_sp" required placeholder="VD: SP001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Tên sản phẩm</label>
+                    <input type="text" class="form-input" name="ten_sp" required placeholder="Nhập tên sản phẩm">
+                </div>
+
+                <div class="form-section"><i class="fas fa-coins"></i> Giá</div>
+                <div class="form-group">
+                    <label class="form-label required">Giá chung</label>
+                    <div class="money-input-container">
+                        <input type="text" id="add_gia_chung_display" class="form-input" placeholder="0"
+                               oninput="formatMoneyTyping(this, document.getElementById('add_gia_chung'))">
+                        <input type="hidden" name="gia_chung" id="add_gia_chung">
+                        <span class="currency-unit">VNĐ</span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Ghi chú</label>
-                    <textarea class="form-textarea" name="ghi_chu" rows="3" placeholder="Nhập ghi chú"></textarea>
-          </div>
+                    <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                </div>
+            </form>
         </div>
-      </form>
-      </div>
-      <div class="modal-footer">
+        <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAddPriceModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="createPrice()">Tạo bảng giá</button>
-      </div>
+            <button type="button" class="btn btn-primary" onclick="createPrice()">
+                <i class="fas fa-plus"></i> Tạo bảng giá
+            </button>
+        </div>
     </div>
-  </div>
+</div>
 
 <!-- Edit Price Modal -->
-<div class="modal-overlay" id="editPriceModal" style="display: none;">
-    <div class="modal modal-horizontal">
-      <div class="modal-header">
+<div class="modal-overlay" id="editPriceModal" style="display:none;">
+    <div class="modal modal-small">
+        <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Chỉnh sửa bảng giá</h3>
-            <button class="modal-close" onclick="closeEditPriceModal()">
-                <i class="fas fa-times"></i>
-            </button>
-      </div>
+            <button class="modal-close" onclick="closeEditPriceModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="editPriceForm">
                 <input type="hidden" name="id">
-                
-        <div class="form-row">
-          <div class="form-group">
+
+                <div class="form-section"><i class="fas fa-box"></i> Sản phẩm (chỉ đọc)</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Mã sản phẩm</label>
                         <input type="text" class="form-input" name="ma_sp" readonly>
-          </div>
-          <div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Tên sản phẩm</label>
                         <input type="text" class="form-input" name="ten_sp" readonly>
-          </div>
-        </div>
-                
-        <div class="form-row">
-          <div class="form-group">
-                        <label class="form-label">Giá chung *</label>
-                        <div class="money-input-container">
-                            <input type="text" id="edit_gia_chung_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_gia_chung'))">
-                            <input type="hidden" name="gia_chung" id="edit_gia_chung">
-                            <span class="currency-unit">VNĐ</span>
-            </div>
-          </div>
-          <div class="form-group">
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-coins"></i> Cập nhật giá</div>
+                <div class="form-group">
+                    <label class="form-label required">Giá chung</label>
+                    <div class="money-input-container">
+                        <input type="text" id="edit_gia_chung_display" class="form-input" placeholder="0"
+                               oninput="formatMoneyTyping(this, document.getElementById('edit_gia_chung'))">
+                        <input type="hidden" name="gia_chung" id="edit_gia_chung">
+                        <span class="currency-unit">VNĐ</span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label class="form-label">Ghi chú</label>
-                    <textarea class="form-textarea" name="ghi_chu" rows="3"></textarea>
-          </div>
+                    <textarea class="form-textarea" name="ghi_chu" rows="2" placeholder="Ghi chú thêm..."></textarea>
+                </div>
+            </form>
         </div>
-      </form>
-    </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditPriceModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updatePrice()">Cập nhật</button>
-  </div>
-      </div>
+            <button type="button" class="btn btn-primary" onclick="updatePrice()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
         </div>
+    </div>
+</div>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal-overlay" id="deletePriceModal" style="display: none;">

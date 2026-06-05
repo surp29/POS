@@ -11,47 +11,41 @@ Theo dõi và phân tích dữ liệu kinh doanh, tạo báo cáo doanh thu và 
 {% endblock %}
 
 {% block content %}
-<!-- Chart.js CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <!-- Statistics Cards -->
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-money-bill-wave"></i>
+        <div class="stat-icon" style="background:#3b82f620;">
+            <i class="fas fa-money-bill-wave" style="color:#3b82f6;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalRevenue">0 VNĐ</div>
+            <div class="stat-number" id="totalRevenue" style="color:#3b82f6;">0 VNĐ</div>
             <div class="stat-label">Tổng doanh thu</div>
         </div>
     </div>
-    
     <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-boxes"></i>
+        <div class="stat-icon" style="background:#16a34a20;">
+            <i class="fas fa-boxes" style="color:#16a34a;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalSold">0</div>
+            <div class="stat-number" id="totalSold" style="color:#16a34a;">0</div>
             <div class="stat-label">Số lượng đã bán</div>
         </div>
     </div>
-    
     <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-warehouse"></i>
+        <div class="stat-icon" style="background:#f59e0b20;">
+            <i class="fas fa-warehouse" style="color:#f59e0b;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalRemaining">0</div>
+            <div class="stat-number" id="totalRemaining" style="color:#f59e0b;">0</div>
             <div class="stat-label">Số lượng còn lại</div>
         </div>
     </div>
-    
     <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-chart-pie"></i>
+        <div class="stat-icon" style="background:#7c3aed20;">
+            <i class="fas fa-chart-pie" style="color:#7c3aed;"></i>
         </div>
         <div class="stat-content">
-            <div class="stat-number" id="totalProducts">0</div>
+            <div class="stat-number" id="totalProducts" style="color:#7c3aed;">0</div>
             <div class="stat-label">Tổng sản phẩm</div>
         </div>
     </div>
@@ -60,169 +54,157 @@ Theo dõi và phân tích dữ liệu kinh doanh, tạo báo cáo doanh thu và 
 <!-- Report Tabs -->
 <div class="tabs-container">
     <div class="tabs">
-        <button class="tab active" data-tab="revenue">Doanh thu</button>
-        <button class="tab" data-tab="debt">Công nợ</button>
+        <button class="tab active" data-tab="revenue">
+            <i class="fas fa-chart-bar"></i> Doanh thu
+        </button>
+        <button class="tab" data-tab="debt">
+            <i class="fas fa-file-invoice-dollar"></i> Công nợ
+        </button>
     </div>
 </div>
 
 <!-- Revenue Report Section -->
 <div id="revenueSection" class="report-section">
     <div class="report-grid">
-        <!-- Chart Section -->
         <div class="chart-container">
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-chart-bar"></i> Báo cáo doanh thu theo sản phẩm</h3>
-      </div>
+                    <h3><i class="fas fa-chart-bar"></i> Doanh thu theo sản phẩm</h3>
+                </div>
                 <div class="card-body">
                     <div class="chart-wrapper">
                         <canvas id="revenueChart"></canvas>
                     </div>
-    </div>
-    </div>
-  </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- Statistics Section -->
         <div class="stats-container">
             <div class="card">
                 <div class="card-header">
-    <h3><i class="fas fa-boxes"></i> Thống kê sản phẩm</h3>
-        </div>
+                    <h3><i class="fas fa-sliders-h"></i> Bộ lọc & Thống kê</h3>
+                </div>
                 <div class="card-body">
+                    <div class="form-section"><i class="fas fa-calendar-alt"></i> Khoảng thời gian</div>
                     <div class="form-group">
                         <label class="form-label">Từ ngày</label>
                         <input type="date" class="form-input" id="fromDate">
-        </div>
-                    
+                    </div>
                     <div class="form-group">
                         <label class="form-label">Đến ngày</label>
                         <input type="date" class="form-input" id="toDate">
-        </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Số lượng đã bán</label>
-                        <input type="text" class="form-input" id="soldQuantity" readonly>
-        </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Số lượng còn lại</label>
-                        <input type="text" class="form-input" id="remainingQuantity" readonly>
-        </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Tổng doanh thu</label>
-                        <input type="text" class="form-input" id="totalRevenueInput" readonly>
                     </div>
-                    
-                    <div class="form-group">
-                        <button class="btn btn-primary" onclick="updateRevenueReport()">
-                            <i class="fas fa-sync"></i>
-                            Cập nhật báo cáo
+                    <div class="form-group" style="margin-bottom:0;">
+                        <button class="btn btn-primary" style="width:100%;" onclick="updateRevenueReport()">
+                            <i class="fas fa-sync-alt"></i> Cập nhật báo cáo
                         </button>
                     </div>
-        </div>
-      </div>
-  </div>
-</div>
 
-    <!-- Revenue Table -->
+                    <div class="form-section" style="margin-top:20px;"><i class="fas fa-chart-line"></i> Kết quả</div>
+                    <div class="report-stat-row">
+                        <span class="report-stat-label"><i class="fas fa-shopping-bag"></i> Đã bán</span>
+                        <span class="report-stat-value" id="soldQuantity">—</span>
+                    </div>
+                    <div class="report-stat-row">
+                        <span class="report-stat-label"><i class="fas fa-warehouse"></i> Còn lại</span>
+                        <span class="report-stat-value" id="remainingQuantity">—</span>
+                    </div>
+                    <div class="report-stat-row highlight">
+                        <span class="report-stat-label"><i class="fas fa-coins"></i> Doanh thu</span>
+                        <span class="report-stat-value" id="totalRevenueInput">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header" style="padding:12px 16px;">
-            <h3 style="margin:0;font-size:1em;"><i class="fas fa-list"></i> Chi tiết doanh thu</h3>
+            <h3 style="margin:0;font-size:1em;"><i class="fas fa-table"></i> Chi tiết doanh thu</h3>
         </div>
         <div class="card-body p-0" style="overflow-x:auto;">
             <table class="table" style="min-width:750px;" id="revenueTable">
-      <thead>
-        <tr>
-                            <th>STT</th>
-                            <th>Mã SP</th>
-                            <th>Tên SP</th>
-                            <th>Số lượng bán</th>
-                            <th>Giá gốc</th>
-                            <th>Giảm giá</th>
-                            <th>Doanh thu thực</th>
-                            <th>Tỷ lệ</th>
-        </tr>
-      </thead>
-                    <tbody id="revenueTableBody">
-                        <!-- Data will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Mã SP</th>
+                        <th>Tên SP</th>
+                        <th>Số lượng bán</th>
+                        <th>Giá gốc</th>
+                        <th>Giảm giá</th>
+                        <th>Doanh thu thực</th>
+                        <th>Tỷ lệ</th>
+                    </tr>
+                </thead>
+                <tbody id="revenueTableBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <!-- Debt Report Section -->
-<div id="debtSection" class="report-section" style="display: none;">
+<div id="debtSection" class="report-section" style="display:none;">
     <div class="report-grid">
-        <!-- Debt Chart -->
         <div class="chart-container">
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-chart-pie"></i> Báo cáo công nợ</h3>
-        </div>
+                    <h3><i class="fas fa-chart-pie"></i> Phân tích công nợ</h3>
+                </div>
                 <div class="card-body">
                     <div class="chart-wrapper">
                         <canvas id="debtChart"></canvas>
-    </div>
+                    </div>
                 </div>
             </div>
-  </div>
+        </div>
 
-        <!-- Debt Statistics -->
         <div class="stats-container">
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-exclamation-triangle"></i> Thống kê công nợ</h3>
-    </div>
+                    <h3><i class="fas fa-file-invoice-dollar"></i> Thống kê công nợ</h3>
+                </div>
                 <div class="card-body">
-                    <div class="form-group">
-                        <label class="form-label">Tổng công nợ</label>
-                        <input type="text" class="form-input" id="totalDebt" readonly>
-  </div>
+                    <div class="report-stat-row">
+                        <span class="report-stat-label"><i class="fas fa-coins"></i> Tổng công nợ</span>
+                        <span class="report-stat-value" id="totalDebt">—</span>
+                    </div>
+                    <div class="report-stat-row danger">
+                        <span class="report-stat-label"><i class="fas fa-exclamation-circle"></i> Quá hạn</span>
+                        <span class="report-stat-value" id="overdueDebt">—</span>
+                    </div>
+                    <div class="report-stat-row">
+                        <span class="report-stat-label"><i class="fas fa-users"></i> Khách hàng nợ</span>
+                        <span class="report-stat-value" id="debtCustomers">—</span>
+                    </div>
+                    <div class="report-stat-row highlight">
+                        <span class="report-stat-label"><i class="fas fa-calculator"></i> Trung bình</span>
+                        <span class="report-stat-value" id="avgDebt">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Công nợ quá hạn</label>
-                        <input type="text" class="form-input" id="overdueDebt" readonly>
-    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Số khách hàng nợ</label>
-                        <input type="text" class="form-input" id="debtCustomers" readonly>
-      </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Công nợ trung bình</label>
-                        <input type="text" class="form-input" id="avgDebt" readonly>
-      </div>
-      </div>
-      </div>
-      </div>
-    </div>
-    
-    <!-- Debt Table -->
     <div class="card">
         <div class="card-header" style="padding:12px 16px;">
-            <h3 style="margin:0;font-size:1em;"><i class="fas fa-list"></i> Chi tiết công nợ</h3>
+            <h3 style="margin:0;font-size:1em;"><i class="fas fa-table"></i> Chi tiết công nợ</h3>
         </div>
         <div class="card-body p-0" style="overflow-x:auto;">
             <table class="table" style="min-width:700px;" id="debtTable">
-                    <thead>
-                        <tr>
-                            <th>STT</th>
-                            <th>Khách hàng</th>
-                            <th>Số hóa đơn</th>
-                            <th>Ngày tạo</th>
-                            <th>Số tiền nợ</th>
-                            <th>Trạng thái</th>
-                            <th>Ghi chú</th>
-                        </tr>
-                    </thead>
-                    <tbody id="debtTableBody">
-                        <!-- Data will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Khách hàng</th>
+                        <th>Số hóa đơn</th>
+                        <th>Ngày tạo</th>
+                        <th>Số tiền nợ</th>
+                        <th>Trạng thái</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody id="debtTableBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -231,138 +213,116 @@ Theo dõi và phân tích dữ liệu kinh doanh, tạo báo cáo doanh thu và 
 <style>
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--spacing-4);
-    margin-bottom: var(--spacing-6);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
 }
-
 .stat-card {
     background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-6);
-    box-shadow: var(--shadow-md);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     border: 1px solid var(--gray-200);
     display: flex;
     align-items: center;
-    transition: all var(--transition-normal);
+    gap: 14px;
+    transition: box-shadow 0.2s, transform 0.2s;
 }
-
-.stat-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-}
-
+.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.11); transform: translateY(-2px); }
 .stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: var(--spacing-4);
+    width: 48px; height: 48px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
 }
+.stat-icon i { font-size: 1.3rem; }
+.stat-content { flex: 1; min-width: 0; }
+.stat-number { font-size: 1.4rem; font-weight: 700; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat-label { font-size: 0.78rem; color: var(--gray-500); font-weight: 500; }
 
-.stat-icon i {
-    font-size: var(--font-size-xl);
-    color: white;
-}
-
-.stat-content {
-    flex: 1;
-}
-
-.stat-number {
-    font-size: var(--font-size-2xl);
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: var(--spacing-1);
-}
-
-.stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--gray-600);
-    font-weight: 500;
-}
-
-.tabs-container {
-    margin-bottom: var(--spacing-6);
-}
-
+.tabs-container { margin-bottom: 20px; }
 .tabs {
     display: flex;
     background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-1);
-    box-shadow: var(--shadow-sm);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
     border: 1px solid var(--gray-200);
-    overflow-x: auto;
+    gap: 4px;
 }
-
 .tab {
     flex: 1;
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: 10px 20px;
     border: none;
     background: transparent;
-    color: var(--gray-600);
-    font-weight: 500;
-    border-radius: var(--radius-md);
+    color: var(--gray-500);
+    font-weight: 600;
+    font-size: 0.88rem;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all var(--transition-normal);
+    transition: all 0.18s;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
     white-space: nowrap;
 }
+.tab:hover { background: var(--gray-50); color: var(--gray-700); }
+.tab.active { background: var(--primary-color); color: white; box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
 
-.tab:hover {
-    background: var(--gray-50);
-    color: var(--gray-700);
-}
-
-.tab.active {
-    background: var(--primary-color);
-    color: white;
-    box-shadow: var(--shadow-sm);
-}
-
-.report-section {
-    margin-bottom: var(--spacing-6);
-}
-
+.report-section { margin-bottom: 24px; }
 .report-grid {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: var(--spacing-6);
-    margin-bottom: var(--spacing-6);
+    gap: 20px;
+    margin-bottom: 20px;
+    align-items: start;
 }
+.chart-container {}
+.chart-wrapper { width: 100%; height: 380px; position: relative; }
 
-.chart-container {
-    min-height: 400px;
-}
+.stats-container { display: flex; flex-direction: column; }
 
-.chart-wrapper {
-    width: 100%;
-    height: 400px;
-    position: relative;
-}
-
-.stats-container {
+/* Stat rows replacing readonly inputs */
+.report-stat-row {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-4);
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
 }
+.report-stat-row.highlight {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+.report-stat-row.danger {
+    background: #fff1f2;
+    border-color: #fecdd3;
+}
+.report-stat-label {
+    font-size: 0.82rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+}
+.report-stat-label i { color: var(--primary-color); width: 14px; }
+.report-stat-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--gray-800);
+}
+.report-stat-row.highlight .report-stat-value { color: var(--primary-color); }
+.report-stat-row.danger .report-stat-value { color: #dc2626; }
 
-@media (max-width: 768px) {
-    .report-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .chart-wrapper {
-        height: 300px;
-    }
+@media (max-width: 900px) {
+    .report-grid { grid-template-columns: 1fr; }
+    .chart-wrapper { height: 280px; }
 }
 </style>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Global variables
 let revenueChart = null;
@@ -474,30 +434,18 @@ function updateRevenueStatistics(data) {
     document.getElementById('totalSold').textContent = (summary.total_quantity_sold || 0).toLocaleString();
     document.getElementById('totalRemaining').textContent = (summary.total_quantity_remaining || 0).toLocaleString();
     document.getElementById('totalProducts').textContent = (summary.total_products || 0).toLocaleString();
-    
-    // Update form inputs
-    document.getElementById('soldQuantity').value = (summary.total_quantity_sold || 0).toLocaleString();
-    document.getElementById('remainingQuantity').value = (summary.total_quantity_remaining || 0).toLocaleString();
-    document.getElementById('totalRevenueInput').value = (summary.total_revenue || 0).toLocaleString() + ' VNĐ';
-
-    // Hiển thị tổng giảm giá nếu có
-    const discountEl = document.getElementById('totalDiscount');
-    if (discountEl) {
-        const disc = summary.total_discount || 0;
-        discountEl.textContent = disc > 0
-            ? '-' + disc.toLocaleString() + ' VNĐ'
-            : '0 VNĐ';
-        discountEl.style.color = disc > 0 ? '#e53e3e' : '#718096';
-    }
+    document.getElementById('soldQuantity').textContent = (summary.total_quantity_sold || 0).toLocaleString();
+    document.getElementById('remainingQuantity').textContent = (summary.total_quantity_remaining || 0).toLocaleString();
+    document.getElementById('totalRevenueInput').textContent = (summary.total_revenue || 0).toLocaleString() + ' VNĐ';
 }
 
 // Update debt statistics
 function updateDebtStatistics(data) {
     const summary = data.summary || {};
-    document.getElementById('totalDebt').value = (summary.total_debt || 0).toLocaleString() + ' VNĐ';
-    document.getElementById('overdueDebt').value = (summary.overdue_debt || 0).toLocaleString() + ' VNĐ';
-    document.getElementById('debtCustomers').value = (summary.debt_customers || 0).toLocaleString();
-    document.getElementById('avgDebt').value = (summary.avg_debt || 0).toLocaleString() + ' VNĐ';
+    document.getElementById('totalDebt').textContent = (summary.total_debt || 0).toLocaleString() + ' VNĐ';
+    document.getElementById('overdueDebt').textContent = (summary.overdue_debt || 0).toLocaleString() + ' VNĐ';
+    document.getElementById('debtCustomers').textContent = (summary.debt_customers || 0).toLocaleString();
+    document.getElementById('avgDebt').textContent = (summary.avg_debt || 0).toLocaleString() + ' VNĐ';
 }
 
 // Update revenue table

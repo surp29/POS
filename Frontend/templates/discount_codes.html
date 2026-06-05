@@ -122,146 +122,160 @@ Quản lý mã giảm giá, khuyến mãi và chương trình ưu đãi
 </div>
 
 <!-- Add Discount Code Modal -->
-<div class="modal-overlay" id="addCodeModal" style="display: none;">
+<div class="modal-overlay" id="addCodeModal" style="display:none;">
     <div class="modal modal-horizontal">
         <div class="modal-header">
-            <h3><i class="fas fa-plus"></i> Thêm mã giảm giá mới</h3>
-            <button class="modal-close" onclick="closeAddCodeModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <h3><i class="fas fa-tags"></i> Thêm mã giảm giá mới</h3>
+            <button class="modal-close" onclick="closeAddCodeModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <form id="addCodeForm">
+                <div class="form-section"><i class="fas fa-tag"></i> Thông tin mã</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Mã giảm giá *</label>
-                        <input type="text" class="form-input" name="code" required placeholder="Nhập mã giảm giá">
+                        <label class="form-label required">Mã giảm giá</label>
+                        <input type="text" class="form-input" name="code" required placeholder="VD: SALE20, FREESHIP">
+                        <div class="form-hint">Mã không phân biệt hoa thường khi áp dụng</div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Tên mã *</label>
-                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên mã">
+                        <label class="form-label required">Tên mã</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Tên hiển thị của mã">
                     </div>
                 </div>
-                
+
+                <div class="form-section"><i class="fas fa-percent"></i> Loại & Giá trị giảm</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Loại giảm giá *</label>
+                        <label class="form-label required">Loại giảm giá</label>
                         <select class="form-select" name="discount_type" required>
-                            <option value="">Chọn loại</option>
-                            <option value="percentage">Phần trăm (%)</option>
-                            <option value="fixed">Số tiền cố định (VNĐ)</option>
+                            <option value="">Chọn loại...</option>
+                            <option value="percentage">📊 Phần trăm (%)</option>
+                            <option value="fixed">💵 Số tiền cố định (VNĐ)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Giá trị *</label>
-                        <input type="text" class="form-input" name="discount_value" required placeholder="Nhập giá trị" oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
+                        <label class="form-label required">Giá trị</label>
+                        <input type="text" class="form-input" name="discount_value" required
+                               placeholder="VD: 20 (%) hoặc 50000 (VNĐ)"
+                               oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
                     </div>
                 </div>
-                
+
+                <div class="form-section"><i class="fas fa-calendar-alt"></i> Thời hạn sử dụng</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Ngày bắt đầu *</label>
+                        <label class="form-label required">Ngày bắt đầu</label>
                         <input type="datetime-local" class="form-input" name="start_date" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Ngày kết thúc *</label>
+                        <label class="form-label required">Ngày kết thúc</label>
                         <input type="datetime-local" class="form-input" name="end_date" required>
                     </div>
                 </div>
-                
+
+                <div class="form-section"><i class="fas fa-sliders-h"></i> Điều kiện áp dụng</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Số lần sử dụng tối đa</label>
-                        <input type="text" class="form-input" name="max_uses" placeholder="Không giới hạn" oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
+                        <input type="text" class="form-input" name="max_uses" placeholder="Để trống = không giới hạn"
+                               oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Giá trị đơn hàng tối thiểu</label>
-                        <input type="text" class="form-input" name="min_order_value" placeholder="Không giới hạn" oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
+                        <label class="form-label">Giá trị đơn tối thiểu (VNĐ)</label>
+                        <input type="text" class="form-input" name="min_order_value" placeholder="Để trống = không giới hạn"
+                               oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
                     </div>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Mô tả</label>
-                    <textarea class="form-textarea" name="description" rows="3" placeholder="Nhập mô tả mã giảm giá"></textarea>
+                    <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả chi tiết về mã giảm giá..."></textarea>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAddCodeModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="createCode()">Tạo mã</button>
+            <button type="button" class="btn btn-primary" onclick="createCode()">
+                <i class="fas fa-plus"></i> Tạo mã giảm giá
+            </button>
         </div>
     </div>
 </div>
 
 <!-- Edit Discount Code Modal -->
-<div class="modal-overlay" id="editCodeModal" style="display: none;">
+<div class="modal-overlay" id="editCodeModal" style="display:none;">
     <div class="modal modal-horizontal">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Chỉnh sửa mã giảm giá</h3>
-            <button class="modal-close" onclick="closeEditCodeModal()">
-                <i class="fas fa-times"></i>
-            </button>
+            <button class="modal-close" onclick="closeEditCodeModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <form id="editCodeForm">
                 <input type="hidden" name="id">
-                
+
+                <div class="form-section"><i class="fas fa-tag"></i> Thông tin mã</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Mã giảm giá *</label>
-                        <input type="text" class="form-input" name="code" required>
+                        <label class="form-label required">Mã giảm giá</label>
+                        <input type="text" class="form-input" name="code" required placeholder="VD: SALE20">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Tên mã *</label>
-                        <input type="text" class="form-input" name="name" required>
+                        <label class="form-label required">Tên mã</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Tên hiển thị">
                     </div>
                 </div>
-                
+
+                <div class="form-section"><i class="fas fa-percent"></i> Loại & Giá trị giảm</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Loại giảm giá *</label>
+                        <label class="form-label required">Loại giảm giá</label>
                         <select class="form-select" name="discount_type" required>
-                            <option value="percentage">Phần trăm (%)</option>
-                            <option value="fixed">Số tiền cố định (VNĐ)</option>
+                            <option value="percentage">📊 Phần trăm (%)</option>
+                            <option value="fixed">💵 Số tiền cố định (VNĐ)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Giá trị *</label>
-                        <input type="text" class="form-input" name="discount_value" required oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
+                        <label class="form-label required">Giá trị</label>
+                        <input type="text" class="form-input" name="discount_value" required
+                               oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
                     </div>
                 </div>
-                
+
+                <div class="form-section"><i class="fas fa-calendar-alt"></i> Thời hạn sử dụng</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Ngày bắt đầu *</label>
+                        <label class="form-label required">Ngày bắt đầu</label>
                         <input type="datetime-local" class="form-input" name="start_date" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Ngày kết thúc *</label>
+                        <label class="form-label required">Ngày kết thúc</label>
                         <input type="datetime-local" class="form-input" name="end_date" required>
                     </div>
                 </div>
-                
+
+                <div class="form-section"><i class="fas fa-sliders-h"></i> Điều kiện áp dụng</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Số lần sử dụng tối đa</label>
-                        <input type="text" class="form-input" name="max_uses" oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
+                        <input type="text" class="form-input" name="max_uses" placeholder="Để trống = không giới hạn"
+                               oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Giá trị đơn hàng tối thiểu</label>
-                        <input type="text" class="form-input" name="min_order_value" oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
+                        <label class="form-label">Giá trị đơn tối thiểu (VNĐ)</label>
+                        <input type="text" class="form-input" name="min_order_value" placeholder="Để trống = không giới hạn"
+                               oninput="formatNumberInput(this)" onkeypress="return isNumberKey(event)">
                     </div>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Mô tả</label>
-                    <textarea class="form-textarea" name="description" rows="3"></textarea>
+                    <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả chi tiết..."></textarea>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditCodeModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updateCode()">Cập nhật</button>
+            <button type="button" class="btn btn-primary" onclick="updateCode()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
         </div>
     </div>
 </div>

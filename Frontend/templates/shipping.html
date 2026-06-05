@@ -178,55 +178,57 @@
 <!-- Modal tạo đơn -->
 <div class="modal-overlay" id="createModal" style="display:none;">
     <div class="modal modal-horizontal">
-        <div class="modal-header" style="position:relative;justify-content:center;">
-            <h3 style="margin:0;"><i class="fas fa-plus-circle"></i> Tạo đơn vận chuyển</h3>
-            <button class="modal-close" onclick="closeCreate()"
-                    style="position:absolute;right:16px;top:50%;transform:translateY(-50%);">
-                <i class="fas fa-times"></i></button>
+        <div class="modal-header">
+            <h3><i class="fas fa-truck"></i> Tạo đơn vận chuyển</h3>
+            <button class="modal-close" onclick="closeCreate()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
             <form id="createForm">
+                <div class="form-section"><i class="fas fa-file-alt"></i> Thông tin đơn hàng</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Mã đơn hàng *</label>
-                        <input class="form-input" name="order_code" placeholder="DH001" required>
+                        <label class="form-label required">Mã đơn hàng</label>
+                        <input class="form-input" name="order_code" placeholder="VD: DH001" required>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Mã hóa đơn</label>
-                        <input class="form-input" name="invoice_code" placeholder="HĐ-001 (tùy chọn)">
+                        <input class="form-input" name="invoice_code" placeholder="VD: HĐ-001 (tùy chọn)">
                     </div>
                 </div>
+
+                <div class="form-section"><i class="fas fa-map-marker-alt"></i> Người nhận & Địa chỉ giao</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Tên người nhận *</label>
+                        <label class="form-label required">Tên người nhận</label>
                         <input class="form-input" name="receiver_name" placeholder="Nguyễn Văn A" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Số điện thoại *</label>
+                        <label class="form-label required">Số điện thoại</label>
                         <input class="form-input" name="receiver_phone" placeholder="0901234567" required>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Địa chỉ giao hàng *</label>
-                    <input class="form-input" name="receiver_address"
-                           placeholder="123 Đường ABC, Phường XYZ, Quận 1, TP.HCM" required>
+                    <label class="form-label required">Địa chỉ giao hàng</label>
+                    <input class="form-input" name="receiver_address" placeholder="Số nhà, đường, phường/xã, quận/huyện..." required>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Tỉnh/Thành phố</label>
-                        <input class="form-input" name="receiver_province" placeholder="TP. Hồ Chí Minh">
+                        <input class="form-input" name="receiver_province" placeholder="VD: TP. Hồ Chí Minh">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Dịch vụ</label>
+                        <label class="form-label">Dịch vụ vận chuyển</label>
                         <select class="form-select" name="service_type" onchange="updateFee(this)">
-                            <option>Giao hàng thường</option>
-                            <option>Giao hàng nhanh</option>
-                            <option>Giao hàng hỏa tốc</option>
-                            <option>Giao nội thành</option>
-                            <option>Giao liên tỉnh</option>
+                            <option>🚚 Giao hàng thường</option>
+                            <option>⚡ Giao hàng nhanh</option>
+                            <option>🔥 Giao hàng hỏa tốc</option>
+                            <option>🏙️ Giao nội thành</option>
+                            <option>🗺️ Giao liên tỉnh</option>
                         </select>
                     </div>
                 </div>
+
+                <div class="form-section"><i class="fas fa-boxes"></i> Hàng hóa & Chi phí</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Khối lượng (gram)</label>
@@ -247,6 +249,8 @@
                         <input class="form-input" name="sender_address" placeholder="Kho hàng / Cửa hàng">
                     </div>
                 </div>
+
+                <div class="form-section"><i class="fas fa-user-check"></i> Shipper</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Tên shipper</label>

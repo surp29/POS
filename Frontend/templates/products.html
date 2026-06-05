@@ -10,12 +10,6 @@
 Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi tồn kho
 {% endblock %}
 
-{% block header_actions %}
-<button class="btn btn-primary" onclick="openAddProductModal()">
-    <i class="fas fa-plus"></i>
-    Thêm sản phẩm
-	</button>
-{% endblock %}
 
 {% block content %}
 <!-- ── KPI Cards ──────────────────────────────────────── -->
@@ -124,164 +118,175 @@ Quản lý danh sách sản phẩm, thêm mới, chỉnh sửa và theo dõi t�
 </div>
 
 <!-- Add Product Modal -->
-<div class="modal-overlay" id="addProductModal" style="display: none;">
+<div class="modal-overlay" id="addProductModal" style="display:none;">
     <div class="modal modal-horizontal">
-		<div class="modal-header">
+        <div class="modal-header">
             <h3><i class="fas fa-plus"></i> Thêm sản phẩm mới</h3>
-            <button class="modal-close" onclick="closeAddProductModal()">
-                <i class="fas fa-times"></i>
-            </button>
-		</div>
-		<div class="modal-body">
+            <button class="modal-close" onclick="closeAddProductModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
             <form id="addProductForm">
-			<div class="form-row">
-				<div class="form-group">
-                        <label class="form-label">
-                            Mã sản phẩm *
-                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector()" title="Chọn từ kho hàng">
-                                <i class="fas fa-list"></i>
-                            </button>
-                        </label>
-                        <input type="text" class="form-input" name="code" id="add_product_code" required onblur="tryPopulateProductFromWarehouse(this.value)" oninput="debouncedTryPopulateFromWarehouse(this.value)">
-		</div>
+                <div class="form-section"><i class="fas fa-tag"></i> Thông tin cơ bản</div>
+                <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Tên sản phẩm *</label>
-                        <input type="text" class="form-input" name="name" required>
-		</div>
-				<div class="form-group">
-                        <label class="form-label">Nhóm sản phẩm *</label>
+                        <label class="form-label required">Mã sản phẩm
+                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector()" title="Chọn từ kho hàng"><i class="fas fa-list"></i></button>
+                        </label>
+                        <input type="text" class="form-input" name="code" id="add_product_code" required
+                               placeholder="VD: SP001"
+                               onblur="tryPopulateProductFromWarehouse(this.value)"
+                               oninput="debouncedTryPopulateFromWarehouse(this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Tên sản phẩm</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên sản phẩm">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Nhóm sản phẩm</label>
                         <input type="text" class="form-input" name="group" required placeholder="Nhập nhóm sản phẩm">
-	</div>
-</div>
+                    </div>
+                </div>
 
-			<div class="form-row">
-				<div class="form-group">
+                <div class="form-section"><i class="fas fa-coins"></i> Giá & Số lượng</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Giá vốn</label>
                         <div class="money-input-container">
-                            <input type="text" id="add_cost_price_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_cost_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="text" id="add_cost_price_display" class="form-input" placeholder="0"
+                                   oninput="formatMoneyTyping(this, document.getElementById('add_cost_price'))"
+                                   onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
                             <input type="hidden" name="cost_price" id="add_cost_price">
                             <span class="currency-unit">VNĐ</span>
-					</div>
-				</div>
-				<div class="form-group">
-                        <label class="form-label">Giá bán *</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Giá bán</label>
                         <div class="money-input-container">
-                            <input type="text" id="add_price_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="text" id="add_price_display" class="form-input" placeholder="0"
+                                   oninput="formatMoneyTyping(this, document.getElementById('add_price'))"
+                                   onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
                             <input type="hidden" name="price" id="add_price">
                             <span class="currency-unit">VNĐ</span>
-					</div>
-				</div>
-				<div class="form-group">
-                        <label class="form-label">Số lượng *</label>
-                        <input type="number" class="form-input" name="quantity" min="0" required placeholder="0" oninput="enforceNonNegativeNumber(this)" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
-			</div>
-				</div>
-                
-			<div class="form-row">
-				<div class="form-group">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Số lượng</label>
+                        <input type="number" class="form-input" name="quantity" min="0" required placeholder="0"
+                               oninput="enforceNonNegativeNumber(this)"
+                               onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-info-circle"></i> Thông tin bổ sung</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Đơn vị</label>
                         <input type="text" class="form-input" name="unit" placeholder="Cái, kg, lít...">
-					</div>
-				<div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Mô tả</label>
-                        <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm"></textarea>
-				</div>
-			</div>
-            
-            <div class="form-group">
-                <label class="form-label">Hình ảnh sản phẩm</label>
-                <input type="file" id="addProductImage" accept="image/*" onchange="previewImage(this, 'addProductImagePreview')">
-                <div id="addProductImagePreview" class="image-preview"></div>
-            </div>
+                        <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm..."></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hình ảnh sản phẩm</label>
+                    <input type="file" id="addProductImage" accept="image/*" onchange="previewImage(this, 'addProductImagePreview')">
+                    <div id="addProductImagePreview" class="image-preview"></div>
+                </div>
             </form>
-					</div>
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAddProductModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="addProduct()">Thêm sản phẩm</button>
-				</div>
-					</div>
-				</div>
+            <button type="button" class="btn btn-primary" onclick="addProduct()">
+                <i class="fas fa-plus"></i> Thêm sản phẩm
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Edit Product Modal -->
-<div class="modal-overlay" id="editProductModal" style="display: none;">
+<div class="modal-overlay" id="editProductModal" style="display:none;">
     <div class="modal modal-horizontal">
         <div class="modal-header">
             <h3><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h3>
-            <button class="modal-close" onclick="closeEditProductModal()">
-                <i class="fas fa-times"></i>
-            </button>
-			</div>
+            <button class="modal-close" onclick="closeEditProductModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="editProductForm">
                 <input type="hidden" name="id">
-                
-			<div class="form-row">
-				<div class="form-group">
-                        <label class="form-label">
-                            Mã sản phẩm *
-                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector('edit')" title="Chọn từ kho hàng">
-                                <i class="fas fa-list"></i>
-                            </button>
+
+                <div class="form-section"><i class="fas fa-tag"></i> Thông tin cơ bản</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Mã sản phẩm
+                            <button type="button" class="btn-icon-select" onclick="openWarehouseProductSelector('edit')" title="Chọn từ kho hàng"><i class="fas fa-list"></i></button>
                         </label>
                         <input type="text" class="form-input" name="code" id="edit_product_code" required readonly>
-					</div>
+                    </div>
                     <div class="form-group">
-                        <label class="form-label">Tên sản phẩm *</label>
-                        <input type="text" class="form-input" name="name" required>
-				</div>
-				<div class="form-group">
-                        <label class="form-label">Nhóm sản phẩm *</label>
+                        <label class="form-label required">Tên sản phẩm</label>
+                        <input type="text" class="form-input" name="name" required placeholder="Nhập tên sản phẩm">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Nhóm sản phẩm</label>
                         <input type="text" class="form-input" name="group" required placeholder="Nhập nhóm sản phẩm">
-					</div>
-				</div>
-                
-			<div class="form-row">
-				<div class="form-group">
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-coins"></i> Giá & Số lượng</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Giá vốn</label>
                         <div class="money-input-container">
                             <input type="text" id="edit_cost_price_display" class="form-input" readonly>
                             <input type="hidden" name="cost_price" id="edit_cost_price">
                             <span class="currency-unit">VNĐ</span>
-					</div>
-				</div>
-				<div class="form-group">
-                        <label class="form-label">Giá bán *</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Giá bán</label>
                         <div class="money-input-container">
-                            <input type="text" id="edit_price_display" class="form-input" oninput="formatMoneyTyping(this, document.getElementById('edit_price'))" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                            <input type="text" id="edit_price_display" class="form-input" placeholder="0"
+                                   oninput="formatMoneyTyping(this, document.getElementById('edit_price'))"
+                                   onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
                             <input type="hidden" name="price" id="edit_price">
                             <span class="currency-unit">VNĐ</span>
-						</div>
-					</div>
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label class="form-label">Số lượng *</label>
-                        <input type="number" class="form-input" name="quantity" id="edit_quantity" min="0" required oninput="validateEditProductQuantity(this)" onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
-                        <div id="editQuantityMessage" class="quantity-message" style="display: none;"></div>
-				</div>
-			</div>
-                
-			<div class="form-row">
-				<div class="form-group">
+                        <label class="form-label required">Số lượng</label>
+                        <input type="number" class="form-input" name="quantity" id="edit_quantity" min="0" required
+                               oninput="validateEditProductQuantity(this)"
+                               onfocus="clearZeroOnFocus(this)" onblur="restoreZeroIfEmpty(this)">
+                        <div id="editQuantityMessage" class="quantity-message" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-info-circle"></i> Thông tin bổ sung</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Đơn vị</label>
                         <input type="text" class="form-input" name="unit" placeholder="Cái, kg, lít...">
-				</div>
-				<div class="form-group">
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Mô tả</label>
-                        <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm"></textarea>
-				</div>
-			</div>
-            
-            <div class="form-group">
-                <label class="form-label">Hình ảnh sản phẩm</label>
-                <input type="file" id="editProductImage" accept="image/*" onchange="previewImage(this, 'editProductImagePreview')">
-                <div id="editProductImagePreview" class="image-preview"></div>
-            </div>
-		</form>
-			</div>
+                        <textarea class="form-textarea" name="description" rows="2" placeholder="Mô tả sản phẩm..."></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hình ảnh sản phẩm</label>
+                    <input type="file" id="editProductImage" accept="image/*" onchange="previewImage(this, 'editProductImagePreview')">
+                    <div id="editProductImagePreview" class="image-preview"></div>
+                </div>
+            </form>
+        </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditProductModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updateProduct()">Cập nhật</button>
-			</div>
-	</div>
+            <button type="button" class="btn btn-primary" onclick="updateProduct()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Delete Confirmation Modal -->

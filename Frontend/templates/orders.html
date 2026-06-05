@@ -155,222 +155,210 @@ Quản lý và theo dõi các đơn hàng, xử lý giao dịch và cập nhật
 </div>
 
 <!-- Add Order Modal -->
-<div class="modal-overlay" id="addOrderModal" style="display: none;">
+<div class="modal-overlay" id="addOrderModal" style="display:none;">
     <div class="modal modal-horizontal">
-    <div class="modal-header">
-            <h3><i class="fas fa-plus"></i> Thêm đơn hàng mới</h3>
-            <button class="modal-close" onclick="closeAddOrderModal()">
-                <i class="fas fa-times"></i>
-            </button>
-    </div>
-    <div class="modal-body">
-            <form id="addOrderForm">
-      <div class="form-row">
-        <div class="form-group">
-            <label class="form-label">Mã đơn hàng *</label>
-            <input type="text" class="form-input" name="ma_don_hang" id="addOrderCode" required placeholder="Tự động tạo" readonly>
+        <div class="modal-header">
+            <h3><i class="fas fa-shopping-cart"></i> Thêm đơn hàng mới</h3>
+            <button class="modal-close" onclick="closeAddOrderModal()"><i class="fas fa-times"></i></button>
         </div>
-        <div class="form-group">
-                        <label class="form-label">Ngày tạo *</label>
+        <div class="modal-body">
+            <form id="addOrderForm">
+                <div class="form-section"><i class="fas fa-file-alt"></i> Thông tin đơn hàng</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mã đơn hàng</label>
+                        <input type="text" class="form-input" name="ma_don_hang" id="addOrderCode" required placeholder="Tự động tạo" readonly>
+                        <span class="form-hint">Mã được tự động sinh</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Ngày tạo</label>
                         <input type="date" class="form-input" name="ngay_tao" required>
                         <input type="hidden" name="ngay_tao_time" id="addOrderTime">
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-                    <label class="form-label" style="font-size: 0.9em;">Thông tin khách hàng *</label>
-                    <div class="customer-search-container">
-                        <div class="search-input">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="addCustomerName" class="form-input" name="thong_tin_kh" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)">
-                        </div>
-                        <!-- Custom dropdown list -->
-                        <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display: none;">
-                            <!-- Options will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-users"></i> Khách hàng & Sản phẩm</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Khách hàng</label>
+                        <div class="customer-search-container">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="addCustomerName" class="form-input" name="thong_tin_kh" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleAddCustomerKeypress(event)">
+                            </div>
+                            <div class="customer-dropdown-list" id="addCustomerDropdownList" style="display:none;"></div>
                         </div>
                     </div>
-        </div>
-        <div class="form-group">
-                    <label class="form-label" style="font-size: 0.9em;">Sản phẩm/Bảng giá</label>
-                    <div class="product-search-container">
-                        <div class="search-input">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="productSearch" class="form-input" placeholder="Tìm kiếm sản phẩm hoặc bảng giá" autocomplete="off" onkeypress="handleProductKeypress(event)">
-                        </div>
-                        <!-- Custom dropdown list -->
-                        <div class="product-dropdown-list" id="productDropdownList" style="display: none;">
-                            <!-- Options will be populated dynamically -->
+                    <div class="form-group">
+                        <label class="form-label">Sản phẩm / Bảng giá</label>
+                        <div class="product-search-container">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="productSearch" class="form-input" placeholder="Tìm kiếm sản phẩm hoặc bảng giá" autocomplete="off" onkeypress="handleProductKeypress(event)">
+                            </div>
+                            <div class="product-dropdown-list" id="productDropdownList" style="display:none;"></div>
                         </div>
                     </div>
-        </div>
-      </div>
-      
-              <div class="form-row">
-          <div class="form-group">
-                        <label class="form-label">Số lượng *</label>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Số lượng</label>
                         <input type="number" class="form-input" name="so_luong" min="1" required placeholder="Nhập số lượng" oninput="validateQuantity(this)" onchange="validateQuantity(this)">
-                        <div id="quantityMessage" class="quantity-message" style="display: none;"></div>
-        </div>
-        <div class="form-group">
+                        <div id="quantityMessage" class="quantity-message" style="display:none;"></div>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Mã số thuế</label>
                         <input type="text" class="form-input" name="ma_co_quan_thue" placeholder="Nhập mã số thuế">
-          </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-                    <label class="form-label" style="font-size: 0.9em;">Tổng tiền *</label>
-                    <div class="money-input-container">
-                        <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
-                        <input type="hidden" name="tong_tien" id="add_tong_tien">
-                        <span class="currency-unit">VNĐ</span>
                     </div>
-        </div>
-        <div class="form-group">
-                        <label class="form-label">Trạng thái *</label>
-                        <select class="form-select" name="trang_thai" required>
-            <option value="">Chọn trạng thái</option>
-                            <option value="cho_xu_ly">Chờ xử lý</option>
-                            <option value="dang_xu_ly">Đang xử lý</option>
-                            <option value="hoan_thanh">Hoàn thành</option>
-                            <option value="da_huy">Đã hủy</option>
-          </select>
-        </div>
-      </div>
+                </div>
 
-      <!-- Mã giảm giá -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label"><i class="fas fa-tags"></i> Mã giảm giá</label>
-          <div style="position:relative;">
-            <div class="search-input">
-              <i class="fas fa-search"></i>
-              <input type="text" id="addOrderDiscountSearch" class="form-input"
-                     placeholder="Tìm và chọn mã giảm giá..."
-                     autocomplete="off" readonly
-                     onclick="toggleOrderDiscountDropdown()"
-                     value="">
-            </div>
-            <input type="hidden" name="ma_giam_gia" id="addOrderDiscountCode">
-            <input type="hidden" name="so_tien_giam" id="addOrderDiscountAmount">
-            <div id="addOrderDiscountList" style="display:none;position:absolute;top:100%;left:0;right:0;
-                 background:white;border:1px solid var(--gray-300);border-radius:8px;
-                 box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:220px;overflow-y:auto;z-index:9999;">
-            </div>
-          </div>
-          <div id="addOrderDiscountInfo" style="margin-top:6px;display:none;
-               background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
-               padding:6px 10px;font-size:0.85em;color:#16a34a;">
-          </div>
+                <div class="form-section"><i class="fas fa-coins"></i> Tài chính & Trạng thái</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Tổng tiền</label>
+                        <div class="money-input-container">
+                            <input type="text" id="add_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('add_tong_tien'))">
+                            <input type="hidden" name="tong_tien" id="add_tong_tien">
+                            <span class="currency-unit">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Trạng thái</label>
+                        <select class="form-select" name="trang_thai" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="cho_xu_ly">⏳ Chờ xử lý</option>
+                            <option value="dang_xu_ly">🔄 Đang xử lý</option>
+                            <option value="hoan_thanh">✅ Hoàn thành</option>
+                            <option value="da_huy">❌ Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Mã giảm giá</label>
+                        <div style="position:relative;">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="addOrderDiscountSearch" class="form-input"
+                                       placeholder="Tìm và chọn mã giảm giá..."
+                                       autocomplete="off" readonly
+                                       onclick="toggleOrderDiscountDropdown()" value="">
+                            </div>
+                            <input type="hidden" name="ma_giam_gia" id="addOrderDiscountCode">
+                            <input type="hidden" name="so_tien_giam" id="addOrderDiscountAmount">
+                            <div id="addOrderDiscountList" style="display:none;position:absolute;top:100%;left:0;right:0;
+                                 background:white;border:1px solid var(--gray-300);border-radius:8px;
+                                 box-shadow:0 4px 16px rgba(0,0,0,0.12);max-height:220px;overflow-y:auto;z-index:9999;"></div>
+                        </div>
+                        <div id="addOrderDiscountInfo" style="margin-top:6px;display:none;
+                             background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+                             padding:6px 10px;font-size:0.85em;color:#16a34a;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Ghi chú</label>
+                        <input type="text" class="form-input" name="ghi_chu" placeholder="Ghi chú đơn hàng (tùy chọn)">
+                    </div>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-          <label class="form-label">Ghi chú</label>
-          <input type="text" class="form-input" name="ghi_chu" placeholder="Ghi chú đơn hàng (tùy chọn)">
-        </div>
-      </div>
-    </form>
-    </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeAddOrderModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="createOrder()">Tạo đơn hàng</button>
+            <button type="button" class="btn btn-primary" onclick="createOrder()">
+                <i class="fas fa-plus"></i> Tạo đơn hàng
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Edit Order Modal -->
-<div class="modal-overlay" id="editOrderModal" style="display: none;">
+<div class="modal-overlay" id="editOrderModal" style="display:none;">
     <div class="modal modal-horizontal">
-    <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Chỉnh sửa đơn hàng</h3>
-            <button class="modal-close" onclick="closeEditOrderModal()">
-                <i class="fas fa-times"></i>
-            </button>
-    </div>
+        <div class="modal-header">
+            <h3><i class="fas fa-shopping-cart"></i> Chỉnh sửa đơn hàng</h3>
+            <button class="modal-close" onclick="closeEditOrderModal()"><i class="fas fa-times"></i></button>
+        </div>
         <div class="modal-body">
             <form id="editOrderForm">
                 <input type="hidden" name="id">
-      
-      <div class="form-row">
-        <div class="form-group">
+
+                <div class="form-section"><i class="fas fa-file-alt"></i> Thông tin đơn hàng</div>
+                <div class="form-row">
+                    <div class="form-group">
                         <label class="form-label">Mã đơn hàng</label>
                         <input type="text" class="form-input" name="ma_don_hang" readonly>
-        </div>
-        <div class="form-group">
-                        <label class="form-label">Ngày tạo *</label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Ngày tạo</label>
                         <input type="date" class="form-input" name="ngay_tao" required>
                         <input type="hidden" name="ngay_tao_time" id="editOrderTime">
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-                    <label class="form-label" style="font-size: 0.9em;">Thông tin khách hàng *</label>
-                    <div class="customer-search-container">
-                        <div class="search-input">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="editCustomerName" class="form-input" name="thong_tin_kh" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleEditCustomerKeypress(event)">
-                        </div>
-                        <!-- Custom dropdown list -->
-                        <div class="customer-dropdown-list" id="editCustomerDropdownList" style="display: none;">
-                            <!-- Options will be populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="form-section"><i class="fas fa-users"></i> Khách hàng & Sản phẩm</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Khách hàng</label>
+                        <div class="customer-search-container">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="editCustomerName" class="form-input" name="thong_tin_kh" required placeholder="Tìm kiếm hoặc nhập tên khách hàng" autocomplete="off" onkeypress="handleEditCustomerKeypress(event)">
+                            </div>
+                            <div class="customer-dropdown-list" id="editCustomerDropdownList" style="display:none;"></div>
                         </div>
                     </div>
-        </div>
-        <div class="form-group">
-                    <label class="form-label" style="font-size: 0.9em;">Sản phẩm/Bảng giá</label>
-                    <div class="product-search-container">
-                        <div class="search-input">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="editProductSearch" class="form-input" placeholder="Tìm kiếm sản phẩm hoặc bảng giá" autocomplete="off" onkeypress="handleEditProductKeypress(event)">
-                        </div>
-                        <!-- Custom dropdown list -->
-                        <div class="product-dropdown-list" id="editProductDropdownList" style="display: none;">
-                            <!-- Options will be populated dynamically -->
+                    <div class="form-group">
+                        <label class="form-label">Sản phẩm / Bảng giá</label>
+                        <div class="product-search-container">
+                            <div class="search-input">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="editProductSearch" class="form-input" placeholder="Tìm kiếm sản phẩm hoặc bảng giá" autocomplete="off" onkeypress="handleEditProductKeypress(event)">
+                            </div>
+                            <div class="product-dropdown-list" id="editProductDropdownList" style="display:none;"></div>
                         </div>
                     </div>
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-                        <label class="form-label">Số lượng *</label>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Số lượng</label>
                         <input type="number" class="form-input" name="so_luong" min="1" required placeholder="Nhập số lượng" oninput="validateEditQuantity(this)" onchange="validateEditQuantity(this)">
-                        <div id="editQuantityMessage" class="quantity-message" style="display: none;"></div>
-        </div>
-        <div class="form-group">
+                        <div id="editQuantityMessage" class="quantity-message" style="display:none;"></div>
+                    </div>
+                    <div class="form-group">
                         <label class="form-label">Mã số thuế</label>
                         <input type="text" class="form-input" name="ma_co_quan_thue" placeholder="Nhập mã số thuế">
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-                    <label class="form-label" style="font-size: 0.9em;">Tổng tiền *</label>
-                    <div class="money-input-container">
-                        <input type="text" id="edit_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('edit_tong_tien'))">
-                        <input type="hidden" name="tong_tien" id="edit_tong_tien">
-                        <span class="currency-unit">VNĐ</span>
                     </div>
-        </div>
-        <div class="form-group">
-                        <label class="form-label">Trạng thái *</label>
+                </div>
+
+                <div class="form-section"><i class="fas fa-coins"></i> Tài chính & Trạng thái</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Tổng tiền</label>
+                        <div class="money-input-container">
+                            <input type="text" id="edit_tong_tien_display" class="form-input" placeholder="0" oninput="formatMoneyTyping(this, document.getElementById('edit_tong_tien'))">
+                            <input type="hidden" name="tong_tien" id="edit_tong_tien">
+                            <span class="currency-unit">VNĐ</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Trạng thái</label>
                         <select class="form-select" name="trang_thai" required>
-                            <option value="">Chọn trạng thái</option>
-                            <option value="cho_xu_ly">Chờ xử lý</option>
-                            <option value="dang_xu_ly">Đang xử lý</option>
-                            <option value="hoan_thanh">Hoàn thành</option>
-                            <option value="da_huy">Đã hủy</option>
-          </select>
+                            <option value="">-- Chọn trạng thái --</option>
+                            <option value="cho_xu_ly">⏳ Chờ xử lý</option>
+                            <option value="dang_xu_ly">🔄 Đang xử lý</option>
+                            <option value="hoan_thanh">✅ Hoàn thành</option>
+                            <option value="da_huy">❌ Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
         </div>
-      </div>
-    </form>
-    </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeEditOrderModal()">Hủy</button>
-            <button type="button" class="btn btn-primary" onclick="updateOrder()">Cập nhật</button>
+            <button type="button" class="btn btn-primary" onclick="updateOrder()">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- Delete Confirmation Modal -->

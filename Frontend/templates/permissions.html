@@ -63,22 +63,6 @@
     </div>
 </div>
 
-<!-- Modal xác nhận status -->
-<div class="modal-overlay" id="confirmModal" style="display:none;">
-    <div class="modal modal-small">
-        <div class="modal-header">
-            <h3 id="confirmTitle">Xác nhận</h3>
-            <button class="modal-close" onclick="document.getElementById('confirmModal').style.display='none'">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="modal-body"><p id="confirmMsg"></p></div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="document.getElementById('confirmModal').style.display='none'">Hủy</button>
-            <button class="btn btn-danger" id="confirmBtn">Xác nhận</button>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -308,9 +292,12 @@ async function savePerm() {
             const u = allUsers.find(u=>u.id===editingId);
             if (u) u.permissions = perms;
             closePerm(); updateStats(); filterUsers();
-            if (typeof showSuccessMessage==='function')
-                showSuccessMessage(`Đã lưu ${perms.length} quyền cho nhân viên!`);
-        } else { alert('Lỗi: '+(d.detail||'Không thể lưu')); }
+            showSuccessModal('Lưu thành công', `Đã cập nhật ${perms.length} quyền cho nhân viên.`);
+        } else {
+            showErrorModal('Lỗi', d.detail || 'Không thể lưu quyền.');
+        }
+    } catch(e) {
+        showErrorModal('Lỗi kết nối', 'Không thể kết nối đến server.');
     } finally {
         btn.innerHTML='<i class="fas fa-save"></i> Lưu phân quyền'; btn.disabled=false;
     }
@@ -318,26 +305,29 @@ async function savePerm() {
 
 // ── Vô hiệu hóa / kích hoạt ──────────────────────────────────────────────────
 function confirmToggle(id, name, activate) {
-    document.getElementById('confirmTitle').textContent = activate ? 'Kích hoạt tài khoản' : 'Vô hiệu hóa tài khoản';
-    document.getElementById('confirmMsg').innerHTML = activate
-        ? `Kích hoạt lại tài khoản của <strong>${name}</strong>?`
-        : `Vô hiệu hóa tài khoản của <strong>${name}</strong>?<br>
-           <span style="color:#dc2626;font-size:0.9em;">Nhân viên sẽ bị đăng xuất ngay lập tức.</span>`;
-    document.getElementById('confirmBtn').onclick = () => toggleStatus(id, activate);
-    document.getElementById('confirmModal').style.display = 'flex';
+    const title = activate ? 'Kích hoạt tài khoản' : 'Vô hiệu hóa tài khoản';
+    const msg   = activate
+        ? `Kích hoạt lại tài khoản của "${name}"?`
+        : `Vô hiệu hóa tài khoản của "${name}"? Tài khoản sẽ bị đăng xuất ngay lập tức.`;
+    showConfirm(title, msg, () => toggleStatus(id, activate));
 }
 
 async function toggleStatus(id, activate) {
-    document.getElementById('confirmModal').style.display = 'none';
     const ep = activate ? 'activate' : 'deactivate';
-    const res = await fetch(`${B}/api/permissions/${ep}/${id}`,{method:'POST',headers:H()});
-    const d = await res.json();
-    if (res.ok && d.success) {
-        const u = allUsers.find(u=>u.id===id);
-        if (u) u.status = activate;
-        updateStats(); filterUsers();
-        if (typeof showSuccessMessage==='function') showSuccessMessage(d.message);
-    } else { alert('Lỗi: '+(d.detail||'Thao tác thất bại')); }
+    try {
+        const res = await fetch(`${B}/api/permissions/${ep}/${id}`,{method:'POST',headers:H()});
+        const d = await res.json();
+        if (res.ok && d.success) {
+            const u = allUsers.find(u=>u.id===id);
+            if (u) u.status = activate;
+            updateStats(); filterUsers();
+            showSuccessModal(activate ? 'Kích hoạt thành công' : 'Vô hiệu hóa thành công', d.message);
+        } else {
+            showErrorModal('Thao tác thất bại', d.detail || 'Không thể thực hiện thao tác.');
+        }
+    } catch(e) {
+        showErrorModal('Lỗi kết nối', 'Không thể kết nối đến server.');
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -10,55 +10,408 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: stretch;
+        }
+
+        /* ── Layout ── */
+        .lp-wrap {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* ── Left brand panel ── */
+        .lp-brand {
+            flex: 1 1 55%;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #1d4ed8 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 48px 56px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* decorative circles */
+        .lp-brand::before {
+            content: '';
+            position: absolute;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.06);
+            top: -120px; right: -160px;
+        }
+        .lp-brand::after {
+            content: '';
+            position: absolute;
+            width: 320px; height: 320px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.04);
+            bottom: -80px; left: -80px;
+        }
+
+        .lp-brand-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 420px;
+        }
+
+        .lp-logo-wrap {
+            width: 88px; height: 88px;
+            background: rgba(255,255,255,.15);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .lp-logo-wrap img {
+            width: 56px; height: 56px;
+            object-fit: contain;
+        }
+
+        .lp-app-name {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .lp-tagline {
+            font-size: 1rem;
+            color: rgba(255,255,255,.75);
+            font-weight: 400;
+            margin-bottom: 48px;
+        }
+
+        .lp-features {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: left;
+        }
+
+        .lp-feature {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: rgba(255,255,255,.9);
+            font-size: 0.9rem;
+        }
+
+        .lp-feature-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,.15);
+        }
+
+        .lp-feature-text strong {
+            display: block;
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.875rem;
+            margin-bottom: 1px;
+        }
+        .lp-feature-text span {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,.6);
+        }
+
+        .lp-brand-footer {
+            position: absolute;
+            bottom: 24px;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,.4);
+            z-index: 1;
+        }
+
+        /* ── Right form panel ── */
+        .lp-form-panel {
+            flex: 0 0 420px;
+            width: 420px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px 40px;
+            box-shadow: -4px 0 32px rgba(0,0,0,.08);
+        }
+
+        .lp-form-header {
+            margin-bottom: 32px;
+        }
+
+        .lp-form-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .lp-form-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
+        }
+
+        .lp-form-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* ── Fields ── */
+        .lp-field {
+            margin-bottom: 20px;
+        }
+
+        .lp-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 7px;
+            letter-spacing: 0.2px;
+        }
+
+        .lp-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .lp-input-icon {
+            position: absolute;
+            left: 14px;
+            color: #9ca3af;
+            font-size: 0.875rem;
+            pointer-events: none;
+        }
+
+        .lp-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 44px 0 40px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            color: #111827;
+            background: #f9fafb;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+            outline: none;
+        }
+
+        .lp-input:focus {
+            border-color: #2563eb;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+        }
+
+        .lp-input::placeholder { color: #9ca3af; }
+
+        .lp-pwd-toggle {
+            position: absolute;
+            right: 0;
+            top: 0; bottom: 0;
+            width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 0.9rem;
+            border-radius: 0 10px 10px 0;
+            transition: color .2s;
+        }
+        .lp-pwd-toggle:hover { color: #374151; }
+
+        /* ── Submit button ── */
+        .lp-submit {
+            width: 100%;
+            height: 46px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            box-shadow: 0 4px 14px rgba(37,99,235,.35);
+            transition: opacity .2s, transform .15s, box-shadow .2s;
+        }
+        .lp-submit:hover {
+            opacity: .92;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37,99,235,.4);
+        }
+        .lp-submit:active { transform: translateY(0); }
+        .lp-submit:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ── Hint ── */
+        .lp-hint {
+            margin-top: 20px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lp-hint i { color: #94a3b8; font-size: 0.85rem; }
+        .lp-hint strong { color: #475569; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .lp-brand { display: none; }
+            .lp-form-panel {
+                flex: 1;
+                width: 100%;
+                padding: 40px 24px;
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-box">
-      <div class="logo">
-        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PosPos Logo">
-      </div>
-      <h2>Đăng nhập hệ thống</h2>
-      <form id="loginForm">
-        <div class="input-group">
-          <input type="text" id="username" name="username" placeholder="Tên đăng nhập" required autocomplete="username">
-          <i class="fas fa-user"></i>
-        </div>
-        <div class="input-group" style="position:relative;">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="password" name="password" placeholder="Mật khẩu"
-                 required autocomplete="current-password"
-                 style="padding-right:48px; width:100%; box-sizing:border-box;">
-          <button type="button" id="loginTogglePwd" onclick="toggleLoginPassword()"
-                  title="Hiện/ẩn mật khẩu"
-                  style="position:absolute;
-                         right:0;
-                         top:0;
-                         bottom:0;
-                         width:44px;
-                         background:none;
-                         border:none;
-                         cursor:pointer;
-                         color:#94a3b8;
-                         display:flex;
-                         align-items:center;
-                         justify-content:center;
-                         border-radius:0 var(--radius-lg) var(--radius-lg) 0;
-                         transition:color 0.2s;
-                         z-index:2;
-                         padding:0;">
-            <i class="fas fa-eye" id="loginPwdIcon"></i>
-          </button>
-        </div>
-        <button type="submit" id="loginBtn">Đăng nhập</button>
-      </form>
-      <p style="margin-top: 12px; font-size: 12px; color: #64748b; text-align: center;">
-        Mặc định: <strong>admin</strong> / <strong>admin123</strong>
-      </p>
-    </div>
-  </div>
+<div class="lp-wrap">
 
-  <script>
-  function parseLoginError(data, statusCode) {
+    <!-- Left: Brand panel -->
+    <div class="lp-brand">
+        <div class="lp-brand-content">
+            <div class="lp-logo-wrap">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PosPos Logo">
+            </div>
+            <h1 class="lp-app-name">PosPos</h1>
+            <p class="lp-tagline">Hệ thống quản lý bán hàng toàn diện</p>
+
+            <div class="lp-features">
+                <div class="lp-feature">
+                    <div class="lp-feature-icon"><i class="fas fa-cash-register"></i></div>
+                    <div class="lp-feature-text">
+                        <strong>Bán hàng tại quầy (POS)</strong>
+                        <span>Thanh toán nhanh, hỗ trợ nhiều hình thức</span>
+                    </div>
+                </div>
+                <div class="lp-feature">
+                    <div class="lp-feature-icon"><i class="fas fa-boxes"></i></div>
+                    <div class="lp-feature-text">
+                        <strong>Quản lý kho & sản phẩm</strong>
+                        <span>Theo dõi tồn kho, nhập xuất hàng</span>
+                    </div>
+                </div>
+                <div class="lp-feature">
+                    <div class="lp-feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="lp-feature-text">
+                        <strong>Báo cáo & thống kê</strong>
+                        <span>Doanh thu, lợi nhuận, công nợ theo thời gian thực</span>
+                    </div>
+                </div>
+                <div class="lp-feature">
+                    <div class="lp-feature-icon"><i class="fas fa-truck"></i></div>
+                    <div class="lp-feature-text">
+                        <strong>Vận chuyển & giao hàng</strong>
+                        <span>Tạo & theo dõi đơn vận chuyển dễ dàng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lp-brand-footer">© 2024 PosPos. All rights reserved.</div>
+    </div>
+
+    <!-- Right: Form panel -->
+    <div class="lp-form-panel">
+        <div class="lp-form-header">
+            <div class="lp-form-badge">
+                <i class="fas fa-shield-alt"></i>
+                Bảo mật &amp; An toàn
+            </div>
+            <h2 class="lp-form-title">Chào mừng trở lại</h2>
+            <p class="lp-form-subtitle">Đăng nhập để quản lý hệ thống của bạn</p>
+        </div>
+
+        <form id="loginForm" autocomplete="on">
+            <div class="lp-field">
+                <label class="lp-label" for="username">Tên đăng nhập</label>
+                <div class="lp-input-wrap">
+                    <i class="fas fa-user lp-input-icon"></i>
+                    <input class="lp-input" type="text" id="username" name="username"
+                           placeholder="Nhập tên đăng nhập" required autocomplete="username">
+                </div>
+            </div>
+
+            <div class="lp-field">
+                <label class="lp-label" for="password">Mật khẩu</label>
+                <div class="lp-input-wrap">
+                    <i class="fas fa-lock lp-input-icon"></i>
+                    <input class="lp-input" type="password" id="password" name="password"
+                           placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                    <button type="button" id="loginTogglePwd" class="lp-pwd-toggle"
+                            onclick="toggleLoginPassword()" title="Hiện/ẩn mật khẩu">
+                        <i class="fas fa-eye" id="loginPwdIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" id="loginBtn" class="lp-submit">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Đăng nhập</span>
+            </button>
+        </form>
+
+        <div class="lp-hint">
+            <i class="fas fa-info-circle"></i>
+            Mặc định: tài khoản <strong>admin</strong> / mật khẩu <strong>admin123</strong>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function parseLoginError(data, statusCode) {
     if (!data) return 'Đăng nhập thất bại';
     if (typeof data.detail === 'string') return data.detail;
     if (typeof data.error === 'string') return data.error;
@@ -67,42 +420,62 @@
     if (statusCode === 404) return 'Tài khoản không tồn tại';
     if (statusCode === 503) return data.error || 'Không kết nối được Backend. Hãy chạy server port 5001.';
     return 'Đăng nhập thất bại';
-  }
+}
 
-  function showErrorPopup(message, type = 'error') {
-    const existingPopup = document.querySelector('.error-popup-overlay');
-    if (existingPopup) existingPopup.remove();
+// Toast notification (đồng bộ với hệ thống trong base.html)
+(function() {
+    var ICONS  = { error: 'fas fa-times-circle', warning: 'fas fa-exclamation-triangle', info: 'fas fa-info-circle' };
+    var COLORS = { error: '#dc2626', warning: '#d97706', info: '#2563eb' };
+    var BG     = { error: '#fee2e2', warning: '#fef3c7', info: '#dbeafe' };
+    var LABELS = { error: 'Lỗi', warning: 'Cảnh báo', info: 'Thông tin' };
+    var DUR    = { error: 5000, warning: 5000, info: 4000 };
 
-    const overlay = document.createElement('div');
-    overlay.className = 'error-popup-overlay';
-    overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.5); z-index: 10000;
-      display: flex; justify-content: center; align-items: center;
-    `;
+    function getContainer() {
+        var c = document.getElementById('loginToastContainer');
+        if (!c) {
+            c = document.createElement('div');
+            c.id = 'loginToastContainer';
+            c.className = 'toast-container';
+            document.body.appendChild(c);
+        }
+        return c;
+    }
 
-    const iconColor = type === 'warning' ? '#f39c12' : '#e74c3c';
-    const popup = document.createElement('div');
-    popup.className = 'error-popup';
-    popup.style.cssText = `
-      background: white; border-radius: 12px; padding: 24px;
-      max-width: 400px; width: 90%; text-align: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    `;
-    popup.innerHTML = `
-      <p style="margin: 0 0 16px; color: #2c3e50; font-size: 16px;">${message}</p>
-      <button type="button" style="
-        background: ${iconColor}; color: white; border: none;
-        padding: 10px 24px; border-radius: 6px; cursor: pointer;
-      ">Đóng</button>
-    `;
-    popup.querySelector('button').onclick = () => overlay.remove();
-    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
-    overlay.appendChild(popup);
-    document.body.appendChild(overlay);
-  }
+    window.showErrorPopup = function(message, type) {
+        type = type || 'error';
+        var dur   = DUR[type]    || 5000;
+        var color = COLORS[type] || COLORS.error;
+        var bg    = BG[type]     || BG.error;
+        var icon  = ICONS[type]  || ICONS.error;
+        var label = LABELS[type] || LABELS.error;
+        var container = getContainer();
+        var el = document.createElement('div');
+        el.className = 'toast toast-' + type;
+        el.style.setProperty('--toast-dur', (dur / 1000) + 's');
+        el.innerHTML =
+            '<div class="toast-icon" style="background:' + bg + ';color:' + color + ';width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">' +
+                '<i class="' + icon + '"></i>' +
+            '</div>' +
+            '<div class="toast-content" style="flex:1;min-width:0;">' +
+                '<div class="toast-title" style="font-weight:600;font-size:0.88em;color:#111827;margin-bottom:3px;">' + label + '</div>' +
+                '<div class="toast-message" style="font-size:0.82em;color:#4b5563;line-height:1.45;">' + message + '</div>' +
+            '</div>' +
+            '<button class="toast-close" aria-label="Đóng" style="background:none;border:none;cursor:pointer;color:#9ca3af;padding:2px;font-size:12px;width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">' +
+                '<i class="fas fa-times"></i>' +
+            '</button>' +
+            '<div class="toast-progress" style="background:' + color + ';"></div>';
+        function dismiss() {
+            clearTimeout(el._timer);
+            el.style.animation = 'toastSlideOut 0.32s ease forwards';
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 310);
+        }
+        el.querySelector('.toast-close').addEventListener('click', dismiss);
+        container.appendChild(el);
+        el._timer = setTimeout(dismiss, dur);
+    };
+})();
 
-  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const username = document.getElementById('username').value.trim();
@@ -110,76 +483,71 @@
     const loginBtn = document.getElementById('loginBtn');
 
     if (!username || !password) {
-      showErrorPopup('Vui lòng nhập tên đăng nhập và mật khẩu');
-      return;
+        showErrorPopup('Vui lòng nhập tên đăng nhập và mật khẩu');
+        return;
     }
 
     loginBtn.disabled = true;
-    loginBtn.textContent = 'Đang đăng nhập...';
+    loginBtn.querySelector('span').textContent = 'Đang đăng nhập...';
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ username, password })
-      });
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ username, password })
+        });
 
-      let data = {};
-      try {
-        data = await response.json();
-      } catch (parseErr) {
-        showErrorPopup('Phản hồi server không hợp lệ. Kiểm tra Backend đang chạy.');
-        return;
-      }
+        let data = {};
+        try {
+            data = await response.json();
+        } catch (parseErr) {
+            showErrorPopup('Phản hồi server không hợp lệ. Kiểm tra Backend đang chạy.');
+            return;
+        }
 
-      if (!response.ok) {
-        showErrorPopup(parseLoginError(data, response.status), response.status === 403 ? 'warning' : 'error');
-        return;
-      }
+        if (!response.ok) {
+            showErrorPopup(parseLoginError(data, response.status), response.status === 403 ? 'warning' : 'error');
+            return;
+        }
 
-      if (!data.access_token) {
-        showErrorPopup('Đăng nhập thất bại: thiếu token từ server.');
-        return;
-      }
+        if (!data.access_token) {
+            showErrorPopup('Đăng nhập thất bại: thiếu token từ server.');
+            return;
+        }
 
-      const loginUsername = data.user?.username || username;
-      try {
-        sessionStorage.setItem('access_token', data.access_token);
-                    sessionStorage.setItem('token_issued_at', Date.now());
-        sessionStorage.setItem('user_id', loginUsername);
-        sessionStorage.setItem('username', loginUsername);
-      } catch (storageErr) {
-        console.warn('sessionStorage:', storageErr);
-      }
+        const loginUsername = data.user?.username || username;
+        try {
+            sessionStorage.setItem('access_token', data.access_token);
+            sessionStorage.setItem('token_issued_at', Date.now());
+            sessionStorage.setItem('user_id', loginUsername);
+            sessionStorage.setItem('username', loginUsername);
+        } catch (storageErr) {
+            console.warn('sessionStorage:', storageErr);
+        }
 
-      window.location.replace('/general-diary');
+        window.location.replace('/general-diary');
     } catch (error) {
-      console.error('Login error:', error);
-      showErrorPopup(
-        'Không thể kết nối server. Kiểm tra Frontend (5000) và Backend (5001) đang chạy.'
-      );
+        console.error('Login error:', error);
+        showErrorPopup(
+            'Không thể kết nối server. Kiểm tra Frontend (5000) và Backend (5001) đang chạy.'
+        );
     } finally {
-      loginBtn.disabled = false;
-      loginBtn.textContent = 'Đăng nhập';
+        loginBtn.disabled = false;
+        loginBtn.querySelector('span').textContent = 'Đăng nhập';
     }
-  });
-  
-  function toggleLoginPassword() {
-      var inp  = document.getElementById('password');
-      var icon = document.getElementById('loginPwdIcon');
-      var btn  = document.getElementById('loginTogglePwd');
-      if (!inp) return;
-      if (inp.type === 'password') {
-          inp.type = 'text';
-          icon.className = 'fas fa-eye-slash';
-          btn.style.color = '#3b82f6';
-      } else {
-          inp.type = 'password';
-          icon.className = 'fas fa-eye';
-          btn.style.color = '#94a3b8';
-      }
-  }
+});
+
+function toggleLoginPassword() {
+    var inp  = document.getElementById('password');
+    var icon = document.getElementById('loginPwdIcon');
+    var btn  = document.getElementById('loginTogglePwd');
+    if (!inp) return;
+    var showing = inp.type !== 'password';
+    inp.type       = showing ? 'password' : 'text';
+    icon.className = showing ? 'fas fa-eye' : 'fas fa-eye-slash';
+    btn.setAttribute('title', showing ? 'Hiện mật khẩu' : 'Ẩn mật khẩu');
+}
 </script>
 </body>
 </html>

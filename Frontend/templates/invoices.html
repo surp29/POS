@@ -98,17 +98,12 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
     </div>
 </div>
 
-<div class="table-container">
-    <div class="card">
-        <div class="card-header">
-            <h3>Danh sách hóa đơn</h3>
-            <button class="btn btn-primary" onclick="openAddInvoiceModal()">
-                <i class="fas fa-plus"></i>
-                Thêm hóa đơn
-    </button>
-  </div>
-        <div class="card-body p-0">
-            <table class="table" id="invoicesTable">
+<div class="card">
+    <div class="card-header" style="padding:12px 16px;">
+        <h3 style="margin:0;font-size:1em;"><i class="fas fa-list"></i> Danh sách hóa đơn</h3>
+    </div>
+    <div class="card-body p-0" style="overflow-x:auto;">
+        <table class="table" style="min-width:800px;" id="invoicesTable">
                 <thead>
                     <tr>
                         <th>STT</th>
@@ -126,7 +121,6 @@ Quản lý và theo dõi các hóa đơn, xử lý thanh toán và cập nhật 
                 </tbody>
             </table>
         </div>
-  </div>
 </div>
 
 <!-- Pagination -->

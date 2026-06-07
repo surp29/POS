@@ -31,8 +31,18 @@ Hệ thống bán hàng - Point of Sale
         </div>
 
         <!-- Products Grid -->
-        <div class="pos-products-grid" id="productsGrid">
-            <!-- loaded dynamically -->
+        <div class="pos-products-wrapper">
+            <button class="pos-page-btn pos-page-prev" id="prevPageBtn"
+                    onclick="changePage(-1)" style="display:none;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="pos-products-grid" id="productsGrid">
+                <!-- loaded dynamically -->
+            </div>
+            <button class="pos-page-btn pos-page-next" id="nextPageBtn"
+                    onclick="changePage(1)" style="display:none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
     </div>
 
@@ -276,20 +286,58 @@ Hệ thống bán hàng - Point of Sale
     flex-shrink: 0;
 }
 
-.pos-products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
-    gap: 10px;
-    overflow-y: auto;
+/* wrapper chứa grid + pagination buttons */
+.pos-products-wrapper {
     flex: 1;
-    padding-right: 4px;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
 }
 
+.pos-products-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    height: 100%;
+    overflow: hidden;
+    align-content: start;
+}
+
+/* ── Pagination buttons ── */
+.pos-page-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    width: 26px;
+    height: 72px;
+    background: rgba(255,255,255,.96);
+    border: 1px solid var(--gray-200);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-600);
+    font-size: 0.85rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
+    transition: all .18s;
+}
+.pos-page-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+.pos-page-btn:disabled { opacity: .3; cursor: not-allowed; }
+.pos-page-prev { left: 0; border-radius: 0 8px 8px 0; }
+.pos-page-next { right: 0; border-radius: 8px 0 0 8px; }
+
+/* ── Product cards (vuông) ── */
 .product-card {
+    aspect-ratio: 1 / 1;
     background: white;
     border: 1.5px solid var(--gray-200);
     border-radius: 12px;
-    padding: 10px;
+    padding: 8px;
     cursor: pointer;
     transition: all 0.18s;
     text-align: center;
@@ -308,30 +356,31 @@ Hệ thống bán hàng - Point of Sale
     opacity: 0;
     transition: opacity 0.18s;
 }
-.product-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(59,130,246,0.15); }
+.product-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59,130,246,0.15); }
 .product-card:hover::after { opacity: 1; }
 .product-card:active { transform: translateY(0); }
 
 .product-image {
-    width: 100%; height: 88px;
-    object-fit: cover;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    object-fit: contain;
     border-radius: 8px;
-    margin-bottom: 8px;
-    background: var(--gray-100);
-    flex-shrink: 0;
+    margin-bottom: 5px;
+    background: var(--gray-50);
 }
 .product-name {
-    font-weight: 600; font-size: 0.8rem;
-    color: var(--gray-900); line-height: 1.35;
+    font-weight: 600; font-size: 0.72rem;
+    color: var(--gray-900); line-height: 1.3;
     overflow: hidden; text-overflow: ellipsis;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    min-height: 34px; flex-grow: 1; margin-bottom: 6px;
+    margin-bottom: 3px; flex-shrink: 0;
 }
-.product-price { color: var(--primary-color); font-weight: 700; font-size: 0.82rem; margin-bottom: 4px; }
+.product-price { color: var(--primary-color); font-weight: 700; font-size: 0.76rem; margin-bottom: 2px; flex-shrink: 0; }
 .product-stock {
-    font-size: 0.72rem; color: var(--gray-500);
-    padding: 2px 7px; background: var(--gray-100);
-    border-radius: 20px; display: inline-block;
+    font-size: 0.66rem; color: var(--gray-500);
+    padding: 1px 6px; background: var(--gray-100);
+    border-radius: 20px; display: inline-block; flex-shrink: 0;
 }
 
 /* ── Right Panel ── */
@@ -625,17 +674,17 @@ Hệ thống bán hàng - Point of Sale
 /* Responsive */
 @media (max-width: 1100px) {
     .pos-right-panel { width: 280px; }
+    .pos-products-grid { grid-template-columns: repeat(5, 1fr); }
 }
 @media (max-width: 900px) {
     .pos-container { flex-direction: column; height: auto; }
     .pos-left-panel { min-height: 340px; max-height: 55vh; }
     .pos-right-panel { width: 100%; }
-    .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .pos-products-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
     .discount-dropdown { min-width: 0; width: 100%; }
 }
 @media (max-width: 600px) {
-    .product-image { height: 70px; }
-    .pos-products-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+    .pos-products-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; }
 }
 </style>
 {% endblock %}
@@ -711,6 +760,11 @@ let productGroups = [];
 let customersData = [];
 let discountCodes = [];
 let selectedDiscounts = [];
+
+// Pagination
+const ITEMS_PER_PAGE = 30; // 6 cột × 5 hàng
+let currentPage = 1;
+let filteredProductsCache = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -1032,66 +1086,93 @@ function renderCategoryFilters() {
     });
 }
 
-// Render products
-async function renderProducts() {
-    const grid = document.getElementById('productsGrid');
-    
-    // If "prices" category, show price list
-    if (currentCategory === 'prices') {
-        await renderPriceList();
-        return;
-    }
-    
-    const filteredProducts = currentCategory === 'all' 
-        ? productsData.filter(p => (p.so_luong || 0) > 0)
-        : productsData.filter(p => (p.so_luong || 0) > 0 && p.nhom_sp === currentCategory);
-    
-    if (filteredProducts.length === 0) {
-        grid.innerHTML = '<p class="empty-cart">Không có sản phẩm</p>';
-        return;
-    }
-    
-    grid.innerHTML = filteredProducts.map(product => {
-        // Escape HTML to prevent XSS
-        const name = product.ten_sp || 'N/A';
-        const price = formatCurrency(product.gia_ban);
-        const stock = product.so_luong || 0;
-        
-        // Construct full image URL from backend
-        let imageUrl = '/static/images/products/default.png';
-        if (product.image_url) {
-            // If image_url is already full URL, use it; otherwise construct from backend
-            if (product.image_url.startsWith('http://') || product.image_url.startsWith('https://')) {
-                imageUrl = product.image_url;
-            } else {
-                imageUrl = backendAssetUrl(product.image_url);
-            }
+// Build một product card HTML (dùng chung cho renderCurrentPage & searchProducts)
+function buildProductCardHTML(product) {
+    const name = product.ten_sp || 'N/A';
+    const price = formatCurrency(product.gia_ban);
+    const stock = product.so_luong || 0;
+    let imageUrl = '/static/images/products/default.png';
+    if (product.image_url) {
+        if (product.image_url.startsWith('http://') || product.image_url.startsWith('https://')) {
+            imageUrl = product.image_url;
+        } else {
+            imageUrl = backendAssetUrl(product.image_url);
         }
-        
-        return `
-        <div class="product-card" data-product-id="${product.id}">
-            <img src="${imageUrl}" 
-                 alt="${name.replace(/"/g, '&quot;')}" 
-                 class="product-image"
-                 onerror="this.src='/static/images/products/default.png'; this.style.display='block';">
-            <div class="product-name">${name}</div>
-            <div class="product-price">${price}</div>
-            <div class="product-stock">Còn: ${stock}</div>
-        </div>
-        `;
-    }).join('');
-    
-    // Add click event listeners to prevent multiple handlers
-    document.querySelectorAll('.product-card').forEach(card => {
+    }
+    return `<div class="product-card" data-product-id="${product.id}">
+        <img src="${imageUrl}" alt="${name.replace(/"/g, '&quot;')}" class="product-image"
+             onerror="this.src='/static/images/products/default.png';">
+        <div class="product-name">${name}</div>
+        <div class="product-price">${price}</div>
+        <div class="product-stock">Còn: ${stock}</div>
+    </div>`;
+}
+
+// Render trang hiện tại (dùng filteredProductsCache + currentPage)
+function renderCurrentPage() {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+
+    if (filteredProductsCache.length === 0) {
+        grid.innerHTML = '<p class="empty-cart" style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray-400);">Không có sản phẩm</p>';
+        updatePaginationButtons();
+        return;
+    }
+
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    const pageProducts = filteredProductsCache.slice(start, start + ITEMS_PER_PAGE);
+
+    grid.innerHTML = pageProducts.map(buildProductCardHTML).join('');
+
+    grid.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             const productId = parseInt(this.getAttribute('data-product-id'));
-            if (productId) {
-                addToCart(productId);
-            }
+            if (productId) addToCart(productId);
         });
     });
+
+    updatePaginationButtons();
+}
+
+// Chuyển trang (+1 = next, -1 = prev)
+function changePage(delta) {
+    const totalPages = Math.ceil(filteredProductsCache.length / ITEMS_PER_PAGE);
+    currentPage = Math.max(1, Math.min(totalPages, currentPage + delta));
+    renderCurrentPage();
+}
+
+// Cập nhật trạng thái nút phân trang
+function updatePaginationButtons() {
+    const totalPages = Math.ceil(filteredProductsCache.length / ITEMS_PER_PAGE);
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const show = totalPages > 1;
+
+    if (prevBtn) {
+        prevBtn.style.display = show ? 'flex' : 'none';
+        prevBtn.disabled = currentPage <= 1;
+    }
+    if (nextBtn) {
+        nextBtn.style.display = show ? 'flex' : 'none';
+        nextBtn.disabled = currentPage >= totalPages;
+    }
+}
+
+// Render products
+async function renderProducts() {
+    if (currentCategory === 'prices') {
+        await renderPriceList();
+        return;
+    }
+
+    filteredProductsCache = currentCategory === 'all'
+        ? productsData.filter(p => (p.so_luong || 0) > 0)
+        : productsData.filter(p => (p.so_luong || 0) > 0 && p.nhom_sp === currentCategory);
+
+    currentPage = 1;
+    renderCurrentPage();
 }
 
 // Render price list
@@ -1275,72 +1356,26 @@ function clearCart() {
 // Search products
 function searchProducts() {
     const searchTerm = document.getElementById('productSearch').value.toLowerCase();
-    
-    const grid = document.getElementById('productsGrid');
-    
-    // If searching in price list, show price list
+
     if (currentCategory === 'prices') {
         renderPriceList();
         return;
     }
-    
-    // Filter products by search term
-    let filteredProducts = currentCategory === 'all' 
+
+    let filtered = currentCategory === 'all'
         ? productsData.filter(p => (p.so_luong || 0) > 0)
         : productsData.filter(p => (p.so_luong || 0) > 0 && p.nhom_sp === currentCategory);
-    
-    // Apply search filter
+
     if (searchTerm) {
-        filteredProducts = filteredProducts.filter(p => 
+        filtered = filtered.filter(p =>
             (p.ten_sp && p.ten_sp.toLowerCase().includes(searchTerm)) ||
-            (p.ma_sp && p.ma_sp.toLowerCase().includes(searchTerm))
+            (p.ma_sp  && p.ma_sp.toLowerCase().includes(searchTerm))
         );
     }
-    
-    if (filteredProducts.length === 0) {
-        grid.innerHTML = '<p class="empty-cart">Không tìm thấy sản phẩm</p>';
-        return;
-    }
-    
-    // Render filtered products
-    grid.innerHTML = filteredProducts.map(product => {
-        const name = product.ten_sp || 'N/A';
-        const price = formatCurrency(product.gia_ban);
-        const stock = product.so_luong || 0;
-        
-        let imageUrl = '/static/images/products/default.png';
-        if (product.image_url) {
-            if (product.image_url.startsWith('http://') || product.image_url.startsWith('https://')) {
-                imageUrl = product.image_url;
-            } else {
-                imageUrl = backendAssetUrl(product.image_url);
-            }
-        }
-        
-        return `
-        <div class="product-card" data-product-id="${product.id}">
-            <img src="${imageUrl}" 
-                 alt="${name.replace(/"/g, '&quot;')}" 
-                 class="product-image"
-                 onerror="this.src='/static/images/products/default.png'; this.style.display='block';">
-            <div class="product-name">${name}</div>
-            <div class="product-price">${price}</div>
-            <div class="product-stock">Còn: ${stock}</div>
-        </div>
-        `;
-    }).join('');
-    
-    // Add click event listeners
-    document.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const productId = parseInt(this.getAttribute('data-product-id'));
-            if (productId) {
-                addToCart(productId);
-            }
-        });
-    });
+
+    filteredProductsCache = filtered;
+    currentPage = 1;
+    renderCurrentPage();
 }
 
 // Clear filters

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PosPos – Hệ thống bán hàng thông minh cho mọi doanh nghiệp</title>
+  <meta name="description" content="PosPos là hệ thống POS hiện đại tích hợp AI, quản lý kho, báo cáo thời gian thực và chatbot thư ký ảo – giúp tối ưu vận hành cửa hàng của bạn." />
+  <meta name="keywords" content="POS, phần mềm bán hàng, quản lý kho, hệ thống POS, bán lẻ, PosPos" />
+  <meta name="author" content="PosPos Team" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://pospos.onrender.com" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PosPos – Hệ thống bán hàng thông minh" />
+  <meta property="og:description" content="Giải pháp POS toàn diện: bán hàng, quản lý kho, chatbot AI, báo cáo real-time cho mọi cửa hàng." />
+  <meta property="og:image" content="https://pospos.onrender.com/images/og.png" />
+  <meta property="og:url" content="https://pospos.onrender.com" />
+  <meta property="og:site_name" content="PosPos" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PosPos – Hệ thống bán hàng thông minh" />
+  <meta name="twitter:description" content="Giải pháp POS toàn diện: bán hàng, quản lý kho, chatbot AI, báo cáo real-time." />
+  <meta name="twitter:image" content="https://pospos.onrender.com/images/og.png" />
+
+  <!-- Google Fonts — non-blocking (FIX: render-blocking issue) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" /></noscript>
+
+  <!-- Critical CSS inline (above-the-fold) -->
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--primary:#6366f1;--bg:#fff;--text:#0f172a;--font:'Inter',system-ui,-apple-system,sans-serif;--nav-h:68px}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden}
+    .navbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);background:rgba(255,255,255,.85);backdrop-filter:blur(16px);border-bottom:1px solid #e2e8f0}
+    .container{max-width:1180px;margin:0 auto;padding:0 24px}
+    .hero{min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:calc(var(--nav-h) + 48px) 0 96px;position:relative;overflow:hidden}
+    /* Skeleton overlay */
+    #sk-overlay{position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s ease}
+    #sk-overlay.hidden{opacity:0;pointer-events:none}
+    .sk-logo{font-size:2rem;font-weight:800;color:var(--primary);letter-spacing:-1px}
+    .sk-bar{width:200px;height:3px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+    .sk-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),#a855f7);border-radius:99px;animation:sk-load 1s ease forwards}
+    @keyframes sk-load{from{width:0}to{width:100%}}
+    [data-theme=dark]{--bg:#0f172a;--text:#f1f5f9}
+    [data-theme=dark] #sk-overlay{background:#0f172a}
+    [data-theme=dark] .sk-bar{background:#1e293b}
+    [data-theme=dark] .navbar{background:rgba(15,23,42,.85)}
+  </style>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>" />
+
+  <!-- Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PosPos",
+    "applicationCategory": "BusinessApplication",
+    "description": "Hệ thống POS hiện đại tích hợp AI, quản lý kho và báo cáo thời gian thực",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "VND" }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ═══════════════ SKELETON LOADING ═══════════════ -->
+  <div id="sk-overlay" role="status" aria-label="Đang tải...">
+    <div class="sk-logo">🛒 PosPos</div>
+    <div class="sk-bar"><div class="sk-bar-fill"></div></div>
+    <p style="font-size:.85rem;color:#64748b">Đang khởi tạo hệ thống...</p>
+  </div>
+
+  <!-- ═══════════════════════════ NAVBAR ═══════════════════════════ -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo" aria-label="PosPos Home">
+        <span class="logo-icon">🛒</span>
+        <span class="logo-text">PosPos</span>
+      </a>
+      <nav class="nav-links" id="nav-links" aria-label="Main navigation">
+        <a href="#features">Tính năng</a>
+        <a href="#story">Câu chuyện</a>
+        <a href="#specs">Thông số</a>
+        <a href="#subscribe">Dùng thử</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn-icon" id="theme-toggle" aria-label="Toggle dark mode" title="Chuyển chế độ tối">
+          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="btn-hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <a href="#subscribe" class="btn btn-primary nav-cta">Dùng thử miễn phí</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+    <section class="hero" id="hero">
+      <div class="hero-bg-shapes" aria-hidden="true">
+        <div class="shape shape-1" data-parallax="0.25"></div>
+        <div class="shape shape-2" data-parallax="0.15"></div>
+        <div class="shape shape-3" data-parallax="0.20"></div>
+      </div>
+      <div class="container hero-inner">
+        <div class="hero-content reveal">
+          <div class="badge">🚀 Phiên bản 2.0 – Mới nhất</div>
+          <h1 class="hero-title">
+            Bán hàng thông minh hơn với
+            <span class="gradient-text">PosPos AI</span>
+          </h1>
+          <p class="hero-desc">
+            Hệ thống POS toàn diện tích hợp Chatbot AI, quản lý kho real-time,
+            báo cáo tự động và phân quyền đa chi nhánh — giúp bạn vận hành
+            cửa hàng hiệu quả hơn mỗi ngày.
+          </p>
+          <div class="hero-actions">
+            <a href="#subscribe" class="btn btn-primary btn-lg">
+              Bắt đầu miễn phí
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+            <a href="#features" class="btn btn-outline btn-lg">Xem tính năng</a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat"><span class="stat-num" data-target="500">0</span><span>+</span><span class="stat-label">Cửa hàng</span></div>
+            <div class="stat-divider" aria-hidden="true"></div>
+            <div class="stat"><span class="stat-num" data-target="99">0</span><span>%</span><span class="stat-label">Uptime</span></div>
+            <div class="stat-divider" aria-hidden="true"></div>
+            <div class="stat"><span class="stat-num" data-target="10">0</span><span>x</span><span class="stat-label">Nhanh hơn</span></div>
+          </div>
+        </div>
+        <div class="hero-visual reveal reveal-right" data-parallax-el="0.08">
+          <div class="pos-mockup" aria-label="PosPos dashboard preview">
+            <div class="mockup-bar">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+              <span class="mockup-title">PosPos Dashboard</span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-sidebar">
+                <div class="sidebar-item active">🛒 Bán hàng</div>
+                <div class="sidebar-item">📦 Kho hàng</div>
+                <div class="sidebar-item">👥 Khách hàng</div>
+                <div class="sidebar-item">📊 Báo cáo</div>
+                <div class="sidebar-item">🤖 AI Chat</div>
+              </div>
+              <div class="mockup-main">
+                <div class="mockup-stat-row">
+                  <div class="mockup-card green"><div class="mc-label">Doanh thu hôm nay</div><div class="mc-value">₫12,450,000</div><div class="mc-trend">↑ 18%</div></div>
+                  <div class="mockup-card blue"><div class="mc-label">Đơn hàng</div><div class="mc-value">47</div><div class="mc-trend">↑ 12%</div></div>
+                </div>
+                <div class="mockup-chart" aria-hidden="true">
+                  <div class="chart-bars">
+                    <div class="bar" style="height:40%"></div>
+                    <div class="bar" style="height:60%"></div>
+                    <div class="bar" style="height:50%"></div>
+                    <div class="bar" style="height:80%"></div>
+                    <div class="bar" style="height:65%"></div>
+                    <div class="bar" style="height:90%"></div>
+                    <div class="bar active" style="height:75%"></div>
+                  </div>
+                  <div class="chart-label">Doanh thu 7 ngày</div>
+                </div>
+                <div class="mockup-chatbot">
+                  <div class="chat-bubble bot">🤖 Tìm thấy 3 sản phẩm sắp hết — đề xuất đặt hàng?</div>
+                  <div class="chat-bubble user">Đặt hàng tự động!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="floating-badge fb-1"><span>⚡</span> Real-time WebSocket</div>
+          <div class="floating-badge fb-2"><span>🔒</span> JWT Secured</div>
+          <div class="floating-badge fb-3"><span>🤖</span> AI Chatbot</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════ TRUST BAR ═══════════════════════════ -->
+    <section class="trust-bar">
+      <div class="container">
+        <p class="trust-label">Được xây dựng với công nghệ hiện đại</p>
+        <div class="trust-logos" aria-label="Technology stack">
+          <div class="trust-logo">⚡ FastAPI</div>
+          <div class="trust-logo">🐘 PostgreSQL</div>
+          <div class="trust-logo">🔴 Redis</div>
+          <div class="trust-logo">🐍 Python</div>
+          <div class="trust-logo">📡 WebSocket</div>
+          <div class="trust-logo">📊 Prometheus</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════ FEATURES ═══════════════════════════ -->
+    <section class="features section" id="features">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="badge">✨ Tính năng</div>
+          <h2>Mọi thứ bạn cần để vận hành cửa hàng</h2>
+          <p>Từ bán hàng, kho hàng đến phân tích AI — PosPos có tất cả trong một nền tảng.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card reveal">
+            <div class="feature-icon fi-purple">🛒</div>
+            <h3>Bán hàng tức thì</h3>
+            <p>Giao diện POS cảm ứng thân thiện, thêm sản phẩm vào giỏ hàng chỉ trong 1 cú click. Hỗ trợ mã giảm giá và thanh toán đa phương thức.</p>
+            <ul class="feature-list">
+              <li>Tìm kiếm sản phẩm realtime</li>
+              <li>Áp dụng mã giảm giá tự động</li>
+              <li>In hóa đơn ngay lập tức</li>
+            </ul>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon fi-green">📦</div>
+            <h3>Quản lý kho thông minh</h3>
+            <p>Theo dõi tồn kho real-time, cảnh báo khi hàng sắp hết dựa trên tốc độ bán, tự động đề xuất số lượng cần nhập.</p>
+            <ul class="feature-list">
+              <li>Cảnh báo tồn kho &lt; 1/3</li>
+              <li>Lịch sử nhập xuất đầy đủ</li>
+              <li>Phân tích tốc độ bán 7/30 ngày</li>
+            </ul>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon fi-amber">🤖</div>
+            <h3>Chatbot AI Thư ký ảo</h3>
+            <p>Trợ lý AI phân tích kho hàng, báo cáo doanh thu, đề xuất đặt hàng và tạo đơn tự động chỉ qua hội thoại.</p>
+            <ul class="feature-list">
+              <li>Đề xuất đặt hàng thông minh</li>
+              <li>Báo cáo doanh thu tức thì</li>
+              <li>Top sản phẩm bán chạy</li>
+            </ul>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon fi-red">📊</div>
+            <h3>Báo cáo & Analytics</h3>
+            <p>Dashboard trực quan với biểu đồ doanh thu theo ngày/tuần/tháng. Xuất báo cáo tự động qua Celery background tasks.</p>
+            <ul class="feature-list">
+              <li>Biểu đồ doanh thu real-time</li>
+              <li>Xếp hạng khách hàng VIP</li>
+              <li>Phân tích công nợ chi tiết</li>
+            </ul>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon fi-violet">🏪</div>
+            <h3>Đa chi nhánh</h3>
+            <p>Quản lý nhiều khu vực và cửa hàng trong cùng một tài khoản. Phân quyền chi tiết theo vai trò từng nhân viên.</p>
+            <ul class="feature-list">
+              <li>Quản lý khu vực & shop</li>
+              <li>Phân quyền theo vai trò</li>
+              <li>Ca làm việc nhân viên</li>
+            </ul>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon fi-cyan">🔒</div>
+            <h3>Bảo mật doanh nghiệp</h3>
+            <p>JWT authentication, rate limiting, audit log mọi thao tác. Prometheus metrics giám sát hệ thống 24/7.</p>
+            <ul class="feature-list">
+              <li>JWT + bcrypt encryption</li>
+              <li>Rate limiting thông minh</li>
+              <li>Audit log đầy đủ</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════ SCROLLYTELLING ═══════════════════════════ -->
+    <section class="story section" id="story">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="badge">📖 Câu chuyện</div>
+          <h2>Một ngày vận hành cùng PosPos</h2>
+          <p>Từ khi mở cửa đến khi đóng hàng — PosPos luôn đồng hành.</p>
+        </div>
+        <div class="story-layout">
+          <!-- sticky progress bar -->
+          <div class="story-track" aria-hidden="true">
+            <div class="story-track-fill" id="story-fill"></div>
+          </div>
+          <div class="story-items" id="story-items">
+            <div class="story-item" data-index="0">
+              <div class="story-dot-wrap">
+                <div class="story-dot"></div>
+                <div class="story-time">08:00</div>
+              </div>
+              <div class="story-card">
+                <div class="story-emoji">🌅</div>
+                <h3>Mở cửa, kiểm tra ngay</h3>
+                <p>Dashboard hiển thị tồn kho, đơn chưa xử lý và doanh thu hôm qua. Chatbot AI đã phân tích qua đêm và cảnh báo 2 sản phẩm sắp hết — sẵn sàng để bạn quyết định.</p>
+                <div class="story-tag">📊 Dashboard + AI Alert</div>
+              </div>
+            </div>
+            <div class="story-item" data-index="1">
+              <div class="story-dot-wrap">
+                <div class="story-dot"></div>
+                <div class="story-time">10:30</div>
+              </div>
+              <div class="story-card">
+                <div class="story-emoji">📦</div>
+                <h3>Nhập hàng thông minh</h3>
+                <p>AI đề xuất đặt đúng số lượng dựa trên tốc độ bán 30 ngày. Nhấn một nút — đơn nhập hàng được tạo tự động với giá tham chiếu từ kho.</p>
+                <div class="story-tag">🤖 AI Reorder + Auto Order</div>
+              </div>
+            </div>
+            <div class="story-item" data-index="2">
+              <div class="story-dot-wrap">
+                <div class="story-dot"></div>
+                <div class="story-time">14:00</div>
+              </div>
+              <div class="story-card">
+                <div class="story-emoji">🛒</div>
+                <h3>Giờ cao điểm — không lo bị rối</h3>
+                <p>Giao diện POS xử lý đơn mượt mà. WebSocket báo đơn mới ngay lập tức đến mọi thiết bị. Mã giảm giá tự động áp dụng. Không bao giờ bỏ sót khách.</p>
+                <div class="story-tag">⚡ Real-time POS + WebSocket</div>
+              </div>
+            </div>
+            <div class="story-item" data-index="3">
+              <div class="story-dot-wrap">
+                <div class="story-dot"></div>
+                <div class="story-time">20:00</div>
+              </div>
+              <div class="story-card">
+                <div class="story-emoji">📊</div>
+                <h3>Đóng cửa với báo cáo rõ ràng</h3>
+                <p>Doanh thu, số đơn, sản phẩm bán chạy, công nợ khách hàng — tất cả hiện ra trong 3 giây. Celery tự động gửi báo cáo tổng kết qua email cho chủ cửa hàng.</p>
+                <div class="story-tag">📈 Auto Report + Celery Tasks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════ HOW IT WORKS ═══════════════════════════ -->
+    <section class="howit section" id="howit">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="badge">⚙️ Cách hoạt động</div>
+          <h2>Thiết lập trong 3 bước đơn giản</h2>
+          <p>Không cần kiến thức kỹ thuật, cửa hàng của bạn sẽ hoạt động ngay hôm nay.</p>
+        </div>
+        <div class="steps">
+          <div class="step reveal">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <h3>Tạo tài khoản & thiết lập shop</h3>
+              <p>Đăng ký tài khoản, thêm thông tin cửa hàng, khu vực và cấu hình nhân viên trong vài phút.</p>
+            </div>
+          </div>
+          <div class="step-arrow" aria-hidden="true">→</div>
+          <div class="step reveal">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <h3>Nhập sản phẩm & kho hàng</h3>
+              <p>Thêm danh mục sản phẩm, thiết lập giá bán, giá nhập và số lượng tồn kho ban đầu.</p>
+            </div>
+          </div>
+          <div class="step-arrow" aria-hidden="true">→</div>
+          <div class="step reveal">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <h3>Bắt đầu bán hàng!</h3>
+              <p>Mở màn hình POS, chọn sản phẩm, thanh toán và hệ thống tự động cập nhật kho + hóa đơn.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════ SPECS ═══════════════════════════ -->
+    <section class="specs section" id="specs">
+      <div class="container">
+        <div class="section-header reveal">
+          <div class="badge">🔧 Thông số kỹ thuật</div>
+          <h2>Kiến trúc mạnh mẽ, hiệu năng cao</h2>
+          <p>Xây dựng trên nền tảng công nghệ hiện đại, sẵn sàng cho môi trường production.</p>
+        </div>
+        <div class="specs-layout">
+          <div class="specs-table-wrap reveal">
+            <table class="specs-table">
+              <thead>
+                <tr><th>Thành phần</th><th>Công nghệ</th><th>Chi tiết</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>🔥 API Backend</td><td>FastAPI 0.119</td><td>Async Python, OpenAPI docs</td></tr>
+                <tr><td>🐘 Cơ sở dữ liệu</td><td>PostgreSQL + SQLAlchemy 2.0</td><td>ORM, migrations với Alembic</td></tr>
+                <tr><td>⚡ Cache</td><td>Redis 5.2</td><td>Session cache, rate limiting</td></tr>
+                <tr><td>📡 Real-time</td><td>WebSocket (native)</td><td>Thông báo đơn hàng tức thì</td></tr>
+                <tr><td>🔐 Xác thực</td><td>JWT + bcrypt</td><td>PyJWT 2.10, passlib</td></tr>
+                <tr><td>⚙️ Background Tasks</td><td>Celery 5.4</td><td>Báo cáo, thông báo tự động</td></tr>
+                <tr><td>📊 Monitoring</td><td>Prometheus</td><td>Metrics API & middleware</td></tr>
+                <tr><td>🎨 Frontend</td><td>Flask + Jinja2</td><td>HTML/CSS/JS responsive</td></tr>
+                <tr><td>🚀 Server</td><td>Uvicorn + Gunicorn</td><td>ASGI production-ready</td></tr>
+                <tr><td>🐳 Container</td><td>Docker + Compose</td><td>Dev & production configs</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="specs-highlights reveal reveal-right">
+            <div class="highlight-card"><div class="hl-icon">⚡</div><div><strong>&lt; 50ms</strong><span>Response time trung bình</span></div></div>
+            <div class="highlight-card"><div class="hl-icon">🔄</div><div><strong>Real-time</strong><span>Cập nhật kho & đơn qua WebSocket</span></div></div>
+            <div class="highlight-card"><div class="hl-icon">🛡️</div><div><strong>Rate Limiting</strong><span>Bảo vệ API khỏi tấn công</span></div></div>
+            <div class="highlight-card"><div class="hl-icon">📋</div><div><strong>Audit Log</strong><span>Ghi lại mọi thao tác hệ thống</span></div></div>
+            <div class="highlight-card"><div class="hl-icon">🧪</div><div><strong>Test Coverage</strong><span>pytest + fakeredis + factory-boy</span></div></div>
+            <div class="highlight-card"><div class="hl-icon">🔁</div><div><strong>CI/CD</strong><span>GitHub Actions tự động hóa</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════ SUBSCRIBE ═══════════════════════════ -->
+    <section class="subscribe section" id="subscribe">
+      <div class="container">
+        <div class="subscribe-card reveal">
+          <div class="subscribe-content">
+            <div class="badge badge-light">📬 Đăng ký nhận tin</div>
+            <h2>Dùng thử PosPos miễn phí 30 ngày</h2>
+            <p>Để lại thông tin, đội ngũ của chúng tôi sẽ liên hệ thiết lập hệ thống cho cửa hàng của bạn trong vòng 24 giờ.</p>
+            <ul class="subscribe-perks">
+              <li>✅ Không cần thẻ tín dụng</li>
+              <li>✅ Hỗ trợ thiết lập miễn phí</li>
+              <li>✅ Không cam kết dài hạn</li>
+            </ul>
+          </div>
+          <form class="subscribe-form" id="subscribe-form" novalidate>
+            <div class="form-group">
+              <label for="f-name">Họ và tên <span aria-hidden="true">*</span></label>
+              <input type="text" id="f-name" name="name" placeholder="Nguyễn Văn A" required autocomplete="name" />
+              <span class="form-error" id="err-name" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="f-email">Email <span aria-hidden="true">*</span></label>
+              <input type="email" id="f-email" name="email" placeholder="email@example.com" required autocomplete="email" />
+              <span class="form-error" id="err-email" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="f-phone">Số điện thoại</label>
+              <input type="tel" id="f-phone" name="phone" placeholder="0912 345 678" autocomplete="tel" />
+              <span class="form-error" id="err-phone" role="alert"></span>
+            </div>
+            <div class="form-group">
+              <label for="f-store">Loại cửa hàng</label>
+              <select id="f-store" name="store_type">
+                <option value="">-- Chọn loại hình --</option>
+                <option value="grocery">Tạp hóa / Siêu thị mini</option>
+                <option value="fashion">Thời trang</option>
+                <option value="food">Ăn uống / Café</option>
+                <option value="pharmacy">Nhà thuốc</option>
+                <option value="electronics">Điện tử</option>
+                <option value="other">Khác</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
+              <span class="btn-text">Đăng ký dùng thử ngay</span>
+              <span class="btn-loading" hidden>
+                <svg class="spin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                Đang gửi...
+              </span>
+            </button>
+            <p class="form-privacy">🔒 Thông tin của bạn được bảo mật tuyệt đối.</p>
+          </form>
+        </div>
+        <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+          <span class="toast-icon">🎉</span>
+          <div><strong>Đăng ký thành công!</strong><p>Chúng tôi sẽ liên hệ bạn trong vòng 24 giờ.</p></div>
+          <button class="toast-close" aria-label="Close">×</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" aria-label="PosPos Home">
+          <span class="logo-icon">🛒</span>
+          <span class="logo-text">PosPos</span>
+        </a>
+        <p>Hệ thống POS thông minh cho mọi cửa hàng Việt Nam.</p>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Sản phẩm</h4>
+          <a href="#features">Tính năng</a>
+          <a href="#story">Câu chuyện</a>
+          <a href="#specs">Thông số</a>
+        </div>
+        <div class="footer-col">
+          <h4>Công nghệ</h4>
+          <a href="#">FastAPI</a>
+          <a href="#">PostgreSQL</a>
+          <a href="#">Redis</a>
+        </div>
+        <div class="footer-col">
+          <h4>Liên hệ</h4>
+          <a href="mailto:hoangthanh29042003@gmail.com">hoangthanh29042003@gmail.com</a>
+          <a href="https://github.com/surp29" target="_blank" rel="noopener">GitHub / surp29</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 PosPos by <a href="https://github.com/surp29" target="_blank" rel="noopener" style="color:var(--primary)">surp29</a>. Built with ❤️ using FastAPI + Python.</p>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════ SCROLL TO TOP ═══════════════════════════ -->
+  <button class="scroll-top" id="scroll-top" aria-label="Scroll to top" title="Lên đầu trang">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <!-- ═══════════════════════════ CHATBOT WIDGET ═══════════════════════════ -->
+  <div class="chatbot-wrap" id="chatbot-wrap">
+    <button class="chatbot-toggle" id="chatbot-toggle" aria-label="Mở hỗ trợ trực tuyến" aria-expanded="false">
+      <span class="ct-icon ct-open">🤖</span>
+      <span class="ct-icon ct-close" hidden>✕</span>
+      <span class="ct-label">Hỗ trợ AI</span>
+      <span class="ct-badge" id="ct-badge" aria-label="1 tin nhắn mới">1</span>
+    </button>
+    <div class="chatbot-window" id="chatbot-window" hidden aria-label="Cửa sổ hỗ trợ PosPos AI">
+      <div class="cw-header">
+        <div class="cw-avatar" aria-hidden="true">🤖</div>
+        <div class="cw-info">
+          <strong>PosPos AI</strong>
+          <span class="cw-status">● Đang hoạt động</span>
+        </div>
+        <button class="cw-close" id="cw-close" aria-label="Đóng chat">✕</button>
+      </div>
+      <div class="cw-messages" id="cw-messages" role="log" aria-live="polite"></div>
+      <div class="cw-quick" id="cw-quick"></div>
+      <div class="cw-input-row">
+        <input type="text" id="cw-input" class="cw-input" placeholder="Nhập câu hỏi..." autocomplete="off" aria-label="Nhập câu hỏi" />
+        <button class="cw-send" id="cw-send" aria-label="Gửi">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js" defer></script>
+</body>
+</html>

@@ -26,7 +26,7 @@ class Config:
         _backend.replace('://localhost:', '://127.0.0.1:')
         .replace('://localhost/', '://127.0.0.1/')
     )
-    API_TIMEOUT = int(os.getenv('API_TIMEOUT', 10))
+    API_TIMEOUT = int(os.getenv('API_TIMEOUT', 30))  # tăng lên 30s cho Render cold start
     
     # Security configuration
     SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'

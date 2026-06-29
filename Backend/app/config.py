@@ -6,11 +6,9 @@ load_dotenv()
 class Config:
     """Configuration class for the application"""
 
-    # Database
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        'DATABASE_URL',
-        'postgresql://postgres:postgres@localhost:5432/pos'  # Override bằng DATABASE_URL trong .env
-    )
+    # Database — FIX: Render dùng "postgres://" nhưng SQLAlchemy cần "postgresql://"
+    _db_url = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/pos')
+    SQLALCHEMY_DATABASE_URI = _db_url.replace('postgres://', 'postgresql://', 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT

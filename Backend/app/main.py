@@ -160,6 +160,32 @@ async def startup_event():
     except Exception as e:
         log_warning("STARTUP", f"Không thể tạo admin: {e}")
 
+    # Auto-seed dữ liệu demo khi DB trống (dùng cho môi trường demo/staging)
+    # Bật bằng biến môi trường: SEED_DEMO_DATA=true
+    if os.getenv("SEED_DEMO_DATA", "false").lower() in ("1", "true", "yes"):
+        try:
+            from .models import Product as _Product
+            _db = SessionLocal()
+            try:
+                if _db.query(_Product).count() == 0:
+                    log_info("STARTUP", "📦 DB trống — đang seed dữ liệu demo...")
+                    import importlib.util as _ilu
+                    _seed_path = os.path.join(
+                        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "create_sample_data.py",
+                    )
+                    _spec = _ilu.spec_from_file_location("_seed_mod", _seed_path)
+                    _mod = _ilu.module_from_spec(_spec)
+                    _spec.loader.exec_module(_mod)
+                    _mod.create_sample_data()
+                    log_success("STARTUP", "✅ Seed dữ liệu demo hoàn tất!")
+                else:
+                    log_info("STARTUP", "📦 DB đã có dữ liệu — bỏ qua seed.")
+            finally:
+                _db.close()
+        except Exception as e:
+            log_warning("STARTUP", f"Seed demo thất bại (không ảnh hưởng hoạt động): {e}")
+
     log_success("STARTUP", "🚀 PosPos Backend đã khởi động thành công!")
     log_info("STARTUP", f"📡 http://localhost:{Config.BACKEND_PORT}")
     log_info("STARTUP", "🛡️  Rate limiting:    ACTIVE")

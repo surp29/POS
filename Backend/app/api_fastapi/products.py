@@ -2,7 +2,7 @@ import json
 import os
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from ..permission_middleware import require_permission
@@ -94,8 +94,12 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/search")
-def search_products(q: str, db: Session = Depends(get_db)):
-    rows = db.query(Product).filter(Product.ten_sp.ilike(f"%{q}%")).all()
+def search_products(
+    q: str,
+    limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    rows = db.query(Product).filter(Product.ten_sp.ilike(f"%{q}%")).limit(limit).all()
     return {"products": rows}
 
 

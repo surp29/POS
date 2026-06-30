@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from ..permission_middleware import require_permission
 from ..database import get_db
 from ..models import User, Invoice, InvoiceItem, Product, Warehouse
@@ -8,17 +9,37 @@ from ..logger import log_info, log_success, log_error, log_warning
 from ..services.invoices import update_debt_for_customer
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
-from datetime import datetime
+from ..cache import cache_get, cache_set, cache_delete_pattern
+from datetime import datetime, date
 
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
+INVOICES_CACHE_KEY = "invoices:list"
 
-@router.get("/", response_model=list[InvoiceOut])
-def list_invoices(db: Session = Depends(get_db),
-    _: User = Depends(require_permission('invoices.view'))):
-    invoices = db.query(Invoice).all()
-    return [InvoiceOut.model_validate(inv).model_dump() for inv in invoices]
+
+@router.get("/")
+def list_invoices(
+    limit:  int = Query(default=500, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission('invoices.view')),
+):
+    cache_key = f"{INVOICES_CACHE_KEY}:{limit}:{offset}"
+    cached = cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    invoices = (
+        db.query(Invoice)
+        .order_by(Invoice.id.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    result = [InvoiceOut.model_validate(inv).model_dump() for inv in invoices]
+    cache_set(cache_key, result, ttl=60)
+    return result
 
 
 @router.post("/")
@@ -103,6 +124,8 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
             log_error("CREATE_INVOICE_DIARY", f"Lỗi khi ghi vào General Diary: {str(diary_error)}", error=diary_error)
             # Không rollback vì invoice đã được tạo thành công
         
+        cache_delete_pattern("invoices:*")
+        cache_delete_pattern("reports:*")
         log_success("CREATE_INVOICE", f"Tạo hóa đơn thành công: {payload.so_hd} (ID: {inv.id})")
         return {"success": True, "id": inv.id}
     except Exception as e:
@@ -160,7 +183,9 @@ def update_invoice(invoice_id: int, payload: InvoiceUpdate, request: Request, db
         new_customer_name = payload.nguoi_mua if payload.nguoi_mua is not None else old_customer_name
         if new_customer_name and new_customer_name != old_customer_name:
             update_debt_for_customer(new_customer_name, db)
-        
+
+        cache_delete_pattern("invoices:*")
+        cache_delete_pattern("reports:*")
         return {"success": True}
     except Exception as e:
         db.rollback()
@@ -275,7 +300,9 @@ def delete_invoice(invoice_id: int, request: Request, db: Session = Depends(get_
         # Cập nhật công nợ cho khách hàng
         if customer_name:
             update_debt_for_customer(customer_name, db)
-        
+
+        cache_delete_pattern("invoices:*")
+        cache_delete_pattern("reports:*")
         return {"success": True}
     except Exception as e:
         db.rollback()
@@ -284,70 +311,48 @@ def delete_invoice(invoice_id: int, request: Request, db: Session = Depends(get_
 
 @router.get("/next-number")
 def next_invoice_number(db: Session = Depends(get_db)):
-    """Tạo số thứ tự hóa đơn tiếp theo theo format: HĐ-ddmmyy-XXX (001-999)"""
-    from datetime import date
-    
-    today = date.today()
-    date_str = today.strftime("%d%m%y")  # Format: ddmmyy (ví dụ: 061125)
-    
-    # Tìm tất cả hóa đơn có mã bắt đầu bằng HĐ-{date_str}-
-    pattern = f"HĐ-{date_str}-"
-    
-    # Lấy tất cả hóa đơn có mã chứa pattern này
-    invoices_today = db.query(Invoice).filter(Invoice.so_hd.like(f"{pattern}%")).all()
-    
-    if not invoices_today:
-        # Nếu chưa có hóa đơn nào trong ngày, bắt đầu từ 001
-        return {
-            "next_number": 1,
-            "date_str": date_str,
-            "full_invoice_number": f"HĐ-{date_str}-001"
-        }
-    
-    # Tìm số thứ tự cao nhất trong ngày
-    max_number = 0
-    for inv in invoices_today:
-        so_hd_value = getattr(inv, "so_hd", None)
-        if so_hd_value and so_hd_value.startswith(pattern):
-            try:
-                # Extract số thứ tự từ cuối mã (sau dấu -)
-                number_part = so_hd_value.replace(pattern, "")
-                if number_part.isdigit():
-                    num = int(number_part)
-                    if num > max_number:
-                        max_number = num
-            except (ValueError, AttributeError):
-                continue
-    
-    # Tăng lên 1, giới hạn tối đa 999
-    next_number = min(max_number + 1, 999)
-    
-    # Format số thứ tự với 3 chữ số (001, 002, ..., 999)
-    next_number_str = f"{next_number:03d}"
-    
+    """Tạo số thứ tự hóa đơn tiếp theo: HĐ-ddmmyy-XXX (001-999).
+    Dùng MAX() thay vì .all() để tránh load toàn bảng."""
+    today    = date.today()
+    date_str = today.strftime("%d%m%y")
+    pattern  = f"HĐ-{date_str}-%"
+
+    max_so_hd = db.query(func.max(Invoice.so_hd)).filter(
+        Invoice.so_hd.like(pattern)
+    ).scalar()
+
+    if not max_so_hd:
+        return {"next_number": 1, "date_str": date_str,
+                "full_invoice_number": f"HĐ-{date_str}-001"}
+
+    try:
+        number_part = max_so_hd.rsplit("-", 1)[-1]
+        next_number = min(int(number_part) + 1, 999) if number_part.isdigit() else 1
+    except Exception:
+        next_number = 1
+
     return {
         "next_number": next_number,
         "date_str": date_str,
-        "full_invoice_number": f"HĐ-{date_str}-{next_number_str}"
+        "full_invoice_number": f"HĐ-{date_str}-{next_number:03d}",
     }
 
 
 @router.post("/search")
 def search_invoices(criteria: dict, db: Session = Depends(get_db)):
     q = db.query(Invoice)
-    from_date = criteria.get("fromDate")
-    to_date = criteria.get("toDate")
+    from_date      = criteria.get("fromDate")
+    to_date        = criteria.get("toDate")
     invoice_number = criteria.get("invoiceNumber")
-    customer_info = criteria.get("customerInfo")
+    customer_info  = criteria.get("customerInfo")
+    limit          = int(criteria.get("limit", 500))
 
     if from_date and to_date:
         q = q.filter(Invoice.ngay_hd.between(from_date, to_date))
     if invoice_number:
-        like = f"%{invoice_number}%"
-        q = q.filter(Invoice.so_hd.ilike(like))
+        q = q.filter(Invoice.so_hd.ilike(f"%{invoice_number}%"))
     if customer_info:
-        like = f"%{customer_info}%"
-        q = q.filter(Invoice.nguoi_mua.ilike(like))
+        q = q.filter(Invoice.nguoi_mua.ilike(f"%{customer_info}%"))
 
-    rows = q.all()
+    rows = q.order_by(Invoice.id.desc()).limit(limit).all()
     return {"success": True, "data": rows}

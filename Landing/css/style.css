@@ -169,6 +169,8 @@ input, select, textarea { font-family: inherit; }
 .nav-links { display: flex; align-items: center; gap: 28px; margin-left: auto; }
 .nav-links a { font-size: 14px; color: var(--c-text-3); transition: color .2s; }
 .nav-links a:hover { color: var(--c-text); }
+/* CTA only shown inside mobile menu */
+.nav-links-cta { display: none; }
 .nav-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .nav-btn {
   background: var(--brand); color: #fff;
@@ -189,11 +191,16 @@ input, select, textarea { font-family: inherit; }
 /* ─── HERO ─── */
 .hero {
   background: var(--c-bg-alt);
-  min-height: 100vh; min-height: 100svh;
-  display: flex; flex-direction: column; align-items: center;
-  padding-top: calc(var(--nav-h) + 88px);
   overflow: hidden; position: relative; text-align: center;
   transition: background .35s var(--ease);
+}
+/* Viewport-height wrapper — centers hero-text vertically */
+.hero > .container {
+  min-height: 100vh; min-height: 100svh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding-top: calc(var(--nav-h) + 32px);
+  padding-bottom: 48px;
 }
 .hero-glow {
   position: absolute; width: 800px; height: 500px; pointer-events: none;
@@ -201,10 +208,10 @@ input, select, textarea { font-family: inherit; }
   bottom: 0; left: 50%; transform: translateX(-50%);
 }
 .hero-glow-2 {
-  width: 500px; height: 280px; bottom: auto; top: 15%;
+  width: 500px; height: 280px; bottom: auto; top: 120px;
   background: radial-gradient(ellipse, rgba(168,85,247,.08) 0%, transparent 70%);
 }
-.hero-text { max-width: 760px; padding: 0 24px; }
+.hero-text { max-width: 760px; width: 100%; }
 .hero-headline {
   font-size: clamp(50px, 9vw, 100px);
   font-weight: 700; letter-spacing: -.046em; line-height: 1.03;
@@ -229,7 +236,7 @@ input, select, textarea { font-family: inherit; }
 .hstat-sep { width: 1px; height: 36px; background: var(--c-sep); }
 
 /* Hero visual (always dark — product UI) */
-.hero-visual { width: 100%; max-width: 900px; margin-top: 60px; padding: 0 20px; position: relative; }
+.hero-visual { width: 100%; max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; }
 .mockup-glow {
   position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
   width: 70%; height: 180px; pointer-events: none;
@@ -568,16 +575,67 @@ input, select, textarea { font-family: inherit; }
 }
 
 @media (max-width: 680px) {
+  /* ── Mobile nav menu ── */
   .nav-links {
-    display: none; position: fixed; top: var(--nav-h); left: 0; right: 0;
-    flex-direction: column; background: var(--c-nav);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    padding: 24px; gap: 20px; border-bottom: 1px solid var(--c-nav-border);
+    display: none;
+    position: fixed; top: var(--nav-h); left: 0; right: 0;
+    flex-direction: column;
+    gap: 0;
+    /* fully opaque so content behind doesn't bleed through */
+    background: var(--c-bg);
+    border-bottom: 1px solid var(--c-sep);
+    box-shadow: 0 8px 32px rgba(0,0,0,.12);
+    max-height: calc(100svh - var(--nav-h));
+    overflow-y: auto;
+    z-index: 999;
   }
+  [data-theme="dark"] .nav-links { box-shadow: 0 8px 32px rgba(0,0,0,.5); }
   .nav-links.open { display: flex; }
+
+  /* Each nav link = full-width tap target */
+  .nav-links a {
+    display: block;
+    padding: 16px 24px;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--c-text);
+    border-bottom: 1px solid var(--c-sep);
+    transition: background .15s;
+    letter-spacing: -.01em;
+  }
+  .nav-links a:last-of-type { border-bottom: none; }
+  .nav-links a:hover, .nav-links a:active { background: var(--c-inp); }
+
+  /* CTA inside mobile menu */
+  .nav-links-cta {
+    display: block;
+    margin: 16px 20px 20px;
+    padding: 14px 20px !important;
+    background: var(--brand) !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+    text-align: center;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    border-bottom: none !important;
+    letter-spacing: -.01em;
+    transition: background .2s !important;
+  }
+  .nav-links-cta:hover, .nav-links-cta:active {
+    background: var(--brand-light) !important;
+  }
+
+  /* Hamburger animation when open */
+  .nav-hamburger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .nav-hamburger[aria-expanded="true"] span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .nav-hamburger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
   .nav-hamburger { display: flex; }
   .nav-btn { display: none; }
-  .hero-headline { font-size: clamp(42px,10vw,60px); }
+
+  /* ── Other mobile fixes ── */
+  .hero-headline { font-size: clamp(38px, 10vw, 56px); }
+  .hero > .container { padding-top: calc(var(--nav-h) + 24px); padding-bottom: 32px; }
   .feat-grid { grid-template-columns: 1fr; }
   .hm-sidebar { display: none; }
   .hstat { padding: 0 20px; }
@@ -587,6 +645,7 @@ input, select, textarea { font-family: inherit; }
   .story-card { padding: 20px; }
   .section-head { margin-bottom: 48px; }
   .cbot-win { width: calc(100vw - 32px); }
+  .hero-stats { padding: 0 16px; }
 }
 
 @media (max-width: 480px) {

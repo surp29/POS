@@ -147,6 +147,8 @@ storyItems.forEach(el => storyObs.observe(el));
 
 // ── 10. Behavior Tracking ──────────────────────
 const tracked = { scrollDepths: new Set(), clicks: 0 };
+// Thay YOUR_ACCESS_KEY bằng key từ web3forms.com
+const WEB3FORMS_KEY = '8ba2fa3f-0d38-458a-9f23-8b97b15a11dc';
 const WEBHOOK = '';
 
 function trackEvent(name, data = {}) {
@@ -248,16 +250,33 @@ form?.addEventListener('submit', async e => {
   trackEvent('form_submit', { store_type: data.store_type });
 
   try {
-    if (WEBHOOK) {
-      const blob = new Blob([JSON.stringify(data)], { type: 'text/plain' });
-      if (navigator.sendBeacon) navigator.sendBeacon(WEBHOOK, blob);
-      else await fetch(WEBHOOK, { method: 'POST', body: blob, keepalive: true }).catch(() => {});
+    if (WEB3FORMS_KEY && WEB3FORMS_KEY !== 'YOUR_ACCESS_KEY') {
+      const resp = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: `[PosPos] Đăng ký dùng thử — ${data.name}`,
+          from_name: 'PosPos Landing',
+          name: data.name,
+          email: data.email,
+          phone: data.phone || '(không điền)',
+          store_type: data.store_type || '(không chọn)',
+          timestamp: data.timestamp,
+          source: data.source,
+        }),
+      });
+      const json = await resp.json();
+      if (!json.success) throw new Error(json.message || 'Submit failed');
+    } else {
+      // Chưa cấu hình — simulate để test UI
+      await new Promise(r => setTimeout(r, 900));
     }
-    await new Promise(r => setTimeout(r, 800));
     form.reset();
     showToast();
     trackEvent('form_success', { email: data.email });
-  } catch {
+  } catch (e) {
+    console.error('[PosPos Form]', e);
     showError('email', 'Có lỗi xảy ra. Vui lòng thử lại.');
   } finally {
     setLoading(false);

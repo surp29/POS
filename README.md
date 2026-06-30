@@ -17,6 +17,7 @@
 - [API Documentation](#api-documentation)
 - [Biến môi trường](#biến-môi-trường)
 - [Database](#database)
+- [Landing Page](#landing-page)
 
 ---
 
@@ -24,12 +25,13 @@
 
 **PosPos** là phần mềm POS (Point of Sale) web-based phục vụ quản lý bán hàng, kho, nhân viên và báo cáo cho cửa hàng máy tính/điện tử.
 
-Hệ thống gồm 2 service chạy độc lập:
+Hệ thống gồm 3 phần chạy độc lập:
 
 | Service | Framework | Port | Mô tả |
 |---------|-----------|------|-------|
 | Backend | FastAPI | 5001 | REST API, xử lý nghiệp vụ, JWT auth |
 | Frontend | Flask + Jinja2 | 5000 | Giao diện web, render HTML |
+| Landing | HTML/CSS/JS thuần | — | Trang giới thiệu sản phẩm, deploy Render Static Site |
 
 ---
 
@@ -336,6 +338,15 @@ POS/
 │   ├── start.bat
 │   └── start.sh
 │
+├── Landing/
+│   ├── css/
+│   │   └── style.css              # CSS variables, dark mode, responsive
+│   ├── js/
+│   │   └── main.js                # Dark mode toggle, scroll reveal, chatbot, form
+│   ├── index.html                 # Trang landing chính
+│   ├── render.yaml                # Render static site config (cache headers)
+│   └── _redirects                 # SPA fallback: /* /index.html 200
+│
 └── README.md
 ```
 
@@ -493,6 +504,58 @@ shops.view  shops.create  shops.edit  shops.delete
 ```
 
 Admin (position = "Admin") có toàn quyền — không cần cấu hình permission.
+
+---
+
+## Landing Page
+
+Trang giới thiệu sản phẩm PosPos tại **[pospos-landing.onrender.com](https://pospos-landing.onrender.com)**, xây bằng HTML/CSS/JS thuần — không framework, tối ưu PageSpeed.
+
+### Tính năng
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| Dark / Light mode | Toggle lưu `localStorage`, mặc định sáng. CSS variables tự điều chỉnh toàn bộ màu sắc |
+| Scroll reveal | IntersectionObserver làm hiện section khi cuộn đến |
+| Counter animation | Các số thống kê chạy đếm khi vào viewport |
+| Scrollytelling | Section "Hành trình" cập nhật nội dung theo vị trí cuộn |
+| AI demo chat | Đoạn hội thoại tự phát với typing delay, hiện khi vào section |
+| Chatbot widget | Hỗ trợ tư vấn sản phẩm với 10 chủ đề, quick-reply buttons |
+| Subscribe form | Thu thập tên / email / số điện thoại / loại cửa hàng qua Web3Forms |
+| Responsive | Mobile-first, hamburger menu với animation X, tap targets ≥ 44px |
+
+### Web3Forms — nhận email đăng ký thật
+
+Khi có khách đăng ký dùng thử, email được gửi về hộp thư qua Web3Forms (250 lượt/tháng miễn phí).
+
+**Cấu hình:**
+
+1. Đăng ký tại [web3forms.com](https://web3forms.com) → lấy **Access Key**
+2. Mở `Landing/js/main.js`, tìm dòng:
+   ```js
+   const WEB3FORMS_KEY = '...';
+   ```
+3. Thay bằng Access Key của bạn
+
+Email nhận được gồm: tên, email, số điện thoại, loại cửa hàng, thời gian đăng ký.
+
+### Deploy lên Render (Static Site)
+
+1. Push code lên GitHub
+2. Vào [render.com](https://render.com) → **New → Static Site**
+3. Chọn repo, cấu hình:
+
+   | Trường | Giá trị |
+   |--------|---------|
+   | Root Directory | `Landing` |
+   | Build Command | *(để trống)* |
+   | Publish Directory | `.` |
+
+4. Deploy — Render tự cấp domain `*.onrender.com`
+
+Cache headers được cấu hình sẵn trong `Landing/render.yaml`:
+- CSS / JS: `immutable, 1 năm` (tên file đổi khi nội dung thay đổi)
+- Các trang khác: `public, 1 giờ`
 
 ---
 

@@ -31,10 +31,19 @@ const scrollTopBtn = document.getElementById('scroll-top');
 const storySection = document.getElementById('story');
 const storyFill = document.getElementById('story-fill');
 
+// Cache story section height to avoid forced reflow on every scroll event
+let storySectionH = 0;
+window.addEventListener('resize', () => { storySectionH = 0; }, { passive: true });
+
+let scrollRafId = 0;
 function onScroll() {
-  const y = window.scrollY;
-  scrollTopBtn.classList.toggle('visible', y > 400);
-  updateStoryProgress();
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+  if (!scrollRafId) {
+    scrollRafId = requestAnimationFrame(() => {
+      scrollRafId = 0;
+      updateStoryProgress();
+    });
+  }
 }
 window.addEventListener('scroll', onScroll, { passive: true });
 
@@ -66,7 +75,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (!target) return;
     e.preventDefault();
     const navH = parseInt(getComputedStyle(html).getPropertyValue('--nav-h'), 10) || 52;
-    window.scrollTo({ top: target.offsetTop - navH, behavior: 'smooth' });
+    const targetRect = target.getBoundingClientRect();
+    window.scrollTo({ top: window.scrollY + targetRect.top - navH, behavior: 'smooth' });
   });
 });
 
@@ -105,14 +115,19 @@ const storyItems = document.querySelectorAll('.story-item');
 
 function updateStoryProgress() {
   if (!storySection) return;
+  // Batch all layout reads first to avoid forced reflow from interleaved read/write
+  if (!storySectionH) storySectionH = storySection.offsetHeight;
   const rect = storySection.getBoundingClientRect();
-  const sectionH = storySection.offsetHeight;
-  const progress = Math.min(Math.max(-rect.top / (sectionH - window.innerHeight), 0), 1);
+  const vh = window.innerHeight;
+  const itemRects = [...storyItems].map(item => item.getBoundingClientRect());
+
+  // Now do all writes
+  const progress = Math.min(Math.max(-rect.top / (storySectionH - vh), 0), 1);
   if (storyFill) storyFill.style.height = `${progress * 100}%`;
 
-  const mid = window.innerHeight / 2;
-  storyItems.forEach(item => {
-    const r = item.getBoundingClientRect();
+  const mid = vh / 2;
+  storyItems.forEach((item, i) => {
+    const r = itemRects[i];
     item.classList.toggle('active', r.top < mid && r.bottom > 0);
   });
 }

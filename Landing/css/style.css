@@ -88,8 +88,9 @@ input, select, textarea { font-family: inherit; }
   display: inline-block;
   font-size: 13px; font-weight: 600;
   letter-spacing: .09em; text-transform: uppercase;
-  color: var(--brand); margin-bottom: 16px;
+  color: #4f46e5; margin-bottom: 16px;
 }
+[data-theme="dark"] .eyebrow { color: var(--brand-light); }
 
 /* ─── Section headlines ─── */
 .section-headline {
@@ -116,13 +117,13 @@ input, select, textarea { font-family: inherit; }
 /* ─── CTA Buttons ─── */
 .cta-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--brand); color: #fff;
+  background: #4f46e5; color: #fff;
   padding: 13px 26px; border-radius: 980px;
   font-size: 15px; font-weight: 600; letter-spacing: -.01em;
   transition: background .2s, transform .15s;
   white-space: nowrap;
 }
-.cta-primary:hover { background: var(--brand-light); transform: scale(.98); }
+.cta-primary:hover { background: var(--brand); transform: scale(.98); }
 
 .cta-ghost {
   display: inline-flex; align-items: center; gap: 6px;
@@ -173,12 +174,12 @@ input, select, textarea { font-family: inherit; }
 .nav-links-cta { display: none; }
 .nav-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .nav-btn {
-  background: var(--brand); color: #fff;
+  background: #4f46e5; color: #fff;
   padding: 7px 15px; border-radius: 980px;
   font-size: 13px; font-weight: 600;
   transition: background .2s, transform .1s;
 }
-.nav-btn:hover { background: var(--brand-light); transform: scale(.98); }
+.nav-btn:hover { background: var(--brand); transform: scale(.98); }
 .nav-hamburger {
   display: none; flex-direction: column; gap: 5px;
   width: 32px; height: 32px; align-items: center; justify-content: center; padding: 4px;
@@ -232,7 +233,7 @@ input, select, textarea { font-family: inherit; }
 .hstat { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 36px; }
 .hstat-n { font-size: 36px; font-weight: 700; letter-spacing: -.04em; color: var(--c-text); }
 .hstat span:nth-child(2) { font-size: 26px; font-weight: 700; color: var(--brand); }
-.hstat span:last-child { font-size: 12px; color: var(--c-text-4); letter-spacing: .06em; text-transform: uppercase; }
+.hstat span:last-child { font-size: 12px; color: var(--c-text-3); letter-spacing: .06em; text-transform: uppercase; }
 .hstat-sep { width: 1px; height: 36px; background: var(--c-sep); }
 
 /* Hero visual (always dark — product UI) */
@@ -291,7 +292,7 @@ input, select, textarea { font-family: inherit; }
   display: flex; gap: 40px; flex-shrink: 0;
   animation: marquee 28s linear infinite; padding-right: 40px;
 }
-.marquee-inner span { font-size: 13px; font-weight: 500; color: var(--c-text-4); white-space: nowrap; letter-spacing: .02em; }
+.marquee-inner span { font-size: 13px; font-weight: 500; color: var(--c-text-3); white-space: nowrap; letter-spacing: .02em; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 
 /* ─── SECTION WRAPPERS ─── */
@@ -400,7 +401,7 @@ input, select, textarea { font-family: inherit; }
 .story-pin { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 80px; margin-left: -57px; padding-top: 6px; }
 .story-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c-sep); border: 2px solid var(--c-card-border); transition: background .3s, box-shadow .3s; flex-shrink: 0; }
 .story-item.active .story-dot { background: var(--brand); border-color: rgba(99,102,241,.4); box-shadow: 0 0 0 4px rgba(99,102,241,.15); }
-.story-time { font-size: 12px; color: var(--c-text-4); margin-top: 6px; font-weight: 500; letter-spacing: .04em; }
+.story-time { font-size: 12px; color: var(--c-text-3); margin-top: 6px; font-weight: 500; letter-spacing: .04em; }
 .story-card {
   background: var(--c-card); border: 1px solid var(--c-card-border);
   border-radius: var(--radius); padding: 26px; flex: 1;
@@ -410,7 +411,8 @@ input, select, textarea { font-family: inherit; }
 .story-emoji { font-size: 30px; margin-bottom: 12px; }
 .story-card h3 { font-size: 19px; font-weight: 700; color: var(--c-text); letter-spacing: -.02em; margin-bottom: 9px; }
 .story-card p { font-size: 14px; color: var(--c-text-3); line-height: 1.65; }
-.story-chip { display: inline-block; margin-top: 14px; padding: 5px 12px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.18); border-radius: 980px; font-size: 12px; color: var(--brand); font-weight: 500; }
+.story-chip { display: inline-block; margin-top: 14px; padding: 5px 12px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.18); border-radius: 980px; font-size: 12px; color: #4f46e5; font-weight: 500; }
+[data-theme="dark"] .story-chip { color: var(--brand-light); }
 
 /* ─── SPECS ─── */
 .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
@@ -457,14 +459,14 @@ input, select, textarea { font-family: inherit; }
 .fg input.error, .fg select.error { border-color: #ef4444; }
 .ferr { font-size: 12px; color: #ef4444; min-height: 16px; }
 .sub-btn {
-  background: var(--brand); color: #fff;
+  background: #4f46e5; color: #fff;
   padding: 13px 22px; border-radius: var(--radius-sm);
   font-size: 15px; font-weight: 600;
   transition: background .2s, transform .1s; width: 100%;
 }
-.sub-btn:hover { background: var(--brand-light); transform: scale(.99); }
+.sub-btn:hover { background: var(--brand); transform: scale(.99); }
 .sub-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-.sub-privacy { font-size: 12px; color: var(--c-text-4); text-align: center; }
+.sub-privacy { font-size: 12px; color: var(--c-text-3); text-align: center; }
 .spin { animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -494,12 +496,12 @@ input, select, textarea { font-family: inherit; }
 .footer-inner { display: grid; grid-template-columns: 1fr 2fr; gap: 48px; padding-bottom: 48px; border-bottom: 1px solid var(--c-sep); }
 .footer-brand p { font-size: 14px; color: var(--c-text-3); margin-top: 12px; max-width: 240px; line-height: 1.6; }
 .footer-cols { display: grid; grid-template-columns: repeat(3,1fr); gap: 28px; }
-.fc h4 { font-size: 12px; font-weight: 600; color: var(--c-text); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 14px; }
+.fc h3 { font-size: 12px; font-weight: 600; color: var(--c-text); letter-spacing: .05em; text-transform: uppercase; margin-bottom: 14px; }
 .fc a { display: block; font-size: 14px; color: var(--c-text-3); margin-bottom: 8px; transition: color .2s; }
 .fc a:hover { color: var(--c-text); }
 .footer-bottom { padding: 20px 24px; text-align: center; }
-.footer-bottom p { font-size: 13px; color: var(--c-text-4); }
-.footer-bottom a { color: var(--c-text-3); transition: color .2s; }
+.footer-bottom p { font-size: 13px; color: var(--c-text-3); }
+.footer-bottom a { color: var(--c-text-2); text-decoration: underline; transition: color .2s; }
 .footer-bottom a:hover { color: var(--c-text); }
 
 /* ─── SCROLL TOP ─── */
@@ -519,7 +521,7 @@ input, select, textarea { font-family: inherit; }
 .cbot-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 950; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .cbot-toggle {
   display: flex; align-items: center; gap: 8px;
-  background: var(--brand); color: #fff;
+  background: #4f46e5; color: #fff;
   padding: 9px 16px 9px 11px; border-radius: 980px;
   font-size: 13px; font-weight: 600;
   box-shadow: 0 6px 20px rgba(99,102,241,.35);
@@ -611,7 +613,7 @@ input, select, textarea { font-family: inherit; }
     display: block;
     margin: 16px 20px 20px;
     padding: 14px 20px !important;
-    background: var(--brand) !important;
+    background: #4f46e5 !important;
     color: #fff !important;
     border-radius: 12px !important;
     text-align: center;
@@ -622,7 +624,7 @@ input, select, textarea { font-family: inherit; }
     transition: background .2s !important;
   }
   .nav-links-cta:hover, .nav-links-cta:active {
-    background: var(--brand-light) !important;
+    background: var(--brand) !important;
   }
 
   /* Hamburger animation when open */

@@ -63,8 +63,31 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
         
         # Xử lý các items và cập nhật số lượng sản phẩm
         if payload.items:
+            # Bước 1: Lock TẤT CẢ sản phẩm cần thiết trước (tránh deadlock bằng cách lock theo thứ tự id)
+            product_ids = sorted({item.product_id for item in payload.items if item.product_id})
+            locked_products = {
+                p.id: p
+                for p in db.query(Product)
+                    .filter(Product.id.in_(product_ids))
+                    .with_for_update()   # SELECT FOR UPDATE — block concurrent transactions
+                    .all()
+            }
+
+            # Bước 2: Kiểm tra tồn kho đủ không (trước khi ghi bất kỳ thứ gì)
             for item_data in payload.items:
-                # Tạo invoice item
+                product = locked_products.get(item_data.product_id)
+                if product:
+                    available = product.so_luong or 0
+                    if available < item_data.so_luong:
+                        db.rollback()
+                        raise HTTPException(
+                            status_code=409,
+                            detail=f"Sản phẩm '{item_data.product_name or item_data.product_code}' "
+                                   f"chỉ còn {available} cái, không đủ để bán {item_data.so_luong} cái."
+                        )
+
+            # Bước 3: Tạo items và trừ kho (đã chắc chắn đủ hàng)
+            for item_data in payload.items:
                 invoice_item = InvoiceItem(
                     invoice_id=inv.id,
                     product_id=item_data.product_id,
@@ -75,18 +98,17 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
                     total_price=item_data.total_price
                 )
                 db.add(invoice_item)
-                
-                # Cập nhật số lượng sản phẩm trong bảng products
-                product = db.query(Product).filter(Product.id == item_data.product_id).first()
+
+                product = locked_products.get(item_data.product_id)
                 if product:
                     current_qty = product.so_luong or 0
-                    new_qty = max(0, current_qty - item_data.so_luong)
+                    new_qty = current_qty - item_data.so_luong
                     product.so_luong = new_qty
                     product.trang_thai = 'Còn hàng' if new_qty > 0 else 'Hết hàng'
                     log_info("UPDATE_STOCK", f"Đã cập nhật số lượng sản phẩm {item_data.product_code}: {current_qty} -> {new_qty}")
-                
+
                 # Cập nhật số lượng trong warehouse (nếu có)
-                warehouse = db.query(Warehouse).filter(Warehouse.ma_sp == item_data.product_code).first()
+                warehouse = db.query(Warehouse).filter(Warehouse.ma_sp == item_data.product_code).with_for_update().first()
                 if warehouse:
                     current_wh_qty = warehouse.so_luong or 0
                     new_wh_qty = max(0, current_wh_qty - item_data.so_luong)

@@ -4,25 +4,33 @@
    PosPos Landing — main.js
    ═══════════════════════════════════════════════ */
 
+// Feature detection
+const hasIO = typeof IntersectionObserver !== 'undefined';
+
 // ── 1. Skeleton Loading ─────────────────────────
 const skOverlay = document.getElementById('sk-overlay');
 window.addEventListener('load', () => {
   setTimeout(() => {
+    const mainEl = document.querySelector('main');
+    const footerEl = document.querySelector('footer');
+    if (mainEl) mainEl.style.visibility = 'visible';
+    if (footerEl) footerEl.style.visibility = 'visible';
     skOverlay.classList.add('out');
     setTimeout(() => skOverlay.remove(), 600);
-  }, 900);
+  }, 300);
 });
 
 // ── 2. Dark Mode ────────────────────────────────
 const html = document.documentElement;
 const themeToggle = document.getElementById('theme-toggle');
-const saved = localStorage.getItem('pospos-theme') || 'light';
+let saved = 'light';
+try { saved = localStorage.getItem('pospos-theme') || 'light'; } catch {}
 html.setAttribute('data-theme', saved);
 
 themeToggle.addEventListener('click', () => {
   const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', next);
-  localStorage.setItem('pospos-theme', next);
+  try { localStorage.setItem('pospos-theme', next); } catch {}
   trackEvent('theme_toggle', { mode: next });
 });
 
@@ -31,10 +39,20 @@ const scrollTopBtn = document.getElementById('scroll-top');
 const storySection = document.getElementById('story');
 const storyFill = document.getElementById('story-fill');
 
+// Cache story height; reset on resize to avoid stale value
+let storySectionH = 0;
+window.addEventListener('resize', () => { storySectionH = 0; }, { passive: true });
+
+// rAF throttle: updateStoryProgress runs at most once per animation frame
+let scrollRafId = 0;
 function onScroll() {
-  const y = window.scrollY;
-  scrollTopBtn.classList.toggle('visible', y > 400);
-  updateStoryProgress();
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+  if (!scrollRafId) {
+    scrollRafId = requestAnimationFrame(() => {
+      scrollRafId = 0;
+      updateStoryProgress();
+    });
+  }
 }
 window.addEventListener('scroll', onScroll, { passive: true });
 
@@ -66,67 +84,81 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     if (!target) return;
     e.preventDefault();
     const navH = parseInt(getComputedStyle(html).getPropertyValue('--nav-h'), 10) || 52;
-    window.scrollTo({ top: target.offsetTop - navH, behavior: 'smooth' });
+    const targetTop = window.scrollY + target.getBoundingClientRect().top;
+    window.scrollTo({ top: targetTop - navH, behavior: 'smooth' });
   });
 });
 
 // ── 6. Scroll Reveal ────────────────────────────
-const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(({ target, isIntersecting }) => {
-    if (isIntersecting) {
-      target.classList.add('visible');
-      revealObs.unobserve(target);
-    }
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+if (!hasIO) {
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+} else {
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(({ target, isIntersecting }) => {
+      if (isIntersecting) {
+        target.classList.add('visible');
+        revealObs.unobserve(target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+}
 
 // ── 7. Hero counter animation ───────────────────
-const counterObs = new IntersectionObserver(entries => {
-  entries.forEach(({ target, isIntersecting }) => {
-    if (!isIntersecting) return;
-    counterObs.unobserve(target);
-    const end = parseInt(target.dataset.target, 10);
-    const dur = 1800;
-    const start = performance.now();
-    const tick = now => {
-      const t = Math.min((now - start) / dur, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      target.textContent = Math.round(ease * end);
-      if (t < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  });
-}, { threshold: 0.5 });
-document.querySelectorAll('.hstat-n[data-target]').forEach(el => counterObs.observe(el));
+if (hasIO) {
+  const counterObs = new IntersectionObserver(entries => {
+    entries.forEach(({ target, isIntersecting }) => {
+      if (!isIntersecting) return;
+      counterObs.unobserve(target);
+      const end = parseInt(target.dataset.target, 10);
+      const dur = 1800;
+      const start = performance.now();
+      const tick = now => {
+        const t = Math.min((now - start) / dur, 1);
+        const ease = 1 - Math.pow(1 - t, 3);
+        target.textContent = Math.round(ease * end);
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.hstat-n[data-target]').forEach(el => counterObs.observe(el));
+}
 
 // ── 8. Scrollytelling ───────────────────────────
 const storyItems = document.querySelectorAll('.story-item');
 
 function updateStoryProgress() {
   if (!storySection) return;
+  // Batch ALL reads before any writes to avoid forced reflow
+  if (!storySectionH) storySectionH = storySection.offsetHeight;
   const rect = storySection.getBoundingClientRect();
-  const sectionH = storySection.offsetHeight;
-  const progress = Math.min(Math.max(-rect.top / (sectionH - window.innerHeight), 0), 1);
-  if (storyFill) storyFill.style.height = `${progress * 100}%`;
+  const vh = window.innerHeight;
+  const itemRects = [...storyItems].map(item => item.getBoundingClientRect());
 
-  const mid = window.innerHeight / 2;
-  storyItems.forEach(item => {
-    const r = item.getBoundingClientRect();
+  // Writes only after all reads are done
+  const progress = Math.min(Math.max(-rect.top / (storySectionH - vh), 0), 1);
+  if (storyFill) storyFill.style.height = `${progress * 100}%`;
+  const mid = vh / 2;
+  storyItems.forEach((item, i) => {
+    const r = itemRects[i];
     item.classList.toggle('active', r.top < mid && r.bottom > 0);
   });
 }
 
-const storyObs = new IntersectionObserver(entries => {
-  entries.forEach(({ target, isIntersecting }) => {
-    if (isIntersecting) target.classList.add('active');
-    else target.classList.remove('active');
-  });
-}, { threshold: 0.3 });
-storyItems.forEach(el => storyObs.observe(el));
+if (hasIO) {
+  const storyObs = new IntersectionObserver(entries => {
+    entries.forEach(({ target, isIntersecting }) => {
+      if (isIntersecting) target.classList.add('active');
+      else target.classList.remove('active');
+    });
+  }, { threshold: 0.3 });
+  storyItems.forEach(el => storyObs.observe(el));
+}
 
 // ── 9. AI Section Demo Chat ─────────────────────
 (function initDemoChat() {
+  if (!hasIO) return;
   const msgs = document.querySelectorAll('#demo-chat .chat-hidden');
   if (!msgs.length) return;
 

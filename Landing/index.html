@@ -2,7 +2,7 @@
 <html lang="vi" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>PosPos – Bán hàng. Thông minh hơn.</title>
   <meta name="description" content="PosPos là hệ thống POS hiện đại tích hợp AI, quản lý kho real-time, báo cáo tự động và chatbot thư ký ảo – giải pháp toàn diện cho mọi cửa hàng Việt Nam." />
   <meta name="keywords" content="POS, phần mềm bán hàng, quản lý kho, hệ thống POS, chatbot AI, PosPos" />
@@ -31,14 +31,18 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{--nav-h:52px;--font:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif}
     body{font-family:var(--font);background:#000;color:#f5f5f7;overflow-x:hidden}
-    #sk-overlay{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .5s ease}
+    #sk-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;transition:opacity .5s ease}
     #sk-overlay.out{opacity:0;pointer-events:none}
     .sk-logo{font-size:1.5rem;font-weight:700;letter-spacing:-0.04em;color:#fff}
     .sk-spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+    /* Hide main content while external CSS loads — prevents CLS from async stylesheet */
+    main,footer{visibility:hidden}
   </style>
 
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preload" href="css/style.css" as="style">
+  <link rel="stylesheet" href="css/style.css" media="print" onload="this.media='all';this.onload=null">
+  <noscript><link rel="stylesheet" href="css/style.css"></noscript>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>" />
 
   <script type="application/ld+json">
@@ -479,9 +483,9 @@
         <p>Hệ thống POS thông minh cho mọi cửa hàng Việt Nam.</p>
       </div>
       <div class="footer-cols">
-        <div class="fc"><h4>Sản phẩm</h4><a href="#features">Tính năng</a><a href="#ai-section">AI Chatbot</a><a href="#specs">Thông số</a></div>
-        <div class="fc"><h4>Công nghệ</h4><a href="#">FastAPI</a><a href="#">PostgreSQL</a><a href="#">Redis</a></div>
-        <div class="fc"><h4>Liên hệ</h4><a href="mailto:hoangthanh29042003@gmail.com">hoangthanh29042003@gmail.com</a><a href="https://github.com/surp29" target="_blank" rel="noopener">GitHub / surp29</a></div>
+        <div class="fc"><h3>Sản phẩm</h3><a href="#features">Tính năng</a><a href="#ai-section">AI Chatbot</a><a href="#specs">Thông số</a></div>
+        <div class="fc"><h3>Công nghệ</h3><a href="#">FastAPI</a><a href="#">PostgreSQL</a><a href="#">Redis</a></div>
+        <div class="fc"><h3>Liên hệ</h3><a href="mailto:hoangthanh29042003@gmail.com">hoangthanh29042003@gmail.com</a><a href="https://github.com/surp29" target="_blank" rel="noopener">GitHub / surp29</a></div>
       </div>
     </div>
     <div class="footer-bottom">

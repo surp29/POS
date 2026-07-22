@@ -17,6 +17,7 @@
 - [API Documentation](#api-documentation)
 - [Biến môi trường](#biến-môi-trường)
 - [Database](#database)
+- [Data Pipeline (ELT)](#data-pipeline-elt)
 - [Landing Page](#landing-page)
 
 ---
@@ -146,6 +147,13 @@ Toàn bộ giao diện được thiết kế nhất quán theo design system chu
 | Jinja2 | Template engine |
 | Font Awesome 6 | Icons |
 | Vanilla JS | Frontend logic |
+
+### Data Pipeline (xem [Data Pipeline (ELT)](#data-pipeline-elt))
+| Công cụ | Mục đích |
+|---------|---------|
+| n8n | Extract & Load — kéo dữ liệu từ nguồn ngoài (Google Sheet) vào staging |
+| dbt (dbt-postgres) | Transform — Star Schema (Fact/Dimension), data test |
+| Metabase | Visualization — dashboard doanh thu, xếp hạng khách hàng |
 
 ---
 
@@ -449,6 +457,7 @@ PORT=5000
 - **Bi-directional relationship**: Tất cả quan hệ đều có `back_populates` 2 chiều
 - **Index**: Tất cả cột thường query được index; composite index trên `schedules(employee_id, work_date)` và `audit_logs(username, timestamp)`
 - **Snapshot fields**: `InvoiceItem` lưu `product_code`, `product_name` tại thời điểm bán — không bị ảnh hưởng khi sản phẩm đổi tên sau này
+- **`invoices.customer_id` / `orders.customer_id`**: FK thật sang `accounts.id` (nullable — khách vãng lai vẫn `NULL`, chỉ lưu tên text như trước). Trước đây công nợ/xếp hạng khách hàng (`services/customers.py`) chỉ khớp bằng so tên (`nguoi_mua == customer_name`), nên 2 khách trùng tên bị gộp nhầm và cùng 1 khách ghi tên khác nhau giữa các lần mua bị tách nợ sai. Xem `Backend/migrate_add_customer_id.py` để chạy migration trên DB đã có sẵn.
 
 ### 19 bảng trong hệ thống
 
@@ -480,6 +489,101 @@ PORT=5000
 cd Backend
 python setup_database.py      # Tạo bảng + admin
 python create_sample_data.py  # Dữ liệu mẫu (optional)
+
+# Nếu nâng cấp từ DB đã có sẵn dữ liệu (Base.metadata.create_all không ALTER bảng cũ):
+python migrate_add_customer_id.py       # thêm invoices/orders.customer_id
+python backfill_product_groups.py       # gán product_groups + products.nhom_id
+python backfill_warehouse_product_id.py # gán warehouses.product_id
+```
+
+### Sửa lỗi quản lý nhóm sản phẩm (`product_groups.py`)
+
+Trước đây `GET/POST/PUT/DELETE /api/product-groups/*` không dùng bảng `product_groups`
+(dù bảng đã tồn tại) — `id` được tính từ **vị trí trong 1 query `DISTINCT
+products.nhom_sp`** mỗi lần gọi (không ổn định giữa các lần gọi), và `POST` tạo nhóm
+không lưu gì vào DB, chỉ trả về `id: 999` giả. `PUT`/`DELETE` dò lại danh sách rồi lấy
+theo `group_id - 1` để suy ra tên nhóm — nếu thứ tự `DISTINCT` đổi giữa 2 lần gọi (dữ
+liệu thay đổi ở giữa), có thể sửa/xóa nhầm nhóm khác. Frontend hiện tại không gọi API
+này (tự lọc theo tên ở client) nên chưa bị ảnh hưởng trong UI, nhưng endpoint vẫn hiện
+trong Swagger và có thể bị gọi trực tiếp (kể cả từ workflow n8n trong project này).
+
+Đã sửa: dùng thẳng bảng `product_groups` với `id` tự tăng thật, `products.nhom_id`
+được set khi tạo/sửa sản phẩm (trước đây chỉ ghi `nhom_sp` text). Có script
+`backfill_product_groups.py` cho dữ liệu cũ. Xem test
+`Backend/tests/test_product_groups.py` — assert rõ `id` không đổi giữa 2 lần gọi
+liên tiếp.
+
+### Test suite (`Backend/tests/`)
+
+Trước đây chưa có test tự động cho backend Python dù `pytest.ini` đã trỏ tới thư mục
+`tests/` (thư mục không tồn tại) — 213 test trong `POSTestApp/` là công cụ black-box
+bên ngoài, không phải unit test trong repo này. Đã thêm test cho đúng 3 vùng vừa sửa
+ở trên (`test_invoice_customer_debt.py`, `test_product_groups.py`,
+`test_warehouse_product_id.py`), chạy trên 1 database Postgres riêng (`posdb_test`):
+
+```bash
+docker exec pos_postgres psql -U posuser -d postgres -c "CREATE DATABASE posdb_test;"
+cd Backend
+docker compose exec backend pytest tests/ -v
+```
+
+---
+
+## Data Pipeline (ELT)
+
+Ngoài phần vận hành POS, project có thêm 1 lớp **phân tích dữ liệu** theo mô hình
+Modern Data Stack (ELT), tách biệt hoàn toàn khỏi backend nghiệp vụ — không đọc/ghi
+qua API, chỉ đọc trực tiếp từ PostgreSQL:
+
+```
+FastAPI backend  ──────────────┐
+(products/invoices/...)        │  ghi truc tiep
+                                ▼
+Google Sheet   ──n8n──▶  PostgreSQL   public.*        (OLTP)
+(kho doi tac)  Extract   │             raw_staging.*   (n8n Load)
+               & Load    │             analytics.*     (dbt Transform)
+                          │                  ▲
+                          │                  │ dbt run
+                          └──────────────────┘
+                                     │
+                                     ▼
+                                Metabase (dashboard tren analytics.mart_*)
+```
+
+- **Extract & Load — [`n8n/`](n8n/)**: workflow kéo dữ liệu từ 1 Google Sheet (mô
+  phỏng 1 nguồn ngoài như CRM/kho đối tác) đổ vào bảng đệm
+  `raw_staging.stg_external_inventory`. Đã import + chạy thử thật qua n8n API, không
+  chỉ viết file rồi giả định nó chạy — xem `n8n/README.md` để biết cách kiểm thử lại.
+- **Transform — [`dbt/pospos_analytics/`](dbt/pospos_analytics/)**: biến các bảng
+  OLTP (`products`, `invoices`, `accounts`, ...) thành **Star Schema** ở schema
+  `analytics`:
+  - `dim_date`, `dim_product`, `dim_customer`, `fact_sales`, `fact_orders`
+  - Data mart sẵn cho dashboard: `mart_revenue_daily`, `mart_revenue_by_product`,
+    `mart_customer_ranking`
+  - Đã chạy thật trên dữ liệu mẫu của project: **16 models, 49 tests, PASS 49/49**.
+  - Điểm đáng chú ý: `invoices.nguoi_mua` chỉ là text nhập tay, không có foreign key
+    sang `accounts` — `dim_customer` chuẩn hóa tên để join, và gom mọi tên không khớp
+    được vào 1 dòng "khách lẻ". Chạy `select * from analytics.mart_customer_ranking`
+    trên data mẫu cho thấy **~34% doanh thu** đến từ nhóm khách chưa định danh này —
+    đúng dạng vấn đề "chuẩn hóa danh mục khách hàng" cần xử lý trong thực tế.
+- **Visualization — [`metabase/`](metabase/)**: dashboard "PosPos - Bao cao doanh
+  thu" dựng trực tiếp trên các bảng `analytics.mart_*` qua Metabase API (script
+  `metabase/setup_dashboard.py`, không cần tự click UI) — tổng doanh thu, tỷ lệ
+  doanh thu từ khách chưa định danh, doanh thu theo ngày, theo sản phẩm, và bảng
+  xếp hạng khách hàng:
+
+  ![Metabase dashboard](docs/metabase_dashboard.png)
+
+Chạy toàn bộ pipeline local:
+```bash
+cd Backend
+docker compose -f docker-compose.yml -f docker-compose.metabase.yml -f docker-compose.n8n.yml up -d
+
+# (Tuỳ chọn) rải thêm ~4 tháng hoá đơn demo để dashboard có dữ liệu theo thời gian
+python generate_analytics_demo_data.py
+
+cd ../dbt/pospos_analytics
+dbt deps && dbt run && dbt test
 ```
 
 ---

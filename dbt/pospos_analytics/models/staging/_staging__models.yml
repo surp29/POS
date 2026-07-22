@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: stg_products
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+
+  - name: stg_product_groups
+    columns:
+      - name: product_group_id
+        tests: [unique, not_null]
+
+  - name: stg_accounts
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+
+  - name: stg_invoices
+    columns:
+      - name: invoice_id
+        tests: [unique, not_null]
+      - name: invoice_date
+        tests: [not_null]
+
+  - name: stg_invoice_items
+    columns:
+      - name: invoice_item_id
+        tests: [unique, not_null]
+      - name: invoice_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_invoices')
+              field: invoice_id
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_products')
+              field: product_id
+
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests: [unique, not_null]
+
+  - name: stg_order_items
+    columns:
+      - name: order_item_id
+        tests: [unique, not_null]
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+
+  - name: stg_warehouses
+    columns:
+      - name: warehouse_lot_id
+        tests: [unique, not_null]

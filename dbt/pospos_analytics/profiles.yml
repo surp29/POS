@@ -1,0 +1,12 @@
+pospos_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DBT_POSTGRES_HOST', 'localhost') }}"
+      port: "{{ env_var('DBT_POSTGRES_PORT', '5432') | as_number }}"
+      user: "{{ env_var('DBT_POSTGRES_USER', 'posuser') }}"
+      password: "{{ env_var('DBT_POSTGRES_PASSWORD', 'pospassword') }}"
+      dbname: "{{ env_var('DBT_POSTGRES_DB', 'posdb') }}"
+      schema: analytics
+      threads: 4

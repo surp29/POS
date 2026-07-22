@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_revenue_daily
+    description: 1 dong / ngay co doanh thu — phuc vu bieu do doanh thu theo thoi gian.
+    columns:
+      - name: date_key
+        tests: [unique, not_null]
+
+  - name: mart_revenue_by_product
+    description: 1 dong / san pham — phuc vu bao cao san pham ban chay.
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+
+  - name: mart_customer_ranking
+    description: 1 dong / khach hang — phuc vu bao cao xep hang khach hang theo doanh thu.
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]

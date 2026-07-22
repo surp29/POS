@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: pospos
+    description: >
+      Bang OLTP goc cua he thong PosPos (FastAPI + SQLAlchemy), duoc backend
+      ghi truc tiep khi ban hang / nhap kho / tao khach hang. Day la nguon
+      duy nhat cho toan bo lop staging ben duoi — khong model nao trong
+      marts duoc phep doc thang tu day, luon di qua staging truoc.
+    schema: public
+    tables:
+      - name: products
+        description: Danh muc san pham, ton kho hien tai va gia.
+      - name: product_groups
+        description: Nhom / danh muc san pham.
+      - name: accounts
+        description: Ho so khach hang da dinh danh (co ma khach hang).
+      - name: invoices
+        description: Hoa don da phat sinh sau khi thanh toan tai POS — nguon doanh thu.
+      - name: invoice_items
+        description: Chi tiet tung dong san pham trong 1 hoa don.
+      - name: orders
+        description: Don hang / yeu cau tu khach, co the chua duoc thanh toan.
+      - name: order_items
+        description: Chi tiet tung dong san pham trong 1 don hang.
+      - name: warehouses
+        description: Cac lo nhap kho theo tung san pham.

@@ -1,0 +1,161 @@
+{
+  "name": "POS - Extract Inventory Sheet to Postgres Staging",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-1",
+      "name": "Manual Trigger (test)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-1",
+      "name": "Schedule Trigger (daily 06:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -200,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://docs.google.com/spreadsheets/d/PASTE_YOUR_SHEET_ID/pub?gid=0&single=true&output=csv",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "http-request-1",
+      "name": "Get Inventory Sheet (CSV)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        40,
+        290
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const items = $input.all();\nlet raw = items[0].json.data;\nif (typeof raw !== 'string') { raw = String(raw); }\nconst lines = raw.trim().split(/\\r?\\n/);\nconst headers = lines[0].split(',').map(h => h.trim());\nconst rows = lines.slice(1).filter(l => l.length > 0).map(line => {\n  const cols = line.split(',');\n  const obj = {};\n  headers.forEach((h, i) => { obj[h] = cols[i] !== undefined ? cols[i].trim() : null; });\n  return { json: obj };\n});\nreturn rows;"
+      },
+      "id": "code-parse-csv-1",
+      "name": "Parse CSV",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        290
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "schema": {
+          "__rl": true,
+          "value": "raw_staging",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "stg_external_inventory",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "product_code": "={{ $json.product_code }}",
+            "warehouse_name": "={{ $json.warehouse_name }}",
+            "qty_on_hand": "={{ Number($json.qty_on_hand) }}",
+            "source_updated_at": "={{ $json.updated_at }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "id": "postgres-insert-1",
+      "name": "Insert into staging.stg_external_inventory",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        480,
+        290
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pospos-postgres-cred",
+          "name": "PosPos Postgres (staging)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger (test)": {
+      "main": [
+        [
+          {
+            "node": "Get Inventory Sheet (CSV)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger (daily 06:00)": {
+      "main": [
+        [
+          {
+            "node": "Get Inventory Sheet (CSV)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Inventory Sheet (CSV)": {
+      "main": [
+        [
+          {
+            "node": "Parse CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse CSV": {
+      "main": [
+        [
+          {
+            "node": "Insert into staging.stg_external_inventory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "pos-extract-inventory-1"
+}

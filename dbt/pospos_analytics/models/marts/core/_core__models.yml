@@ -1,0 +1,65 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Calendar dimension, 2023-01-01 den +1 nam tu hom nay.
+    columns:
+      - name: date_key
+        tests: [unique, not_null]
+
+  - name: dim_product
+    description: 1 dong / san pham, da gan nhom san pham.
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+
+  - name: dim_customer
+    description: >
+      1 dong / khach hang da dinh danh trong `accounts`, cong them 1 dong
+      "Khach le / chua dinh danh" (customer_id = -1) gom moi ten mua hang
+      khong khop duoc voi accounts nao. Xem ghi chu chi tiet trong file model.
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+
+  - name: fact_sales
+    description: 1 dong / dong san pham trong 1 hoa don da phat sinh — fact table doanh thu.
+    columns:
+      - name: sale_id
+        tests: [unique, not_null]
+      - name: date_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: product_id
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customer')
+              field: customer_id
+
+  - name: fact_orders
+    description: 1 dong / dong san pham trong 1 don hang — fact table pipeline (chua chac ban duoc).
+    columns:
+      - name: order_line_id
+        tests: [unique, not_null]
+      - name: date_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_date')
+              field: date_key
+      - name: product_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_product')
+              field: product_id

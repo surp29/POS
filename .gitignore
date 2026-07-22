@@ -898,3 +898,15 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+
+# ── Exceptions ─────────────────────────────────────────────────────────────
+# Cac rule chung o tren (tests/, staging/, docs/, sample_data/) vo tinh khop
+# nham vao nhung thu muc nguon sau (khong phai build artifact) — un-ignore lai:
+!/Backend/tests/
+!/Backend/tests/**
+!/dbt/pospos_analytics/models/staging/
+!/dbt/pospos_analytics/models/staging/**
+!/docs/
+!/docs/**
+!/n8n/sample_data/
+!/n8n/sample_data/**

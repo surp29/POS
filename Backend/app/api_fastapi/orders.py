@@ -18,7 +18,7 @@ from ..permission_middleware import require_permission
 from sqlalchemy import or_, func
 
 from ..database import get_db
-from ..models import User, Order, OrderItem, Product, Account, Warehouse
+from ..models import User, Order, OrderItem, Product, Warehouse
 from ..schemas_fastapi import OrderOut, OrderCreate, OrderUpdate
 from ..logger import log_info, log_success, log_error, log_warning
 from ..services.orders import create_order_service
@@ -113,15 +113,9 @@ def search_orders(
             customer_filters.append(Order.thong_tin_kh.ilike(f"%{name_clean}%"))
 
     if customer_id is not None:
-        try:
-            acc = db.get(Account, int(customer_id))
-        except Exception:
-            acc = None
-        if acc:
-            if acc.ten_tk:
-                customer_filters.append(Order.thong_tin_kh.ilike(f"%{acc.ten_tk.strip()}%"))
-            if acc.ma_khach_hang:
-                customer_filters.append(Order.thong_tin_kh.ilike(f"%{acc.ma_khach_hang.strip()}%"))
+        # customer_id la FK that (Order.customer_id) — loc truc tiep, khong con phai
+        # doan ten qua ilike nhu truoc (loi neu ten hoa don ghi khac voi accounts.ten_tk)
+        customer_filters.append(Order.customer_id == customer_id)
 
     if customer_filters:
         query = query.filter(or_(*customer_filters))
@@ -201,6 +195,7 @@ async def create_order(payload: OrderCreate, db: Session = Depends(get_db),
         o = Order(
             ma_don_hang=payload.ma_don_hang,
             thong_tin_kh=payload.thong_tin_kh,
+            customer_id=payload.customer_id,
             sp_banggia=payload.sp_banggia,
             ngay_tao=ngay_tao,
             ma_co_quan_thue=payload.ma_co_quan_thue,
@@ -283,6 +278,7 @@ async def update_order(
 
     if payload.trang_thai is not None:   o.trang_thai   = payload.trang_thai
     if payload.thong_tin_kh is not None: o.thong_tin_kh = payload.thong_tin_kh
+    if payload.customer_id is not None:  o.customer_id  = payload.customer_id
     if payload.tong_tien is not None:    o.tong_tien    = payload.tong_tien
 
     db.commit()

@@ -3,10 +3,21 @@ from sqlalchemy.orm import Session
 from ..models import Invoice, Account, Product
 from datetime import datetime
 
-def update_debt_for_customer(customer_name: str, db: Session):
-    """Cập nhật bảng công nợ cho khách hàng."""
+def update_debt_for_customer(db: Session, customer_id: int | None = None, customer_name: str | None = None):
+    """Cập nhật bảng công nợ cho khách hàng.
+
+    Ưu tiên lọc theo customer_id (FK thật) khi có — tránh gộp nhầm/thiếu do khớp
+    theo tên text (2 khách trùng tên, hoặc cùng 1 khách nhưng gõ tên khác nhau giữa
+    các lần mua). Hóa đơn cũ/khách vãng lai không có customer_id vẫn dùng tên như
+    trước để không phá vỡ dữ liệu lịch sử.
+    """
     try:
-        invoices = db.query(Invoice).filter(Invoice.nguoi_mua == customer_name).all()
+        if customer_id is not None:
+            invoices = db.query(Invoice).filter(Invoice.customer_id == customer_id).all()
+        elif customer_name:
+            invoices = db.query(Invoice).filter(Invoice.nguoi_mua == customer_name).all()
+        else:
+            return
         if not invoices:
             return
         total_debt = sum(float(invoice.tong_tien or 0) for invoice in invoices)
@@ -36,7 +47,9 @@ def update_debt_for_customer(customer_name: str, db: Session):
         #     )
         #     db.add(debt_record)
         db.commit()
-        print(f"✓ Đã cập nhật công nợ cho {customer_name}: Tổng={total_debt:,.0f}, Đã trả={paid_amount:,.0f}, Còn nợ={remaining_debt:,.0f}")
+        who = customer_name or f"customer_id={customer_id}"
+        print(f"✓ Đã cập nhật công nợ cho {who}: Tổng={total_debt:,.0f}, Đã trả={paid_amount:,.0f}, Còn nợ={remaining_debt:,.0f}")
     except Exception as e:
-        print(f"× Lỗi cập nhật công nợ cho {customer_name}: {e}")
+        who = customer_name or f"customer_id={customer_id}"
+        print(f"× Lỗi cập nhật công nợ cho {who}: {e}")
         db.rollback()

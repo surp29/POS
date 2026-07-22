@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from ..permission_middleware import require_permission
 from ..database import get_db
-from ..models import User, Warehouse
+from ..models import User, Warehouse, Product
 from ..schemas_fastapi import WarehouseOut, WarehouseCreate, WarehouseUpdate
 from ..logger import log_info, log_success, log_error, log_warning
 from ..services.general_diary import create_general_diary_entry
@@ -49,13 +49,21 @@ def add_warehouse(payload: WarehouseCreate, db: Session = Depends(get_db),
         # Validate ma_sp is required (model constraint)
         if not payload.ma_sp or not payload.ma_sp.strip():
             raise HTTPException(status_code=400, detail="Mã sản phẩm (ma_sp) là bắt buộc")
-        
+
+        ma_sp_clean = payload.ma_sp.strip()
+        # Tìm Product khớp để gán FK thật (product_id) — trước đây chỉ lưu ma_sp (text),
+        # product_id luôn null trừ khi seed script tự set. Không tồn tại thì để null,
+        # không chặn tạo kho — ma_sp không khớp product nào là tình huống thực tế hợp lệ
+        # (vd. nhập trước khi khai báo sản phẩm).
+        matched_product = db.query(Product).filter(Product.ma_sp == ma_sp_clean).first()
+
         wh = Warehouse(
             ma_kho=payload.ma_kho,
             ten_kho=payload.ten_kho,
             dia_chi=payload.dia_chi,
             dien_thoai=payload.dien_thoai,
-            ma_sp=payload.ma_sp.strip(),
+            product_id=matched_product.id if matched_product else None,
+            ma_sp=ma_sp_clean,
             gia_nhap=payload.gia_nhap or 0.0,
             so_luong=so_luong,
             ghi_chu=ghi_chu,
@@ -143,6 +151,8 @@ def update_warehouse(warehouse_id: int, payload: WarehouseUpdate, request: Reque
             wh.dien_thoai = payload.dien_thoai
         if payload.ma_sp is not None:
             wh.ma_sp = payload.ma_sp
+            matched_product = db.query(Product).filter(Product.ma_sp == payload.ma_sp.strip()).first()
+            wh.product_id = matched_product.id if matched_product else None
         if payload.gia_nhap is not None:
             wh.gia_nhap = payload.gia_nhap
         if payload.so_luong is not None:

@@ -68,6 +68,7 @@ class WarehouseOut(BaseModel):
     ten_kho: Optional[str]
     dia_chi: Optional[str]
     dien_thoai: Optional[str]
+    product_id: Optional[int] = None
     ma_sp: Optional[str]
     gia_nhap: Optional[float]
     so_luong: Optional[int]
@@ -264,6 +265,7 @@ class OrderOut(BaseModel):
     id: int
     ma_don_hang: Optional[str]
     thong_tin_kh: Optional[str]
+    customer_id: Optional[int] = None
     sp_banggia: Optional[str]
     ngay_tao: Optional[date]
     ma_co_quan_thue: Optional[str]
@@ -278,6 +280,7 @@ class OrderOut(BaseModel):
 class OrderCreate(BaseModel):
     ma_don_hang: str
     thong_tin_kh: str
+    customer_id: Optional[int] = None  # FK sang accounts.id, None = khách vãng lai
     sp_banggia: Optional[str] = None
     ngay_tao: Optional[date] = None
     ma_co_quan_thue: Optional[str] = None
@@ -289,6 +292,7 @@ class OrderCreate(BaseModel):
 class OrderUpdate(BaseModel):
     ma_don_hang: Optional[str] = None
     thong_tin_kh: Optional[str] = None
+    customer_id: Optional[int] = None
     sp_banggia: Optional[str] = None
     ngay_tao: Optional[date] = None
     ma_co_quan_thue: Optional[str] = None
@@ -311,6 +315,7 @@ class InvoiceOut(BaseModel):
     so_hd: Optional[str]
     ngay_hd: Optional[date]
     nguoi_mua: Optional[str]
+    customer_id: Optional[int] = None
     tong_tien: Optional[float]
     trang_thai: Optional[str]
     hinh_thuc_tt: Optional[str] = None
@@ -346,6 +351,7 @@ class InvoiceCreate(BaseModel):
     so_hd: str
     ngay_hd: date
     nguoi_mua: str
+    customer_id: Optional[int] = None  # FK sang accounts.id, None = khách vãng lai
     tong_tien: float
     trang_thai: Optional[str] = 'Đã thanh toán'
     hinh_thuc_tt: Optional[str] = None
@@ -356,6 +362,7 @@ class InvoiceUpdate(BaseModel):
     so_hd: Optional[str] = None
     ngay_hd: Optional[date] = None
     nguoi_mua: Optional[str] = None
+    customer_id: Optional[int] = None
     tong_tien: Optional[float] = None
     trang_thai: Optional[str] = None
     hinh_thuc_tt: Optional[str] = None

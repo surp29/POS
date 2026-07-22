@@ -93,6 +93,10 @@ class Account(Base):
     dia_chi        = Column(String(255))
     trang_thai     = Column(Boolean, default=True)
 
+    # Relationships
+    invoices = relationship('Invoice', back_populates='customer')
+    orders   = relationship('Order',   back_populates='customer')
+
     def __repr__(self):
         return f"<Account(ten_tk='{self.ten_tk}', ma='{self.ma_khach_hang}')>"
 
@@ -204,7 +208,9 @@ class Order(Base):
 
     id            = Column(Integer, primary_key=True)
     ma_don_hang   = Column(String(50), unique=True, nullable=False, index=True)
-    thong_tin_kh  = Column(String(255), index=True)   # Tên khách hàng
+    thong_tin_kh  = Column(String(255), index=True)   # Tên khách hàng (snapshot, khong FK)
+    customer_id   = Column(Integer, ForeignKey('accounts.id', ondelete='SET NULL'),
+                           nullable=True, index=True)
     sp_banggia    = Column(String(100))                # Mã SP hoặc mã bảng giá
     ngay_tao      = Column(Date, nullable=False, index=True)
     so_luong      = Column(Integer, default=1)
@@ -219,6 +225,8 @@ class Order(Base):
     )
     shipments = relationship('Shipment', back_populates='order',
                              foreign_keys='Shipment.order_id')
+    customer = relationship('Account', back_populates='orders',
+                            foreign_keys=[customer_id])
 
     def __repr__(self):
         return f"<Order(ma_don_hang='{self.ma_don_hang}', trang_thai='{self.trang_thai}')>"
@@ -252,7 +260,9 @@ class Invoice(Base):
     id            = Column(Integer, primary_key=True)
     so_hd         = Column(String(50), unique=True, nullable=False, index=True)
     ngay_hd       = Column(Date, nullable=False, index=True)
-    nguoi_mua     = Column(String(100), nullable=False, index=True)
+    nguoi_mua     = Column(String(100), nullable=False, index=True)  # snapshot, khong FK
+    customer_id   = Column(Integer, ForeignKey('accounts.id', ondelete='SET NULL'),
+                           nullable=True, index=True)
     tong_tien     = Column(Float, nullable=False)
     trang_thai    = Column(String(50), default='Chưa thanh toán', index=True)
     hinh_thuc_tt  = Column(String(50))  # Tiền mặt / MoMo / Banking
@@ -264,6 +274,8 @@ class Invoice(Base):
     )
     shipments = relationship('Shipment', back_populates='invoice',
                              foreign_keys='Shipment.invoice_id')
+    customer = relationship('Account', back_populates='invoices',
+                            foreign_keys=[customer_id])
 
     def __repr__(self):
         return f"<Invoice(so_hd='{self.so_hd}', trang_thai='{self.trang_thai}')>"

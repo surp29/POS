@@ -54,6 +54,7 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
             so_hd=payload.so_hd,
             ngay_hd=payload.ngay_hd,
             nguoi_mua=payload.nguoi_mua,
+            customer_id=payload.customer_id,
             tong_tien=payload.tong_tien,
             trang_thai=payload.trang_thai,
             hinh_thuc_tt=payload.hinh_thuc_tt,
@@ -120,7 +121,7 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
         db.refresh(inv)
         
         # Cập nhật bảng công nợ
-        update_debt_for_customer(payload.nguoi_mua, db)
+        update_debt_for_customer(db, customer_id=payload.customer_id, customer_name=payload.nguoi_mua)
         
         # Tính tổng số lượng xuất từ các items
         total_quantity_out = sum(item.so_luong for item in payload.items) if payload.items else 0
@@ -169,11 +170,13 @@ def update_invoice(invoice_id: int, payload: InvoiceUpdate, request: Request, db
         
         # Lưu tên khách hàng cũ để cập nhật công nợ
         old_customer_name = inv.nguoi_mua
-        
+        old_customer_id   = inv.customer_id
+
         # Cập nhật hóa đơn
         if payload.so_hd is not None: setattr(inv, 'so_hd', payload.so_hd)
         if payload.ngay_hd is not None: setattr(inv, 'ngay_hd', payload.ngay_hd)
         if payload.nguoi_mua is not None: setattr(inv, 'nguoi_mua', payload.nguoi_mua)
+        if payload.customer_id is not None: setattr(inv, 'customer_id', payload.customer_id)
         if payload.tong_tien is not None: setattr(inv, 'tong_tien', payload.tong_tien)
         if payload.trang_thai is not None: setattr(inv, 'trang_thai', payload.trang_thai)
         if payload.hinh_thuc_tt is not None: setattr(inv, 'hinh_thuc_tt', payload.hinh_thuc_tt)
@@ -199,12 +202,13 @@ def update_invoice(invoice_id: int, payload: InvoiceUpdate, request: Request, db
         
         # Cập nhật công nợ cho khách hàng cũ (nếu có thay đổi)
         if old_customer_name:
-            update_debt_for_customer(old_customer_name, db)
-        
+            update_debt_for_customer(db, customer_id=old_customer_id, customer_name=old_customer_name)
+
         # Cập nhật công nợ cho khách hàng mới
         new_customer_name = payload.nguoi_mua if payload.nguoi_mua is not None else old_customer_name
-        if new_customer_name and new_customer_name != old_customer_name:
-            update_debt_for_customer(new_customer_name, db)
+        new_customer_id    = inv.customer_id
+        if new_customer_name and (new_customer_name != old_customer_name or new_customer_id != old_customer_id):
+            update_debt_for_customer(db, customer_id=new_customer_id, customer_name=new_customer_name)
 
         cache_delete_pattern("invoices:*")
         cache_delete_pattern("reports:*")
@@ -297,6 +301,7 @@ def delete_invoice(invoice_id: int, request: Request, db: Session = Depends(get_
         # Lưu thông tin hóa đơn trước khi xóa
         invoice_info = f"{inv.so_hd} - Khách hàng: {inv.nguoi_mua}"
         customer_name = inv.nguoi_mua
+        customer_id   = inv.customer_id
         
         # Xóa hóa đơn
         db.delete(inv)
@@ -321,7 +326,7 @@ def delete_invoice(invoice_id: int, request: Request, db: Session = Depends(get_
         
         # Cập nhật công nợ cho khách hàng
         if customer_name:
-            update_debt_for_customer(customer_name, db)
+            update_debt_for_customer(db, customer_id=customer_id, customer_name=customer_name)
 
         cache_delete_pattern("invoices:*")
         cache_delete_pattern("reports:*")

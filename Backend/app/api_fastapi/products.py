@@ -12,7 +12,7 @@ from ..database import get_db
 from ..models import User, Product, ProductGroup, OrderItem
 from ..schemas_fastapi import ProductOut, ProductCreate, ProductUpdate
 from ..logger import log_info, log_success, log_error, log_warning
-from ..services.products import save_uploaded_file, validate_product_fields
+from ..services.products import save_uploaded_file, validate_product_fields, get_or_create_product_group
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
 from ..cache import cache_get, cache_set, cache_delete_pattern
@@ -123,8 +123,11 @@ async def create_product(
         if image:
             image_url = save_uploaded_file(image)
 
+        product_group = get_or_create_product_group(db, group)
+
         p = Product(
             ma_sp=code, ten_sp=name, nhom_sp=group or '',
+            nhom_id=product_group.id if product_group else None,
             so_luong=quantity or 0, gia_ban=price or 0,
             gia_chung=0, gia_von=cost_price or 0.0,
             don_vi=unit or 'cái', trang_thai="active",
@@ -183,7 +186,10 @@ async def update_product(
 
     if code        is not None: p.ma_sp   = code
     if name        is not None: p.ten_sp  = name
-    if group       is not None: p.nhom_sp = group
+    if group       is not None:
+        p.nhom_sp = group
+        product_group = get_or_create_product_group(db, group)
+        p.nhom_id = product_group.id if product_group else None
     if cost_price  is not None: p.gia_von = cost_price
     if price       is not None: p.gia_ban = price
     if quantity    is not None: p.so_luong = quantity

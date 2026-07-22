@@ -89,41 +89,10 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 
-// ── 6. Scroll Reveal ────────────────────────────
-if (!hasIO) {
-  document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
-} else {
-  const revealObs = new IntersectionObserver(entries => {
-    entries.forEach(({ target, isIntersecting }) => {
-      if (isIntersecting) {
-        target.classList.add('visible');
-        revealObs.unobserve(target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-}
-
-// ── 7. Hero counter animation ───────────────────
-if (hasIO) {
-  const counterObs = new IntersectionObserver(entries => {
-    entries.forEach(({ target, isIntersecting }) => {
-      if (!isIntersecting) return;
-      counterObs.unobserve(target);
-      const end = parseInt(target.dataset.target, 10);
-      const dur = 1800;
-      const start = performance.now();
-      const tick = now => {
-        const t = Math.min((now - start) / dur, 1);
-        const ease = 1 - Math.pow(1 - t, 3);
-        target.textContent = Math.round(ease * end);
-        if (t < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    });
-  }, { threshold: 0.5 });
-  document.querySelectorAll('.hstat-n[data-target]').forEach(el => counterObs.observe(el));
-}
+// ── 6. Scroll Reveal + 7. Hero counter animation ────────────────
+// Chuyển sang js/gsap-animations.js (dùng GSAP + ScrollTrigger) — file đó tự
+// fallback về đúng cơ chế .reveal/.visible này nếu GSAP không load được hoặc
+// người dùng bật prefers-reduced-motion, nên không cần giữ code dự phòng ở đây.
 
 // ── 8. Scrollytelling ───────────────────────────
 const storyItems = document.querySelectorAll('.story-item');

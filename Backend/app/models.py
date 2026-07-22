@@ -11,7 +11,7 @@ PosPos — Database Models
 from datetime import datetime, timezone
 from sqlalchemy import (
     Boolean, Column, Date, DateTime, Float, ForeignKey,
-    Index, Integer, String, Text, UniqueConstraint, func,
+    Index, Integer, JSON, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -217,6 +217,12 @@ class Order(Base):
     tong_tien     = Column(Float,   default=0.0)
     ma_co_quan_thue = Column(String(50))
     trang_thai    = Column(String(50), default='cho_xu_ly', index=True)
+    # Nguồn đơn hàng: 'pos' (tạo tại quầy, mặc định) | 'ecommerce' (đẩy từ storefront)
+    source        = Column(String(20), default='pos', index=True)
+    # Khóa idempotency khi đơn được đẩy từ hệ thống ngoài (Ecommerce Backend) —
+    # cho phép retry an toàn: gọi lại POST /integration/orders với cùng external_ref
+    # sẽ trả về đúng đơn đã tạo, không tạo trùng / không trừ kho 2 lần.
+    external_ref  = Column(String(100), unique=True, nullable=True, index=True)
 
     # Relationships
     items = relationship(
@@ -535,3 +541,29 @@ class ShipmentHistory(Base):
 
     def __repr__(self):
         return f"<ShipmentHistory(shipment={self.shipment_id}, status='{self.status}')>"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INTEGRATION (POS ↔ Ecommerce)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class IntegrationEvent(Base):
+    """Outbox event — ghi lại mọi thay đổi ảnh hưởng tồn kho/sản phẩm/đơn hàng
+    TRONG CÙNG transaction với thao tác nghiệp vụ (Transactional Outbox Pattern),
+    để hệ thống Ecommerce bên ngoài poll và đồng bộ mà không bao giờ mất event do
+    lỗi giữa chừng (khác với publish qua Redis/message queue độc lập với DB
+    transaction — có thể lỗi 1 bên mà bên kia không biết).
+
+    `id` tăng dần dùng làm checkpoint cho consumer (GET .../events?after_id=...).
+    """
+    __tablename__ = 'integration_events'
+
+    id          = Column(Integer, primary_key=True)
+    event_type  = Column(String(50), nullable=False, index=True)   # vd: product.updated
+    entity_type = Column(String(50), nullable=False, index=True)   # vd: product, order
+    entity_id   = Column(String(50))
+    payload     = Column(JSON, nullable=False)
+    created_at  = Column(DateTime, default=_now, index=True)
+
+    def __repr__(self):
+        return f"<IntegrationEvent(#{self.id} {self.event_type} {self.entity_type}={self.entity_id})>"

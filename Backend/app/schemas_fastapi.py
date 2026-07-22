@@ -541,4 +541,55 @@ class ScheduleUpdate(BaseModel):
     employee_id: Optional[int] = None
     work_date: Optional[date] = None
     shift_type: Optional[str] = None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INTEGRATION (POS ↔ Ecommerce)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class IntegrationOrderItem(BaseModel):
+    sku: str            # khớp Product.ma_sp
+    quantity: int
+    unit_price: float
+
+
+class IntegrationCustomer(BaseModel):
+    name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+
+class IntegrationOrderCreate(BaseModel):
+    # Bắt buộc — khóa idempotency. Ecommerce Backend gửi = số đơn hàng của chính nó
+    # (vd "ECOM-000123"). Gọi lại với cùng external_ref sẽ trả về đơn đã tạo trước đó,
+    # không tạo mới / không trừ kho lần 2.
+    external_ref: str
+    customer: IntegrationCustomer
+    items: list[IntegrationOrderItem]
+    total_amount: Optional[float] = None   # None = tự tính từ items
+    payment_method: Optional[str] = None   # 'cod' | 'momo'
+    note: Optional[str] = None
+
+
+class IntegrationOrderOut(BaseModel):
+    id: int
+    ma_don_hang: str
+    external_ref: Optional[str] = None
+    trang_thai: str
+    tong_tien: float
+    customer_id: Optional[int] = None
+    created: bool   # True nếu vừa tạo mới, False nếu trả về đơn đã tồn tại (idempotent replay)
+
+
+class IntegrationEventOut(BaseModel):
+    id: int
+    event_type: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    payload: dict
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
     notes: Optional[str] = None

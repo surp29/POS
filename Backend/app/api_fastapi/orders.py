@@ -24,6 +24,7 @@ from ..logger import log_info, log_success, log_error, log_warning
 from ..services.orders import create_order_service
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
+from ..services.integration_events import emit_event, product_snapshot
 from ..websocket_manager import manager, order_event, inventory_event
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -219,6 +220,8 @@ async def create_order(payload: OrderCreate, db: Session = Depends(get_db),
             if wh:
                 wh.so_luong   = max(0, (wh.so_luong or 0) - quantity_out)
                 wh.trang_thai = 'Còn hàng' if wh.so_luong > 0 else 'Hết hàng'
+
+            emit_event(db, "stock.changed", "product", product.id, product_snapshot(product))
             db.commit()
 
             # ── Broadcast inventory update ─────────────────────────────────

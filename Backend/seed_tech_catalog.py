@@ -60,6 +60,24 @@ GROUPS = [
     ("Đồng hồ thông minh", "Smartwatch"),
 ]
 
+# ma_sp -> giá niêm yết (gia_chung) TRƯỚC KHUYẾN MÃI, cao hơn gia_ban — mô
+# phỏng chương trình giảm giá thật (10-23%) cho 1 số sản phẩm cụ thể, KHÔNG
+# phải toàn bộ catalog (giống thực tế: không phải sản phẩm nào cũng đang sale).
+# Sản phẩm không có trong dict này giữ gia_chung = gia_ban (không giảm giá).
+# Dùng để hiển thị badge SALE + giá gạch ngang + section Flash Sale ở storefront.
+SALE_LIST_PRICES = {
+    "LT004": 32_990_000,
+    "LT007": 39_990_000,
+    "DT001": 39_990_000,
+    "DT004": 34_990_000,
+    "DT006": 7_990_000,
+    "TN001": 11_990_000,
+    "TN005": 1_290_000,
+    "PK002": 890_000,
+    "PK006": 349_000,
+    "DH003": 4_290_000,
+}
+
 # (ma_sp, ten_sp, nhom, don_vi, so_luong, gia_ban, gia_von, image_path_or_None, mo_ta)
 PRODUCTS = [
     # ── Laptop ────────────────────────────────────────────────────────────
@@ -158,11 +176,12 @@ def seed_tech_catalog():
         created, updated = 0, 0
         for ma_sp, ten_sp, nhom, don_vi, so_luong, gia_ban, gia_von, img_path, mo_ta in PRODUCTS:
             image_url = f"{CDN}{img_path}" if img_path else None
+            gia_chung = SALE_LIST_PRICES.get(ma_sp, gia_ban)
             p = db.query(Product).filter(Product.ma_sp == ma_sp).first()
             if p:
                 p.ten_sp, p.nhom_sp, p.nhom_id = ten_sp, nhom, groups[nhom].id
                 p.don_vi, p.so_luong = don_vi, so_luong
-                p.gia_ban, p.gia_chung, p.gia_von = gia_ban, gia_ban, gia_von
+                p.gia_ban, p.gia_chung, p.gia_von = gia_ban, gia_chung, gia_von
                 p.image_url, p.mo_ta = image_url, mo_ta
                 p.trang_thai = 'Còn hàng' if so_luong > 0 else 'Hết hàng'
                 updated += 1
@@ -170,7 +189,7 @@ def seed_tech_catalog():
                 p = Product(
                     ma_sp=ma_sp, ten_sp=ten_sp, nhom_sp=nhom, nhom_id=groups[nhom].id,
                     don_vi=don_vi, so_luong=so_luong,
-                    gia_ban=gia_ban, gia_chung=gia_ban, gia_von=gia_von,
+                    gia_ban=gia_ban, gia_chung=gia_chung, gia_von=gia_von,
                     image_url=image_url, mo_ta=mo_ta,
                     trang_thai='Còn hàng' if so_luong > 0 else 'Hết hàng',
                 )

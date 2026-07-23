@@ -56,4 +56,5 @@ def product_snapshot(product) -> dict:
         "unit":       product.don_vi,
         "status":     product.trang_thai,
         "image_url":  product.image_url,
+        "description": product.mo_ta,
     }

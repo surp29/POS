@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
@@ -582,6 +582,24 @@ class IntegrationOrderOut(BaseModel):
     created: bool   # True nếu vừa tạo mới, False nếu trả về đơn đã tồn tại (idempotent replay)
 
 
+class IntegrationOrderItemOut(BaseModel):
+    sku: str
+    quantity: int
+    unit_price: float
+    total_price: float
+    returned_qty: int
+
+
+class IntegrationOrderDetailOut(BaseModel):
+    id: int
+    ma_don_hang: str
+    external_ref: Optional[str] = None
+    trang_thai: str
+    tong_tien: float
+    source: str
+    items: list[IntegrationOrderItemOut]
+
+
 class IntegrationEventOut(BaseModel):
     id: int
     event_type: str
@@ -592,4 +610,23 @@ class IntegrationEventOut(BaseModel):
 
     class Config:
         from_attributes = True
-    notes: Optional[str] = None
+
+
+class IntegrationReturnItem(BaseModel):
+    sku: str
+    quantity: int = Field(gt=0)
+
+
+class IntegrationReturnCreate(BaseModel):
+    # Bắt buộc — khóa idempotency riêng cho lượt trả hàng (khác external_ref của
+    # đơn gốc, vì 1 đơn có thể có nhiều lượt trả hàng khác nhau theo thời gian).
+    return_ref: str
+    items: list[IntegrationReturnItem]
+
+
+class IntegrationReturnOut(BaseModel):
+    id: int
+    order_id: int
+    return_ref: str
+    refund_amount: float
+    created: bool  # True nếu vừa xử lý, False nếu trả về kết quả cũ (idempotent replay)

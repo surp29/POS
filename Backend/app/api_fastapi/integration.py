@@ -3,13 +3,19 @@ Integration API — bề mặt tích hợp DUY NHẤT mà Ecommerce Backend đư
 POS. Toàn bộ endpoint dùng `require_integration_key` (X-API-Key), KHÔNG dùng JWT
 user/`require_permission` như các router nghiệp vụ khác — đây là API máy-đến-máy.
 
-3 nhóm endpoint:
+4 nhóm endpoint:
   - GET  /integration/events    poll outbox (Transactional Outbox Pattern) — đồng bộ
                                  gần-thời-gian-thực, checkpoint bằng `after_id`.
   - GET  /integration/products  snapshot đầy đủ — dùng cho full-resync định kỳ/khởi
                                  động (lưới an toàn nếu poll events bị lệch checkpoint).
   - POST /integration/orders    nhận đơn từ Ecommerce, idempotent qua `external_ref`.
          .../{id}/cancel        hoàn kho khi đơn ecommerce bị hủy sau khi đã đồng bộ.
+    GET  .../{id}               đọc lại trạng thái hiện tại — dùng cho đối soát công
+                                 nợ định kỳ (reconcile_orders.py bên Ecommerce), không
+                                 dùng trong luồng checkout/push bình thường.
+  - POST /integration/orders/{id}/returns
+                                 hoàn kho TỪNG PHẦN cho đơn đã giao (trả hàng sau khi
+                                 nhận, khác `.../cancel`), idempotent qua `return_ref`.
 """
 from datetime import date
 
@@ -18,12 +24,16 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..integration_auth import require_integration_key
-from ..models import Account, IntegrationEvent, Order, OrderItem, Product, Warehouse
+from ..models import Account, IntegrationEvent, Order, OrderItem, OrderReturn, Product, Warehouse
 from ..schemas_fastapi import (
     IntegrationCustomer,
     IntegrationEventOut,
     IntegrationOrderCreate,
+    IntegrationOrderDetailOut,
+    IntegrationOrderItemOut,
     IntegrationOrderOut,
+    IntegrationReturnCreate,
+    IntegrationReturnOut,
 )
 from ..services.general_diary import create_general_diary_entry
 from ..services.integration_events import emit_event, product_snapshot
@@ -35,6 +45,24 @@ router = APIRouter(
     tags=["integration"],
     dependencies=[Depends(require_integration_key)],
 )
+
+
+def _apply_stock_delta(db: Session, product: Product, delta: int) -> None:
+    """Cộng/trừ tồn kho của Product VÀ Warehouse tương ứng (đồng bộ lại
+    trang_thai 'Còn hàng'/'Hết hàng'), rồi emit event stock.changed — dùng
+    chung cho cả 3 endpoint dưới đây (tạo đơn: delta âm để trừ kho; hủy đơn/
+    trả hàng: delta dương để hoàn kho), tránh chép lại cùng 1 khối logic 3 lần.
+    `product` phải đã được `.with_for_update()` khóa từ trước bởi caller."""
+    new_qty = max(int(product.so_luong or 0) + delta, 0)
+    product.so_luong = new_qty
+    product.trang_thai = 'Còn hàng' if new_qty > 0 else 'Hết hàng'
+
+    wh = db.query(Warehouse).filter(Warehouse.product_id == product.id).with_for_update().first()
+    if wh:
+        wh.so_luong = max(0, (wh.so_luong or 0) + delta)
+        wh.trang_thai = 'Còn hàng' if wh.so_luong > 0 else 'Hết hàng'
+
+    emit_event(db, "stock.changed", "product", product.id, product_snapshot(product))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -194,17 +222,8 @@ def create_integration_order(payload: IntegrationOrderCreate, db: Session = Depe
                 total_price=item.unit_price * item.quantity,
             ))
 
-            new_qty = max(int(product.so_luong or 0) - item.quantity, 0)
-            product.so_luong = new_qty
-            product.trang_thai = 'Còn hàng' if new_qty > 0 else 'Hết hàng'
+            _apply_stock_delta(db, product, -item.quantity)
             total_qty_out += item.quantity
-
-            wh = db.query(Warehouse).filter(Warehouse.ma_sp == item.sku).with_for_update().first()
-            if wh:
-                wh.so_luong = max(0, (wh.so_luong or 0) - item.quantity)
-                wh.trang_thai = 'Còn hàng' if wh.so_luong > 0 else 'Hết hàng'
-
-            emit_event(db, "stock.changed", "product", product.id, product_snapshot(product))
 
         audit_log(
             db, action="CREATE", entity="IntegrationOrder", entity_id=order.id,
@@ -240,6 +259,35 @@ def create_integration_order(payload: IntegrationOrderCreate, db: Session = Depe
         raise HTTPException(status_code=500, detail=f"Lỗi khi tạo đơn hàng: {str(e)}")
 
 
+@router.get("/orders/{order_id}", response_model=IntegrationOrderDetailOut)
+def get_integration_order(order_id: int, db: Session = Depends(get_db)):
+    """Đọc lại trạng thái đơn hiện tại — dùng cho đối soát công nợ định kỳ giữa
+    Ecommerce và POS (xem `reconcile_orders.py` bên Ecommerce Backend), KHÔNG
+    dùng trong luồng checkout/push bình thường (những luồng đó chỉ ghi, không
+    cần đọc lại). Chỉ trả về đơn có `source='ecommerce'` — đơn tạo tại quầy
+    không thuộc phạm vi đối soát 2 hệ thống."""
+    order = db.get(Order, order_id)
+    if not order or order.source != 'ecommerce':
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng ecommerce")
+
+    items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
+    sku_by_product_id = {
+        p.id: p.ma_sp
+        for p in db.query(Product).filter(Product.id.in_([i.product_id for i in items])).all()
+    }
+    return IntegrationOrderDetailOut(
+        id=order.id, ma_don_hang=order.ma_don_hang, external_ref=order.external_ref,
+        trang_thai=order.trang_thai, tong_tien=order.tong_tien or 0.0, source=order.source,
+        items=[
+            IntegrationOrderItemOut(
+                sku=sku_by_product_id.get(i.product_id, "?"), quantity=i.so_luong,
+                unit_price=i.don_gia, total_price=i.total_price, returned_qty=i.returned_qty or 0,
+            )
+            for i in items
+        ],
+    )
+
+
 @router.post("/orders/{order_id}/cancel")
 def cancel_integration_order(order_id: int, db: Session = Depends(get_db)):
     """Hoàn kho khi đơn ecommerce bị hủy SAU KHI đã đồng bộ sang POS. Chỉ áp dụng
@@ -263,15 +311,7 @@ def cancel_integration_order(order_id: int, db: Session = Depends(get_db)):
         for item in items:
             product = locked_products.get(item.product_id)
             if product:
-                product.so_luong = int(product.so_luong or 0) + item.so_luong
-                product.trang_thai = 'Còn hàng'
-
-                wh = db.query(Warehouse).filter(Warehouse.product_id == product.id).with_for_update().first()
-                if wh:
-                    wh.so_luong = (wh.so_luong or 0) + item.so_luong
-                    wh.trang_thai = 'Còn hàng'
-
-                emit_event(db, "stock.changed", "product", product.id, product_snapshot(product))
+                _apply_stock_delta(db, product, item.so_luong)
 
         order.trang_thai = 'da_huy'
         db.commit()
@@ -282,3 +322,103 @@ def cancel_integration_order(order_id: int, db: Session = Depends(get_db)):
         db.rollback()
         log_error("INTEGRATION_ORDER_CANCEL", f"Lỗi hủy đơn #{order_id}", error=e)
         raise HTTPException(status_code=500, detail=f"Lỗi khi hủy đơn hàng: {str(e)}")
+
+
+@router.post("/orders/{order_id}/returns", response_model=IntegrationReturnOut)
+def return_integration_order_items(order_id: int, payload: IntegrationReturnCreate, db: Session = Depends(get_db)):
+    """Trả hàng TỪNG PHẦN cho đơn ecommerce đã giao — khác `.../cancel` (hủy
+    TOÀN BỘ đơn trước khi giao). Đơn vẫn giữ nguyên trạng thái, chỉ hoàn kho
+    đúng số lượng được trả và ghi nhận `refund_amount` để đối soát công nợ.
+
+    Idempotent qua `return_ref`: gọi lại cùng return_ref (Ecommerce Backend
+    retry khi mất kết nối giữa chừng) trả lại đúng kết quả cũ, KHÔNG hoàn kho
+    2 lần cho cùng 1 lượt trả hàng."""
+    return_ref = (payload.return_ref or "").strip()
+    if not return_ref:
+        raise HTTPException(status_code=400, detail="return_ref không được để trống")
+    if not payload.items:
+        raise HTTPException(status_code=400, detail="Yêu cầu trả hàng phải có ít nhất 1 sản phẩm")
+
+    existing = db.query(OrderReturn).filter(OrderReturn.return_ref == return_ref).first()
+    if existing:
+        log_info("INTEGRATION_RETURN", f"Replay idempotent cho return_ref={return_ref} → return #{existing.id}")
+        return IntegrationReturnOut(
+            id=existing.id, order_id=existing.order_id, return_ref=existing.return_ref,
+            refund_amount=existing.refund_amount or 0.0, created=False,
+        )
+
+    order = db.get(Order, order_id)
+    if not order or order.source != 'ecommerce':
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng ecommerce")
+
+    try:
+        skus = sorted({item.sku for item in payload.items})
+        # OrderItem không có cột sku trực tiếp — khớp qua Product.ma_sp (giống
+        # cách /integration/orders tạo dòng đơn từ sku ban đầu).
+        locked_products = {
+            p.ma_sp: p
+            for p in db.query(Product).filter(Product.ma_sp.in_(skus)).with_for_update().all()
+        }
+        missing = [sku for sku in skus if sku not in locked_products]
+        if missing:
+            db.rollback()
+            raise HTTPException(status_code=404, detail=f"Không tìm thấy sản phẩm: {', '.join(missing)}")
+
+        order_items = {
+            oi.product_id: oi
+            for oi in db.query(OrderItem).filter(OrderItem.order_id == order.id).with_for_update().all()
+        }
+
+        refund_amount = 0.0
+        for item in payload.items:
+            product = locked_products[item.sku]
+            order_item = order_items.get(product.id)
+            if not order_item:
+                db.rollback()
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Sản phẩm '{item.sku}' không thuộc đơn hàng #{order_id}",
+                )
+            remaining = order_item.so_luong - (order_item.returned_qty or 0)
+            if item.quantity > remaining:
+                db.rollback()
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Sản phẩm '{item.sku}' chỉ còn {remaining} có thể trả (đã mua "
+                           f"{order_item.so_luong}, đã trả {order_item.returned_qty or 0}).",
+                )
+
+            order_item.returned_qty = (order_item.returned_qty or 0) + item.quantity
+            refund_amount += item.quantity * order_item.don_gia
+
+            _apply_stock_delta(db, product, item.quantity)
+
+        order_return = OrderReturn(
+            order_id=order.id, return_ref=return_ref,
+            items=[{"sku": i.sku, "quantity": i.quantity} for i in payload.items],
+            refund_amount=refund_amount,
+        )
+        db.add(order_return)
+        db.flush()
+
+        audit_log(
+            db, action="CREATE", entity="OrderReturn", entity_id=order_return.id,
+            username="ecommerce-integration",
+            after={"order_id": order.id, "return_ref": return_ref, "refund_amount": refund_amount},
+            description=f"Trả hàng từ Ecommerce cho đơn #{order.id} (return_ref={return_ref})",
+        )
+
+        db.commit()
+        db.refresh(order_return)
+
+        log_success("INTEGRATION_RETURN", f"Hoàn kho trả hàng đơn #{order.id}: {len(payload.items)} dòng, refund={refund_amount}")
+        return IntegrationReturnOut(
+            id=order_return.id, order_id=order.id, return_ref=return_ref,
+            refund_amount=refund_amount, created=True,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        log_error("INTEGRATION_RETURN", f"Lỗi trả hàng đơn #{order_id}", error=e)
+        raise HTTPException(status_code=500, detail=f"Lỗi khi xử lý trả hàng: {str(e)}")

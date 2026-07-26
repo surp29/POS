@@ -113,6 +113,51 @@ def test_create_order_sets_source_ecommerce(client, db, sample_product):
     assert order.external_ref == "ECOM-4001"
 
 
+def test_get_integration_order_returns_current_state(client, db, sample_product):
+    headers = _set_integration_key()
+    create_resp = client.post("/api/integration/orders", json={
+        "external_ref": "ECOM-6001",
+        "customer": {"name": "Khach E"},
+        "items": [{"sku": sample_product.ma_sp, "quantity": 2, "unit_price": 10000}],
+    }, headers=headers)
+    order_id = create_resp.json()["id"]
+
+    resp = client.get(f"/api/integration/orders/{order_id}", headers=headers)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["id"] == order_id
+    assert body["external_ref"] == "ECOM-6001"
+    assert body["source"] == "ecommerce"
+    assert body["tong_tien"] == 20000
+    assert len(body["items"]) == 1
+    assert body["items"][0]["sku"] == sample_product.ma_sp
+    assert body["items"][0]["quantity"] == 2
+    assert body["items"][0]["returned_qty"] == 0
+
+
+def test_get_integration_order_nonexistent_returns_404(client):
+    headers = _set_integration_key()
+    resp = client.get("/api/integration/orders/999999", headers=headers)
+    assert resp.status_code == 404
+
+
+def test_get_integration_order_for_pos_local_order_returns_404(client, db):
+    """Đơn tạo tại quầy (source='pos', mặc định) không thuộc phạm vi integration
+    API — không được lộ ra qua bề mặt này (chỉ đơn 'ecommerce' mới hợp lệ)."""
+    from datetime import date
+    pos_order = models.Order(
+        ma_don_hang="POS-LOCAL-GET-001", thong_tin_kh="Khach Tai Quay",
+        ngay_tao=date.today(), so_luong=1, tong_tien=10000.0,
+    )
+    db.add(pos_order)
+    db.commit()
+    db.refresh(pos_order)
+
+    headers = _set_integration_key()
+    resp = client.get(f"/api/integration/orders/{pos_order.id}", headers=headers)
+    assert resp.status_code == 404
+
+
 def test_cancel_integration_order_restocks(client, db, sample_product):
     headers = _set_integration_key()
     initial_qty = sample_product.so_luong

@@ -250,6 +250,9 @@ class OrderItem(Base):
     so_luong    = Column(Integer, nullable=False)
     don_gia     = Column(Float,   nullable=False)
     total_price = Column(Float,   nullable=False)
+    # Tổng số lượng đã được trả hàng/hoàn kho cho dòng này (đơn ecommerce) —
+    # dùng để chặn trả vượt số lượng đã mua (xem /integration/orders/{id}/returns).
+    returned_qty = Column(Integer, default=0, nullable=False)
 
     # Relationships
     order   = relationship('Order',   back_populates='items')
@@ -567,3 +570,26 @@ class IntegrationEvent(Base):
 
     def __repr__(self):
         return f"<IntegrationEvent(#{self.id} {self.event_type} {self.entity_type}={self.entity_id})>"
+
+
+class OrderReturn(Base):
+    """Trả hàng cho đơn nguồn ecommerce — hoàn kho từng phần (không bắt buộc hủy
+    cả đơn như .../cancel, vì trả hàng xảy ra SAU khi đơn đã giao, đơn vẫn giữ
+    nguyên trạng thái đã hoàn tất). `return_ref` unique đảm bảo idempotent khi
+    Ecommerce Backend retry (outbox + retry/backoff, cùng pattern với
+    `external_ref` của Order) — gọi lại cùng return_ref không hoàn kho 2 lần.
+    """
+    __tablename__ = 'order_returns'
+
+    id            = Column(Integer, primary_key=True)
+    order_id      = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'),
+                           nullable=False, index=True)
+    return_ref    = Column(String(100), unique=True, nullable=False, index=True)
+    items         = Column(JSON, nullable=False)  # snapshot [{sku, quantity}]
+    refund_amount = Column(Float, default=0.0)
+    created_at    = Column(DateTime, default=_now, index=True)
+
+    order = relationship('Order')
+
+    def __repr__(self):
+        return f"<OrderReturn(#{self.id} order_id={self.order_id} return_ref='{self.return_ref}')>"

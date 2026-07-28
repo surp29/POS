@@ -7,6 +7,7 @@ from ..models import User, Product, ProductGroup
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
 from ..logger import log_error
+from ..cache import cache_delete_pattern
 
 router = APIRouter(prefix="/product-groups", tags=["product_groups"])
 
@@ -100,6 +101,12 @@ def update_product_group(group_id: int, payload: dict, request: Request, db: Ses
         log_error("UPDATE_PRODUCT_GROUP_DIARY", f"Lỗi khi ghi vào General Diary: {str(diary_error)}", error=diary_error)
         db.commit()
 
+    if updated:
+        # Doi ten nhom lam thay doi products.nhom_sp cua moi san pham trong nhom —
+        # phai xoa cache products:* neu khong /api/products/ se tra ve ten nhom cu
+        # toi 5 phut (CACHE_TTL_PRODUCTS).
+        cache_delete_pattern("products:*")
+
     return {"success": True, "updated_count": updated}
 
 
@@ -138,5 +145,10 @@ def delete_product_group(group_id: int, request: Request, db: Session = Depends(
     except Exception as diary_error:
         log_error("DELETE_PRODUCT_GROUP_DIARY", f"Lỗi khi ghi vào General Diary: {str(diary_error)}", error=diary_error)
         db.commit()
+
+    if deleted:
+        # Xoa nhom xoa luon san pham trong nhom — phai xoa cache products:*, tuong
+        # tu DELETE /api/products/{id} (xem products.py) da lam.
+        cache_delete_pattern("products:*")
 
     return {"success": True, "deleted_count": deleted}

@@ -25,6 +25,7 @@ from ..services.orders import create_order_service
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
 from ..websocket_manager import manager, order_event, inventory_event
+from ..cache import cache_delete_pattern
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -220,6 +221,11 @@ async def create_order(payload: OrderCreate, db: Session = Depends(get_db),
                 wh.so_luong   = max(0, (wh.so_luong or 0) - quantity_out)
                 wh.trang_thai = 'Còn hàng' if wh.so_luong > 0 else 'Hết hàng'
             db.commit()
+
+            # Don tru ton kho san pham — phai xoa cache products:* (bug cu: chua bao
+            # gio invalidate o day, khien /api/products/ tra ve so_luong stale toi
+            # 5 phut sau khi tao don hang)
+            cache_delete_pattern("products:*")
 
             # ── Broadcast inventory update ─────────────────────────────────
             await _broadcast_inventory_event(product)

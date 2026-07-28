@@ -149,6 +149,10 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
         
         cache_delete_pattern("invoices:*")
         cache_delete_pattern("reports:*")
+        if payload.items:
+            # Tao hoa don tru ton kho san pham — phai xoa cache products:* nguoc lai
+            # danh sach san pham se tra ve so_luong cu (stale) toi 5 phut (CACHE_TTL_PRODUCTS)
+            cache_delete_pattern("products:*")
         log_success("CREATE_INVOICE", f"Tạo hóa đơn thành công: {payload.so_hd} (ID: {inv.id})")
         return {"success": True, "id": inv.id}
     except Exception as e:

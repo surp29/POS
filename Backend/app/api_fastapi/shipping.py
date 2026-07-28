@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_
 from ..permission_middleware import require_permission, _is_admin, _get_current_user_for_rbac
 from ..database import get_db
-from ..models import User, Shipment, ShipmentHistory
+from ..models import User, Shipment, ShipmentHistory, Order, Invoice
 from ..services.auth_helper import get_username_from_request
 from ..logger import log_info, log_success, log_error
 
@@ -73,6 +73,8 @@ def _shipment_dict(s: Shipment) -> dict:
     flow = STATUS_FLOW.get(s.status, {})
     return {
         "id":               s.id,
+        "order_id":         s.order_id,
+        "invoice_id":       s.invoice_id,
         "order_code":       s.order_code,
         "invoice_code":     s.invoice_code,
         "tracking_code":    s.tracking_code,
@@ -261,9 +263,20 @@ def create_shipment(
     fee      = float(payload.get("shipping_fee", SERVICE_FEES.get(service, 15000)))
     est_days = SERVICE_DAYS.get(service, 3)
 
+    # Shipment co san order_id/invoice_id (FK that sang orders/invoices), nhung
+    # truoc gio endpoint nay chi luu order_code/invoice_code (text) — cung 1 kieu
+    # "text khong co FK" da gap o warehouses.product_id / invoices.customer_id.
+    # Resolve FK tu code khi tao moi; khong khop thi de null, khong chan tao don.
+    order_code_in   = payload.get("order_code", "")
+    invoice_code_in = payload.get("invoice_code")
+    matched_order   = db.query(Order).filter(Order.ma_don_hang == order_code_in).first() if order_code_in else None
+    matched_invoice = db.query(Invoice).filter(Invoice.so_hd == invoice_code_in).first() if invoice_code_in else None
+
     s = Shipment(
-        order_code        = payload.get("order_code", ""),
-        invoice_code      = payload.get("invoice_code"),
+        order_id          = matched_order.id if matched_order else None,
+        invoice_id        = matched_invoice.id if matched_invoice else None,
+        order_code        = order_code_in,
+        invoice_code      = invoice_code_in,
         tracking_code     = tracking,
         receiver_name     = payload.get("receiver_name", ""),
         receiver_phone    = payload.get("receiver_phone", ""),

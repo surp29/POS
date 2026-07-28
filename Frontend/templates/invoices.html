@@ -1223,6 +1223,7 @@ async function createInvoice() {
         so_hd: data.so_hoa_don,
         ngay_hd: data.ngay_tao,
         nguoi_mua: data.ten_khach_hang,
+        customer_id: data.customer_id ? parseInt(data.customer_id) : null,
         tong_tien: parseInt(document.getElementById('add_tong_tien').value || '0'),
         trang_thai: data.trang_thai,
         hinh_thuc_tt: data.hinh_thuc_tt || null
@@ -1263,6 +1264,7 @@ async function updateInvoice() {
         so_hd: data.so_hoa_don,
         ngay_hd: data.ngay_tao,
         nguoi_mua: data.ten_khach_hang,
+        customer_id: data.customer_id ? parseInt(data.customer_id) : null,
         tong_tien: parseInt(document.getElementById('edit_tong_tien').value || '0'),
         trang_thai: data.trang_thai,
         hinh_thuc_tt: data.hinh_thuc_tt || null

@@ -91,16 +91,30 @@
   // ── 3) Dropdown menu sidebar: mở nhẹ nhàng thay vì "bật" tức thì ─────────
   // QUAN TRỌNG: animation này tự set container.style.height mỗi frame — mà
   // styleObserver bên dưới lại watch đúng thuộc tính 'style' trên toàn subtree.
-  // Nếu không chặn, mỗi lần GSAP tick sẽ tự kích hoạt lại chính observer này,
-  // tạo ra tween chồng tween vô hạn (đã xác nhận bằng thực nghiệm: tab treo
-  // cứng, WebDriver báo "target frame detached"). gsap.isTweening() đảm bảo
-  // chỉ tạo 1 tween cho mỗi lần mở, bỏ qua các mutation do chính tween đó gây ra.
+  // Ban đầu chặn bằng gsap.isTweening(container), nhưng VẪN LẶP VÔ HẠN trên
+  // thực tế (đo được ~1259 lần gọi lại/giây, dropdown "nhảy" liên tục — đúng
+  // như người dùng báo cáo): clearProps:'height' ở cuối tween tự xóa inline
+  // style height, bản thân việc XÓA đó CŨNG là 1 mutation 'style' — nhưng lúc
+  // MutationObserver xử lý mutation này (ở microtask kế tiếp), tween đã kết
+  // thúc nên isTweening() trả về false, khiến bị hiểu nhầm là 1 lần mở dropdown
+  // MỚI và lặp lại vô hạn (cùng gốc rễ với bug đã fix ở KPI count-up bên dưới:
+  // dọn cờ chặn quá sớm, trước khi mutation cuối cùng do chính mình gây ra
+  // được xử lý xong). Sửa bằng cờ chặn riêng (WeakSet), chỉ gỡ cờ ở
+  // setTimeout(fn, 0) — SAU khi MutationObserver đã xử lý xong mutation
+  // clearProps đó.
+  var openingDropdowns = new WeakSet();
   function animateDropdownOpen(container) {
-    if (gsap.isTweening(container)) return;
+    if (openingDropdowns.has(container)) return;
+    openingDropdowns.add(container);
     var h = container.scrollHeight;
     gsap.fromTo(container,
       { height: 0, opacity: 0 },
-      { height: h, opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'height' }
+      {
+        height: h, opacity: 1, duration: 0.28, ease: 'power2.out', clearProps: 'height',
+        onComplete: function () {
+          setTimeout(function () { openingDropdowns.delete(container); }, 0);
+        },
+      }
     );
   }
 

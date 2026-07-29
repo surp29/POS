@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}PosPos{% endblock %}</title>
-    
+
+    <!-- Bật cờ "js" NGAY LAP TUC (truoc khi CSS/DOM con lai load) de style.css chi
+         an content-header/content-body khi JS thuc su chay — tat may/tat JS thi
+         khong bao gio bi ket o trang thai opacity:0. Xem gsap_ui.js. -->
+    <script>document.documentElement.classList.add('js-anim');</script>
+
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
@@ -13,7 +18,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
+    <!-- GSAP — animation layer dung chung cho toan bo Frontend quan tri, cung
+         CDN/version voi Landing/js/gsap-animations.js de dong bo phong cach. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="{{ url_for('static', filename='js/gsap_ui.js') }}" defer></script>
+
     {% block extra_css %}{% endblock %}
 </head>
 <body>

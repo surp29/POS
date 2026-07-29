@@ -1455,6 +1455,7 @@ input[type="number"] {
   background-color: var(--gray-50);
   border-left: 3px solid var(--primary-color);
   margin-left: var(--spacing-6);
+  overflow: hidden; /* de gsap_ui.js animate height khi mo khong bi trao noi dung ra ngoai */
 }
 
 .dropdown-container li a {
@@ -2821,4 +2822,21 @@ body.sidebar-hidden .sidebar-reopen-btn { opacity: 1; pointer-events: auto; }
 }
 .per-page-selector select:focus {
   border-color: var(--primary-color);
+}
+
+/* ========================================
+   GSAP entrance layer (gsap_ui.js)
+   .js-anim duoc bat NGAY bang inline <script> dau <head> (xem base.html) —
+   neu JS tat/loi, class nay khong bao gio xuat hien nen content-header/
+   content-body giu nguyen opacity:1 mac dinh (an toan, khong ket man hinh).
+   ======================================== */
+html.js-anim .content-header,
+html.js-anim .content-body {
+  opacity: 0;
+}
+/* Sau khi gsap_ui.js chay xong (thanh cong hoac fallback), no gan class nay
+   de dam bao hien thi vinh vien, bat ke GSAP co animate hay khong. */
+html.anim-shown .content-header,
+html.anim-shown .content-body {
+  opacity: 1;
 }

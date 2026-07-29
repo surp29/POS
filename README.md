@@ -1,7 +1,7 @@
 # PosPos — Point of Sale System
 
 > Hệ thống quản lý bán hàng nội bộ, xây dựng với kiến trúc tách biệt FastAPI backend + Flask frontend.  
-> Dự án thực tập tại **Công ty TNHH MTV TM-DV Tin học Phan Huyện** tiếp tục phát triển thành dự án cá nhân (07/2025 – 06/2026).
+> Dự án thực tập tại **Công ty TNHH MTV TM-DV Tin học Phan Huyện** tiếp tục phát triển thành dự án cá nhân (07/2025 – 07/2026).
 
 ---
 

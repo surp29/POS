@@ -9,7 +9,12 @@ def create_order_service(payload, db: Session):
     product = None
     price_item = None
     if payload.sp_banggia:
-        product = db.query(Product).filter(Product.ma_sp == payload.sp_banggia).first()
+        # SELECT FOR UPDATE — khoa dong Product ngay tu luc kiem tra ton kho, cung
+        # mau da dung o invoices.py. Neu khong khoa, 2 don hang dong thoi (vd 1 tu
+        # POS, 1 tu kenh ban hang khac) cho cung 1 san pham deu doc duoc so_luong
+        # CU truoc khi ben kia ghi, dan den ban vuot ton kho that (da kiem chung
+        # bang 2 request dong thoi that: ca 2 don deu "thanh cong" tren kho chi co 1).
+        product = db.query(Product).filter(Product.ma_sp == payload.sp_banggia).with_for_update().first()
         if product:
             is_product = True
         else:

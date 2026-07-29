@@ -205,8 +205,10 @@ async def create_order(payload: OrderCreate, db: Session = Depends(get_db),
             trang_thai=payload.trang_thai or 'cho_xu_ly',
         )
         db.add(o)
-        db.commit()
-        db.refresh(o)
+        db.flush()  # lay o.id nhung CHUA commit — khoa tren product (SELECT FOR
+        # UPDATE o create_order_service) phai duoc giu lien tuc toi khi tru kho
+        # xong roi moi commit 1 lan duy nhat, neu khong 1 request khac co the
+        # xen vao giua 2 lan commit va doc duoc so_luong chua kip tru.
 
         quantity_out = 0
         if is_product and product and payload.so_luong:
@@ -216,12 +218,15 @@ async def create_order(payload: OrderCreate, db: Session = Depends(get_db),
             product.so_luong   = new_qty
             product.trang_thai = 'Còn hàng' if new_qty > 0 else 'Hết hàng'
 
-            wh = db.query(Warehouse).filter(Warehouse.ma_sp == payload.sp_banggia).first()
+            wh = db.query(Warehouse).filter(Warehouse.ma_sp == payload.sp_banggia).with_for_update().first()
             if wh:
                 wh.so_luong   = max(0, (wh.so_luong or 0) - quantity_out)
                 wh.trang_thai = 'Còn hàng' if wh.so_luong > 0 else 'Hết hàng'
-            db.commit()
 
+        db.commit()
+        db.refresh(o)
+
+        if is_product and product and payload.so_luong:
             # Don tru ton kho san pham — phai xoa cache products:* (bug cu: chua bao
             # gio invalidate o day, khien /api/products/ tra ve so_luong stale toi
             # 5 phut sau khi tao don hang)

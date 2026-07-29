@@ -352,6 +352,7 @@ class InvoiceCreate(BaseModel):
     ngay_hd: date
     nguoi_mua: str
     customer_id: Optional[int] = None  # FK sang accounts.id, None = khách vãng lai
+    idempotency_key: Optional[str] = None  # chống tạo trùng khi client gửi lại
     tong_tien: float
     trang_thai: Optional[str] = 'Đã thanh toán'
     hinh_thuc_tt: Optional[str] = None

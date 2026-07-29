@@ -760,6 +760,11 @@ let productGroups = [];
 let customersData = [];
 let discountCodes = [];
 let selectedDiscounts = [];
+// Chong tao hoa don trung khi mang lag khien nguoi dung bam "Xac nhan thanh toan"
+// nhieu lan cho cung 1 lan checkout — sinh 1 key khi mo modal thanh toan, giu
+// nguyen qua cac lan bam lai, chi doi khi mo lai modal cho 1 giao dich moi.
+let paymentIdempotencyKey = null;
+let paymentInFlight = false;
 
 // Pagination
 const ITEMS_PER_PAGE = 30; // 6 cột × 5 hàng
@@ -1405,7 +1410,13 @@ function processPayment() {
         showErrorModal('Lỗi', 'Giỏ hàng trống');
         return;
     }
-    
+
+    // Sinh idempotency key MOI cho lan checkout nay — giu nguyen neu nguoi dung
+    // bam "xac nhan" nhieu lan cho toi khi thanh toan xong hoac dong modal.
+    paymentIdempotencyKey = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `pos-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
     // Get customer info
     const customerName = document.getElementById('customerName').value || 'Khách vãng lai';
     const selectedCustomer = customersData.find(c => c.ten_tk === customerName);
@@ -1779,9 +1790,15 @@ function closeChangeConfirmationModal() {
 
 // Proceed with payment after confirming change
 async function proceedWithPayment() {
+    // Chan bam lai khi dang xu ly (mang lag + double-click / bam ca 2 modal) —
+    // idempotency_key ben duoi la luoi an toan o server, day la lop chan dau
+    // tien, re hon, o ngay client.
+    if (paymentInFlight) return;
+    paymentInFlight = true;
+
     // Close change confirmation modal if open
     document.getElementById('changeConfirmationModal').style.display = 'none';
-    
+
     const received = parseInt(document.getElementById('amountReceived').value.replace(/,/g, '')) || 0;
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const totalDiscount = selectedDiscounts.reduce((sum, discount) => sum + discount.amount, 0);
@@ -1918,9 +1935,11 @@ async function proceedWithPayment() {
             so_hd: invoiceNumber,
             ngay_hd: new Date().toISOString().split('T')[0], // Format: YYYY-MM-DD
             nguoi_mua: customerName,
+            customer_id: customerId || null,
             tong_tien: total,
             trang_thai: 'Đã thanh toán',
             hinh_thuc_tt: paymentMethod, // Add payment method
+            idempotency_key: paymentIdempotencyKey,
             items: cart.map(item => ({
                 product_id: item.id,
                 product_code: item.code || '',
@@ -1968,6 +1987,8 @@ async function proceedWithPayment() {
     } catch (error) {
         console.error('Lỗi xử lý thanh toán:', error);
         showErrorModal('Lỗi', 'Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại.');
+    } finally {
+        paymentInFlight = false;
     }
 }
 

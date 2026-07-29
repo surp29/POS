@@ -263,6 +263,11 @@ class Invoice(Base):
     nguoi_mua     = Column(String(100), nullable=False, index=True)  # snapshot, khong FK
     customer_id   = Column(Integer, ForeignKey('accounts.id', ondelete='SET NULL'),
                            nullable=True, index=True)
+    idempotency_key = Column(String(64), unique=True, nullable=True, index=True)
+    # Client tu sinh 1 key duy nhat / lan bam "xac nhan thanh toan", gui kem khi
+    # tao hoa don. Neu client bam lai (mang lag tuong that bai, double-click...)
+    # ma gui LAI cung key nay, server tra ve hoa don DA TAO thay vi tao hoa don
+    # moi — tranh tinh tien 2 lan cho cung 1 giao dich. Xem services/invoices.py.
     tong_tien     = Column(Float, nullable=False)
     trang_thai    = Column(String(50), default='Chưa thanh toán', index=True)
     hinh_thuc_tt  = Column(String(50))  # Tiền mặt / MoMo / Banking

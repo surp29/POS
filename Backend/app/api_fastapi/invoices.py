@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from ..permission_middleware import require_permission
 from ..database import get_db
 from ..models import User, Invoice, InvoiceItem, Product, Warehouse
@@ -47,7 +48,16 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
     _: User = Depends(require_permission('invoices.create'))):
     """Tạo hóa đơn mới"""
     log_info("CREATE_INVOICE", f"Tạo hóa đơn mới: {payload.so_hd} - Khách hàng: {payload.nguoi_mua} - Tổng tiền: {payload.tong_tien:,.0f} VND")
-    
+
+    # Chong tao trung: neu client gui lai cung idempotency_key (mang lag tuong
+    # request truoc that bai nen bam lai / double-click nut xac nhan thanh toan),
+    # tra ve hoa don DA TAO thay vi tao them 1 hoa don moi + tru kho lan 2.
+    if payload.idempotency_key:
+        existing = db.query(Invoice).filter(Invoice.idempotency_key == payload.idempotency_key).first()
+        if existing:
+            log_info("CREATE_INVOICE", f"idempotency_key '{payload.idempotency_key}' đã tồn tại — trả về hóa đơn cũ id={existing.id}, không tạo mới")
+            return {"success": True, "id": existing.id, "duplicate": True}
+
     try:
         # Tạo hóa đơn mới
         inv = Invoice(
@@ -55,6 +65,7 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
             ngay_hd=payload.ngay_hd,
             nguoi_mua=payload.nguoi_mua,
             customer_id=payload.customer_id,
+            idempotency_key=payload.idempotency_key,
             tong_tien=payload.tong_tien,
             trang_thai=payload.trang_thai,
             hinh_thuc_tt=payload.hinh_thuc_tt,
@@ -155,6 +166,19 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
             cache_delete_pattern("products:*")
         log_success("CREATE_INVOICE", f"Tạo hóa đơn thành công: {payload.so_hd} (ID: {inv.id})")
         return {"success": True, "id": inv.id}
+    except IntegrityError as e:
+        db.rollback()
+        # 2 request gui CUNG idempotency_key that su dong thoi (ca 2 deu vuot qua
+        # buoc kiem tra "da ton tai chua" o dau ham truoc khi ben nao commit) —
+        # UNIQUE constraint tren idempotency_key chan trung o tang DB. Thay vi
+        # tra ve 500 voi loi SQL tho, tra ve dung hoa don ma request kia da tao.
+        if payload.idempotency_key and "idempotency_key" in str(e.orig):
+            existing = db.query(Invoice).filter(Invoice.idempotency_key == payload.idempotency_key).first()
+            if existing:
+                log_info("CREATE_INVOICE", f"Đụng độ idempotency_key '{payload.idempotency_key}' — trả về hóa đơn id={existing.id}")
+                return {"success": True, "id": existing.id, "duplicate": True}
+        log_error("CREATE_INVOICE", f"Lỗi ràng buộc dữ liệu khi tạo hóa đơn {payload.so_hd}", error=e)
+        raise HTTPException(status_code=409, detail="Hóa đơn hoặc giao dịch này vừa được xử lý, vui lòng kiểm tra lại danh sách hóa đơn.")
     except Exception as e:
         log_error("CREATE_INVOICE", f"Lỗi khi tạo hóa đơn {payload.so_hd}", error=e)
         db.rollback()

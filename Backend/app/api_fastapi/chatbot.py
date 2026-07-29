@@ -12,6 +12,7 @@ from datetime import datetime, timedelta, date
 from ..database import get_db
 from ..models import Product, Warehouse, Order, OrderItem, Invoice, InvoiceItem
 from ..logger import log_info, log_error, log_success
+from ..cache import cache_delete_pattern
 from typing import Optional
 
 router = APIRouter(prefix="/chatbot", tags=["chatbot"])
@@ -260,10 +261,23 @@ def create_reorder(payload: dict, db: Session = Depends(get_db)):
     quantity     = payload.get("quantity")
     if not product_code or not quantity:
         raise HTTPException(400, "Thiếu thông tin sản phẩm hoặc số lượng")
-    p = db.query(Product).filter(Product.ma_sp == product_code).first()
+    quantity = int(quantity)
+
+    # SELECT FOR UPDATE — cung mau khoa dong nhu create_order_service
+    # (app/services/orders.py) va api_fastapi/orders.py. Truoc day endpoint nay
+    # tao Order/OrderItem TRUC TIEP, khong qua create_order_service, nen khong
+    # kiem tra ton kho, khong tru so_luong va khong khoa dong — 1 don "dat lai
+    # hang" tu chatbot co the tao ra so luong dat vuot xa ton kho thuc te, va
+    # so_luong trong DB khong bao gio phan anh dung cac don da dat qua kenh nay.
+    p = db.query(Product).filter(Product.ma_sp == product_code).with_for_update().first()
     if not p:
         raise HTTPException(404, "Không tìm thấy sản phẩm")
-    w = db.query(Warehouse).filter(Warehouse.ma_sp == product_code).first()
+
+    current_qty = int(getattr(p, 'so_luong', 0) or 0)
+    if quantity > current_qty:
+        raise HTTPException(400, f"Số lượng sản phẩm {product_code} không đủ! Hiện có: {current_qty}, yêu cầu: {quantity}")
+
+    w = db.query(Warehouse).filter(Warehouse.ma_sp == product_code).with_for_update().first()
     price = float(w.gia_nhap if w else p.gia_von or 0)
     code  = f"CHATBOT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     try:
@@ -274,10 +288,21 @@ def create_reorder(payload: dict, db: Session = Depends(get_db)):
         db.add(order); db.flush()
         db.add(OrderItem(order_id=order.id, product_id=p.id,
                          so_luong=quantity, don_gia=price, total_price=quantity*price))
+
+        new_qty = max(0, current_qty - quantity)
+        p.so_luong   = new_qty
+        p.trang_thai = 'Còn hàng' if new_qty > 0 else 'Hết hàng'
+        if w:
+            w.so_luong   = max(0, (w.so_luong or 0) - quantity)
+            w.trang_thai = 'Còn hàng' if w.so_luong > 0 else 'Hết hàng'
+
         db.commit(); db.refresh(order)
+        cache_delete_pattern("products:*")
         log_success("CHATBOT", f"Đơn {code} cho {product_code} x{quantity}")
         return {"success": True, "order_code": code, "order_id": order.id,
                 "message": f"Đã tạo đơn {code} cho {quantity} sản phẩm {p.ten_sp}"}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(500, f"Lỗi tạo đơn: {str(e)}")

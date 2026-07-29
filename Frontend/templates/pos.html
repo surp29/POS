@@ -1134,11 +1134,59 @@ function renderCurrentPage() {
             e.preventDefault();
             e.stopPropagation();
             const productId = parseInt(this.getAttribute('data-product-id'));
-            if (productId) addToCart(productId);
+            if (productId) {
+                flyToCart(this);
+                addToCart(productId);
+            }
         });
     });
 
     updatePaginationButtons();
+}
+
+// Hiệu ứng "bay vào giỏ" khi bấm chọn sản phẩm — phản hồi trực quan đặc thù
+// cho thao tác bán hàng tại quầy (khác với animation reveal chung chung ở
+// gsap_ui.js). Chỉ thêm hiệu ứng, không đổi luồng addToCart() phía sau.
+function flyToCart(cardEl) {
+    if (typeof gsap === 'undefined') return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const cartCard = document.querySelector('.pos-cart');
+    const badge = document.getElementById('cartCountBadge');
+    const target = badge || cartCard;
+    if (!cartCard || !target) return;
+
+    const fromRect = cardEl.getBoundingClientRect();
+    const toRect = target.getBoundingClientRect();
+
+    const ghost = cardEl.cloneNode(true);
+    ghost.style.position = 'fixed';
+    ghost.style.left = fromRect.left + 'px';
+    ghost.style.top = fromRect.top + 'px';
+    ghost.style.width = fromRect.width + 'px';
+    ghost.style.height = fromRect.height + 'px';
+    ghost.style.margin = '0';
+    ghost.style.zIndex = '10001';
+    ghost.style.pointerEvents = 'none';
+    document.body.appendChild(ghost);
+
+    gsap.to(ghost, {
+        left: toRect.left + toRect.width / 2 - 18,
+        top: toRect.top + toRect.height / 2 - 18,
+        width: 36, height: 36,
+        opacity: 0.2,
+        scale: 0.25,
+        rotate: 8,
+        duration: 0.5,
+        ease: 'power2.in',
+        onComplete: function () {
+            ghost.remove();
+            if (badge) gsap.fromTo(badge, { scale: 1.6 }, { scale: 1, duration: 0.35, ease: 'back.out(3)' });
+            gsap.fromTo(cartCard,
+                { boxShadow: '0 0 0 3px rgba(37,99,235,.35)' },
+                { boxShadow: '0 1px 4px rgba(0,0,0,.07)', duration: 0.5, ease: 'power2.out' });
+        },
+    });
 }
 
 // Chuyển trang (+1 = next, -1 = prev)

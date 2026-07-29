@@ -127,9 +127,15 @@
         }
 
         .lp-features {
-            display: flex;
+            /* inline-flex (khong phai flex) de khoi co do rong VUA KHIT voi
+               hang rong nhat, roi duoc can giua nhu 1 khoi qua text-align:center
+               cua .lp-brand-content — align-items:flex-start giu icon + chu
+               cua TAT CA cac hang thang hang voi nhau (cung 1 le trai), thay vi
+               moi hang tu can giua rieng theo do rong cua chinh no (gay ra hien
+               tuong icon lech nhau nhu truoc). */
+            display: inline-flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             gap: 16px;
             text-align: left;
         }

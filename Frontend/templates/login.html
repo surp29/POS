@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -31,70 +32,98 @@
         /* ── Left brand panel ── */
         .lp-brand {
             flex: 1 1 55%;
-            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #1d4ed8 100%);
+            background: #14213d;
+            background-image:
+                radial-gradient(ellipse 640px 520px at 18% -8%, rgba(59,130,246,.55), transparent 60%),
+                radial-gradient(ellipse 520px 480px at 108% 92%, rgba(29,78,216,.5), transparent 65%),
+                linear-gradient(160deg, #101c34 0%, #14213d 48%, #17284a 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            padding: 48px 56px;
+            align-items: flex-start;
+            padding: 48px 64px;
             position: relative;
             overflow: hidden;
         }
 
-        /* decorative circles */
+        /* Dot-grid texture — chi tiết thủ công thay vì gradient phẳng chung chung */
         .lp-brand::before {
             content: '';
             position: absolute;
-            width: 500px; height: 500px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.06);
-            top: -120px; right: -160px;
+            inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px);
+            background-size: 26px 26px;
+            mask-image: radial-gradient(ellipse 70% 60% at 30% 20%, #000 40%, transparent 90%);
+            -webkit-mask-image: radial-gradient(ellipse 70% 60% at 30% 20%, #000 40%, transparent 90%);
         }
+        /* Vệt sáng lệch tâm — thay cho 2 hình tròn decor đối xứng nhàm chán */
         .lp-brand::after {
             content: '';
             position: absolute;
-            width: 320px; height: 320px;
+            width: 640px; height: 640px;
             border-radius: 50%;
-            background: rgba(255,255,255,.04);
-            bottom: -80px; left: -80px;
+            background: radial-gradient(circle, rgba(96,165,250,.16), transparent 68%);
+            top: 38%; left: 62%;
+            transform: translate(-50%, -50%);
         }
 
         .lp-brand-content {
             position: relative;
             z-index: 1;
-            text-align: center;
-            max-width: 420px;
+            text-align: left;
+            max-width: 440px;
+        }
+
+        .lp-brand-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+            color: #93c5fd;
+            margin-bottom: 22px;
+        }
+        .lp-brand-eyebrow::before {
+            content: '';
+            width: 18px; height: 1.5px;
+            background: #3b82f6;
+            display: inline-block;
         }
 
         .lp-logo-wrap {
-            width: 88px; height: 88px;
-            background: rgba(255,255,255,.15);
-            border-radius: 24px;
+            width: 68px; height: 68px;
+            background: rgba(255,255,255,.1);
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
+            margin: 0 0 22px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.16);
         }
         .lp-logo-wrap img {
-            width: 56px; height: 56px;
+            width: 42px; height: 42px;
             object-fit: contain;
         }
 
         .lp-app-name {
-            font-size: 2.4rem;
+            font-size: 2.5rem;
             font-weight: 700;
             color: #fff;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
+            letter-spacing: -0.7px;
+            margin-bottom: 14px;
+            line-height: 1.1;
         }
 
         .lp-tagline {
-            font-size: 1rem;
-            color: rgba(255,255,255,.75);
+            font-size: 1.02rem;
+            color: rgba(255,255,255,.68);
             font-weight: 400;
-            margin-bottom: 48px;
+            margin-bottom: 44px;
+            line-height: 1.55;
+            max-width: 360px;
         }
 
         .lp-features {
@@ -138,11 +167,11 @@
 
         .lp-brand-footer {
             position: absolute;
-            bottom: 24px;
-            left: 0; right: 0;
-            text-align: center;
+            bottom: 28px;
+            left: 64px;
+            text-align: left;
             font-size: 0.75rem;
-            color: rgba(255,255,255,.4);
+            color: rgba(255,255,255,.38);
             z-index: 1;
         }
 
@@ -298,10 +327,11 @@
             font-size: 0.8rem;
             color: #64748b;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 8px;
+            line-height: 1.5;
         }
-        .lp-hint i { color: #94a3b8; font-size: 0.85rem; }
+        .lp-hint i { color: #94a3b8; font-size: 0.85rem; margin-top: 2px; }
         .lp-hint strong { color: #475569; }
 
         /* ── Responsive ── */
@@ -322,11 +352,12 @@
     <!-- Left: Brand panel -->
     <div class="lp-brand">
         <div class="lp-brand-content">
-            <div class="lp-logo-wrap">
+            <div class="lp-brand-eyebrow lp-reveal">Hệ thống quản lý bán hàng</div>
+            <div class="lp-logo-wrap lp-reveal">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PosPos Logo">
             </div>
-            <h1 class="lp-app-name">PosPos</h1>
-            <p class="lp-tagline">Hệ thống quản lý bán hàng toàn diện</p>
+            <h1 class="lp-app-name lp-reveal">PosPos</h1>
+            <p class="lp-tagline lp-reveal">Đăng nhập để bắt đầu ca làm việc — bán hàng, kiểm kho và theo dõi doanh thu trong cùng một nơi.</p>
 
             <div class="lp-features">
                 <div class="lp-feature">
@@ -359,7 +390,7 @@
                 </div>
             </div>
         </div>
-        <div class="lp-brand-footer">© 2024 PosPos. All rights reserved.</div>
+        <div class="lp-brand-footer">© 2026 PosPos. All rights reserved.</div>
     </div>
 
     <!-- Right: Form panel -->
@@ -369,8 +400,8 @@
                 <i class="fas fa-shield-alt"></i>
                 Bảo mật &amp; An toàn
             </div>
-            <h2 class="lp-form-title">Chào mừng trở lại</h2>
-            <p class="lp-form-subtitle">Đăng nhập để quản lý hệ thống của bạn</p>
+            <h2 class="lp-form-title">Đăng nhập</h2>
+            <p class="lp-form-subtitle">Nhập thông tin tài khoản được cấp cho nhân viên/quản trị</p>
         </div>
 
         <form id="loginForm" autocomplete="on">
@@ -404,7 +435,7 @@
 
         <div class="lp-hint">
             <i class="fas fa-info-circle"></i>
-            Mặc định: tài khoản <strong>admin</strong> / mật khẩu <strong>admin123</strong>
+            Tài khoản mặc định: <strong>admin</strong> / <strong>admin123</strong>
         </div>
     </div>
 
@@ -548,6 +579,37 @@ function toggleLoginPassword() {
     icon.className = showing ? 'fas fa-eye' : 'fas fa-eye-slash';
     btn.setAttribute('title', showing ? 'Hiện mật khẩu' : 'Ẩn mật khẩu');
 }
+
+// ── Entrance animation (progressive enhancement) ──────────────────────────
+// Trang này KHÔNG ẩn nội dung bằng CSS trước khi JS chạy (khác với gsap_ui.js
+// dùng cho base.html) — nếu GSAP lỗi/offline, mọi thứ vẫn hiện ngay lập tức
+// vì đó là trạng thái mặc định, không có class nào che đi.
+(function() {
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || typeof gsap === 'undefined') return;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.from('.lp-brand-eyebrow', { opacity: 0, y: 10, duration: 0.5 }, 0)
+          .from('.lp-logo-wrap', { opacity: 0, y: 14, scale: 0.9, duration: 0.5 }, 0.08)
+          .from('.lp-app-name', { opacity: 0, y: 16, duration: 0.55 }, 0.16)
+          .from('.lp-tagline', { opacity: 0, y: 14, duration: 0.5 }, 0.26)
+          .from('.lp-feature', { opacity: 0, y: 14, duration: 0.45, stagger: 0.08 }, 0.36)
+          .from('.lp-form-panel', { opacity: 0, x: 24, duration: 0.55 }, 0.1)
+          .from(['.lp-form-badge', '.lp-form-title', '.lp-form-subtitle'],
+                { opacity: 0, y: 10, duration: 0.4, stagger: 0.05 }, 0.4)
+          .from('.lp-field', { opacity: 0, y: 12, duration: 0.4, stagger: 0.08 }, 0.5)
+          .from('.lp-submit', { opacity: 0, y: 12, duration: 0.4 }, 0.62)
+          .from('.lp-hint', { opacity: 0, y: 10, duration: 0.4 }, 0.7);
+
+        // Nền trôi rất nhẹ theo thời gian — chi tiết depth tinh tế, không lặp lại
+        // kiểu "blob nền tự động xoay/pulse" thường thấy ở giao diện AI-generated.
+        gsap.to('.lp-brand', {
+            backgroundPosition: '+=18px -=12px',
+            duration: 8, ease: 'sine.inOut', yoyo: true, repeat: -1,
+        });
+    });
+})();
 </script>
 </body>
 </html>

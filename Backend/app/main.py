@@ -25,6 +25,7 @@ from .api_fastapi import websocket as ws_router
 from .api_fastapi import audit_api
 from .api_fastapi import permissions as permissions_api
 from .api_fastapi import shipping as shipping_api
+from .api_fastapi import integration as integration_api
 from .audit import AuditMiddleware
 from .middleware.rate_limit import RateLimitMiddleware
 from .middleware.security import SecurityHeadersMiddleware
@@ -129,6 +130,7 @@ app.include_router(ws_router.router,           prefix="/api")
 app.include_router(audit_api.router,           prefix="/api")
 app.include_router(permissions_api.router,     prefix="/api")
 app.include_router(shipping_api.router,        prefix="/api")
+app.include_router(integration_api.router,     prefix="/api")
 
 # NOTE: @app.on_event is deprecated in FastAPI >= 0.93
 # Được giữ lại để tương thích. Chuyển sang lifespan khi nâng cấp.
@@ -193,6 +195,7 @@ async def startup_event():
     log_info("STARTUP", "📊  Prometheus:       ACTIVE → /metrics")
     log_info("STARTUP", "🔌  WebSocket:        ACTIVE → /api/ws/{room}")
     log_info("STARTUP", "📋  Audit Log:        ACTIVE → /api/audit/")
+    log_info("STARTUP", "🔗  Integration API:  ACTIVE → /api/integration/ (X-API-Key)")
 
 
 @app.get("/", tags=["root"])

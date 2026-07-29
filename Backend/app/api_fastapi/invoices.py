@@ -10,6 +10,7 @@ from ..logger import log_info, log_success, log_error, log_warning
 from ..services.invoices import update_debt_for_customer
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
+from ..services.integration_events import emit_event, product_snapshot
 from ..cache import cache_get, cache_set, cache_delete_pattern
 from datetime import datetime, date
 
@@ -118,6 +119,7 @@ def create_invoice(payload: InvoiceCreate, db: Session = Depends(get_db),
                     product.so_luong = new_qty
                     product.trang_thai = 'Còn hàng' if new_qty > 0 else 'Hết hàng'
                     log_info("UPDATE_STOCK", f"Đã cập nhật số lượng sản phẩm {item_data.product_code}: {current_qty} -> {new_qty}")
+                    emit_event(db, "stock.changed", "product", product.id, product_snapshot(product))
 
                 # Cập nhật số lượng trong warehouse (nếu có)
                 warehouse = db.query(Warehouse).filter(Warehouse.ma_sp == item_data.product_code).with_for_update().first()

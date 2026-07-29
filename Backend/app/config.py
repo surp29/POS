@@ -36,3 +36,8 @@ class Config:
     # TTL mặc định cho từng loại cache (giây)
     CACHE_TTL_PRODUCTS = int(os.getenv('CACHE_TTL_PRODUCTS', 300))   # 5 phút
     CACHE_TTL_PRICES   = int(os.getenv('CACHE_TTL_PRICES',   300))   # 5 phút
+
+    # ── Integration API (Ecommerce Backend gọi vào) ──────────────────────────
+    # Shared secret cho service-to-service auth — KHÔNG dùng JWT user.
+    # Rỗng = endpoint /api/integration/* bị chặn hoàn toàn (fail-closed).
+    INTEGRATION_API_KEY = os.getenv('INTEGRATION_API_KEY', '')

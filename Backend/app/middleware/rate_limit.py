@@ -14,6 +14,18 @@ RATE_LIMIT_RULES: dict[str, tuple[int, int]] = {
     "/api/auth/":       (20, 60),
     "/api/products/":   (60, 60),
     "/api/orders/":     (30, 60),
+    # /api/integration/* là traffic máy-đến-máy DUY NHẤT từ Ecommerce Backend
+    # (xác thực riêng qua X-API-Key, xem integration_auth.py — không phải
+    # traffic ẩn danh mà rate-limit IP vốn nhắm tới). Toàn bộ poll_events +
+    # pos_push + return_push + reconcile đều gọi từ CÙNG 1 IP nguồn (server
+    # Ecommerce Backend), nên dùng chung DEFAULT_LIMIT (100/60s, cỡ cho 1
+    # trình duyệt) là quá thấp: pos_push xử lý tới 50 đơn/lượt (mỗi đơn 1
+    # request riêng) mỗi 10s khi có đợt đơn dồn (flash sale) — 2 lượt liên
+    # tiếp đã chạm ngưỡng 100, lượt thứ 3 bị chính rate limiter này chặn 429
+    # NGAY LÚC hệ thống cần đồng bộ nhiều nhất. Đặt riêng ngưỡng cao hơn hẳn,
+    # không tắt hẳn rate limit (vẫn cần lưới an toàn nếu Ecommerce Backend có
+    # bug gây vòng lặp gọi dồn dập thật).
+    "/api/integration/": (600, 60),
 }
 DEFAULT_LIMIT  = 100
 DEFAULT_WINDOW = 60

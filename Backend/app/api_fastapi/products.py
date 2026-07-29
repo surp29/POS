@@ -15,6 +15,7 @@ from ..logger import log_info, log_success, log_error, log_warning
 from ..services.products import save_uploaded_file, validate_product_fields, get_or_create_product_group
 from ..services.general_diary import create_general_diary_entry
 from ..services.auth_helper import get_username_from_request
+from ..services.integration_events import emit_event, product_snapshot
 from ..cache import cache_get, cache_set, cache_delete_pattern
 from ..config import Config
 
@@ -134,6 +135,8 @@ async def create_product(
             mo_ta=description or '', image_url=image_url,
         )
         db.add(p)
+        db.flush()  # cần p.id trước khi emit event
+        emit_event(db, "product.created", "product", p.id, product_snapshot(p))
         db.commit()
         db.refresh(p)
 
@@ -202,6 +205,7 @@ async def update_product(
             p.image_url = image_url
 
     db.flush()
+    emit_event(db, "product.updated", "product", p.id, product_snapshot(p))
 
     try:
         create_general_diary_entry(
@@ -234,6 +238,7 @@ def delete_product(product_id: int, request: Request, db: Session = Depends(get_
 
     username = get_username_from_request(request)
     product_info = f"{p.ma_sp} - {p.ten_sp}"
+    deleted_id, deleted_sku = p.id, p.ma_sp
 
     try:
         db.query(OrderItem).filter(OrderItem.product_id == product_id).delete()
@@ -242,6 +247,7 @@ def delete_product(product_id: int, request: Request, db: Session = Depends(get_
 
     db.delete(p)
     db.flush()
+    emit_event(db, "product.deleted", "product", deleted_id, {"id": deleted_id, "sku": deleted_sku})
 
     try:
         create_general_diary_entry(

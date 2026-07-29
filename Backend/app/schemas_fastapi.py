@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date, datetime
 from decimal import Decimal
@@ -543,3 +543,92 @@ class ScheduleUpdate(BaseModel):
     work_date: Optional[date] = None
     shift_type: Optional[str] = None
     notes: Optional[str] = None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INTEGRATION (POS ↔ Ecommerce)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class IntegrationOrderItem(BaseModel):
+    sku: str            # khớp Product.ma_sp
+    quantity: int
+    unit_price: float
+
+
+class IntegrationCustomer(BaseModel):
+    name: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+
+class IntegrationOrderCreate(BaseModel):
+    # Bắt buộc — khóa idempotency. Ecommerce Backend gửi = số đơn hàng của chính nó
+    # (vd "ECOM-000123"). Gọi lại với cùng external_ref sẽ trả về đơn đã tạo trước đó,
+    # không tạo mới / không trừ kho lần 2.
+    external_ref: str
+    customer: IntegrationCustomer
+    items: list[IntegrationOrderItem]
+    total_amount: Optional[float] = None   # None = tự tính từ items
+    payment_method: Optional[str] = None   # 'cod' | 'momo'
+    note: Optional[str] = None
+
+
+class IntegrationOrderOut(BaseModel):
+    id: int
+    ma_don_hang: str
+    external_ref: Optional[str] = None
+    trang_thai: str
+    tong_tien: float
+    customer_id: Optional[int] = None
+    created: bool   # True nếu vừa tạo mới, False nếu trả về đơn đã tồn tại (idempotent replay)
+
+
+class IntegrationOrderItemOut(BaseModel):
+    sku: str
+    quantity: int
+    unit_price: float
+    total_price: float
+    returned_qty: int
+
+
+class IntegrationOrderDetailOut(BaseModel):
+    id: int
+    ma_don_hang: str
+    external_ref: Optional[str] = None
+    trang_thai: str
+    tong_tien: float
+    source: str
+    items: list[IntegrationOrderItemOut]
+
+
+class IntegrationEventOut(BaseModel):
+    id: int
+    event_type: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    payload: dict
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class IntegrationReturnItem(BaseModel):
+    sku: str
+    quantity: int = Field(gt=0)
+
+
+class IntegrationReturnCreate(BaseModel):
+    # Bắt buộc — khóa idempotency riêng cho lượt trả hàng (khác external_ref của
+    # đơn gốc, vì 1 đơn có thể có nhiều lượt trả hàng khác nhau theo thời gian).
+    return_ref: str
+    items: list[IntegrationReturnItem]
+
+
+class IntegrationReturnOut(BaseModel):
+    id: int
+    order_id: int
+    return_ref: str
+    refund_amount: float
+    created: bool  # True nếu vừa xử lý, False nếu trả về kết quả cũ (idempotent replay)
